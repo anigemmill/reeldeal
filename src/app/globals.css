@@ -1,26 +1,98 @@
 @import "tailwindcss";
+/* Single source of truth for design tokens. Never add raw colour values here. */
+@import "../../tokens/tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+  Tailwind v4 equivalent of tokens/tailwind.preset.ts (v3).
+  Every value references a --rd-* token, so utilities follow the active palette
+  and mode. `inline` makes utilities emit var(--rd-*) directly, which is what lets
+  a palette or mode class on an ancestor re-theme them.
+  Like the v3 preset (which used `extend`), Tailwind's default theme is kept.
+*/
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colours */
+  --color-electric: var(--rd-electric);
+  --color-bleu-ciel: var(--rd-bleu-ciel);
+  --color-sky: var(--rd-sky);
+  --color-sky-soft: var(--rd-sky-soft);
+  --color-ice: var(--rd-ice);
+  --color-ice-page: var(--rd-ice-page);
+  --color-charcoal: var(--rd-charcoal);
+  --color-orange: var(--rd-orange);
+  --color-orange-deep: var(--rd-orange-deep);
+
+  --color-bg: var(--rd-bg);
+  --color-surface: var(--rd-surface);
+  --color-surface-muted: var(--rd-surface-muted);
+  --color-line: var(--rd-line);
+  --color-line-strong: var(--rd-line-strong);
+  --color-ink: var(--rd-ink);
+  --color-ink-muted: var(--rd-ink-muted);
+  --color-ink-soft: var(--rd-ink-soft);
+  --color-ink-disabled: var(--rd-ink-disabled);
+  --color-tint: var(--rd-tint);
+  --color-focus: var(--rd-focus);
+
+  --color-dark-bg: var(--rd-dark-bg);
+  --color-dark-deep: var(--rd-dark-bg-deep);
+  --color-dark-surface: var(--rd-dark-surface);
+  --color-dark-surface2: var(--rd-dark-surface-2);
+  --color-dark-panel: var(--rd-dark-panel);
+  --color-dark-line: var(--rd-dark-line);
+  --color-dark-ink: var(--rd-dark-ink);
+  --color-dark-muted: var(--rd-dark-ink-muted);
+  --color-dark-soft: var(--rd-dark-ink-soft);
+
+  --color-primary: var(--rd-primary);
+  --color-primary-foreground: var(--rd-on-primary);
+  --color-action: var(--rd-action);
+  --color-action-foreground: var(--rd-on-action);
+
+  /* Fonts (font-display, font-sans, font-mono, font-accent) */
+  --font-display: var(--rd-font-display);
+  --font-sans: var(--rd-font-body);
+  --font-mono: var(--rd-font-mono);
+  --font-accent: var(--rd-font-accent);
+
+  /* Radius */
+  --radius-sm: var(--rd-radius-sm);
+  --radius-md: var(--rd-radius-md);
+  --radius-lg: var(--rd-radius-lg);
+  --radius-xl: var(--rd-radius-xl);
+  --radius-2xl: var(--rd-radius-2xl);
+  --radius-pill: var(--rd-radius-pill);
+
+  /* Shadow, width, tracking, easing */
+  --shadow-card: var(--rd-shadow-card);
+  --shadow-float: var(--rd-shadow-float);
+  --shadow-prompt: var(--rd-shadow-prompt);
+  --container-container: var(--rd-container);
+  --tracking-display: var(--rd-tracking-display);
+  --tracking-label: var(--rd-tracking-label);
+  --ease-brand: var(--rd-ease);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* v4 has no backgroundImage theme key; these keep the v3 class names. */
+@utility bg-grad-logo { background-image: var(--rd-grad-logo); }
+@utility bg-grad-wordmark { background-image: var(--rd-grad-wordmark); }
+@utility bg-grad-clear-sky { background-image: var(--rd-grad-clear-sky); }
+@utility bg-grad-blue { background-image: var(--rd-grad-blue); }
+@utility bg-grad-sky-spark { background-image: var(--rd-grad-sky-spark); }
+@utility bg-grad-ice { background-image: var(--rd-grad-ice); }
+@utility bg-glow-hero { background-image: var(--rd-glow-hero); }
+
+/* `studio:` variant for styles that apply inside Dark Studio mode. */
+@custom-variant studio (&:where(.mode-studio, .mode-studio *));
+
+@layer base {
+  body {
+    background-color: var(--rd-bg);
+    color: var(--rd-ink);
+    font-family: var(--rd-font-body);
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  :focus-visible {
+    outline: 2px solid var(--rd-focus);
+    outline-offset: 2px;
+  }
 }

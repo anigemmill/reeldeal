@@ -14,16 +14,25 @@
   --rd-orange: #FF5A00;            /* action + AI only, 5–10% of a screen */
   --rd-orange-deep: #C24400;
 
-  /* Light surfaces (website + light app) */
-  --rd-bg: var(--rd-white);
-  --rd-surface: var(--rd-white);
-  --rd-surface-muted: var(--rd-ice);
-  --rd-line: #DCE6F5;
-  --rd-line-strong: #C9DAF2;
-  --rd-ink: var(--rd-charcoal);
-  --rd-ink-muted: #4B5563;
-  --rd-ink-soft: #36415A;
-  --rd-ink-disabled: #9AA3B5;
+  /* Light surfaces (website + light app).
+     These are the Crossroads Blue Workspace set (--rd-ws-*). Components read the
+     semantic tokens (--rd-bg, --rd-ink, ...) which are mapped onto the active
+     mode in the THEMES section at the end of this file. */
+  --rd-ws-bg: var(--rd-white);
+  --rd-ws-surface: var(--rd-white);
+  --rd-ws-surface-muted: var(--rd-ice);
+  --rd-ws-line: #DCE6F5;
+  --rd-ws-line-strong: #C9DAF2;
+  --rd-ws-ink: var(--rd-charcoal);
+  --rd-ws-ink-muted: #4B5563;
+  --rd-ws-ink-soft: #36415A;
+  --rd-ws-ink-disabled: #9AA3B5;
+  --rd-ws-primary: var(--rd-electric);
+  --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: var(--rd-orange);
+  --rd-ws-on-action: var(--rd-charcoal);
+  --rd-ws-tint: var(--rd-sky-soft);
+  --rd-ws-focus: var(--rd-bleu-ciel);
 
   /* Dark surfaces (dark sections, Studio) */
   --rd-dark-bg: #1A1A1A;
@@ -36,12 +45,25 @@
   --rd-dark-ink-muted: #B8C2D9;
   --rd-dark-ink-soft: #7D879C;
 
-  /* Semantic */
-  --rd-primary: var(--rd-electric);
-  --rd-on-primary: #FFFFFF;
-  --rd-action: var(--rd-orange);
-  --rd-on-action: var(--rd-charcoal);
-  --rd-focus: var(--rd-bleu-ciel);
+  /* Crossroads Blue Studio set (--rd-st-*), built from the dark surfaces above.
+     Text tiers follow the Workspace order: ink > ink-soft > ink-muted > ink-disabled. */
+  --rd-st-bg: var(--rd-dark-bg);
+  --rd-st-surface: var(--rd-dark-surface);
+  --rd-st-surface-muted: var(--rd-dark-surface-2);
+  --rd-st-line: var(--rd-dark-line);
+  --rd-st-line-strong: color-mix(in srgb, var(--rd-dark-line), var(--rd-dark-ink) 12%);
+  --rd-st-ink: var(--rd-dark-ink);
+  --rd-st-ink-muted: var(--rd-dark-ink-muted);
+  --rd-st-ink-soft: color-mix(in srgb, var(--rd-dark-ink) 50%, var(--rd-dark-ink-muted));
+  --rd-st-ink-disabled: var(--rd-dark-ink-soft);
+  --rd-st-primary: var(--rd-electric);
+  --rd-st-on-primary: #FFFFFF;
+  --rd-st-action: var(--rd-orange);
+  --rd-st-on-action: var(--rd-charcoal);
+  --rd-st-tint: var(--rd-sky);
+  --rd-st-focus: var(--rd-sky);
+
+  /* Semantic tokens (--rd-bg, --rd-primary, ...) are declared in THEMES below. */
 
   /* Gradients */
   --rd-grad-logo: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);
@@ -53,10 +75,12 @@
   --rd-glow-hero: radial-gradient(closest-side, #8FC2FF 0%, #BFDBFF 35%, #EEF5FF 65%, rgba(255,255,255,0) 100%);
 
   /* Type */
-  --rd-font-display: "Space Grotesk", system-ui, sans-serif;
-  --rd-font-body: "Inter", system-ui, sans-serif;
-  --rd-font-mono: "Geist Mono", ui-monospace, monospace;
-  --rd-font-accent: "Instrument Serif", Georgia, serif; /* italic, 1–2 words per headline */
+  /* --font-* variables are set by next/font (src/app/fonts.ts) on <html>.
+     The quoted family names are the fallback when those variables are absent. */
+  --rd-font-display: var(--font-space-grotesk, "Space Grotesk"), system-ui, sans-serif;
+  --rd-font-body: var(--font-inter, "Inter"), system-ui, sans-serif;
+  --rd-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, monospace;
+  --rd-font-accent: var(--font-instrument-serif, "Instrument Serif"), Georgia, serif; /* italic, 1–2 words per headline */
 
   --rd-text-xs: 11px;
   --rd-text-sm: 13px;
@@ -99,4 +123,152 @@
 
 @media (prefers-reduced-motion: reduce) {
   :root { --rd-dur-fast: 0ms; --rd-dur: 0ms; --rd-dur-slow: 0ms; }
+}
+
+/* ==========================================================================
+   THEMES
+   Brand default: Crossroads Blue (the --rd-ws-* / --rd-st-* sets in :root).
+   User palettes: .palette-01 … .palette-06, the six palettes from the brief
+   (docs/original-brief.md §4). Values are from design/explorations/Appearance.dc.html.
+   Modes: .mode-workspace (light, default) and .mode-studio (dark).
+
+   6 palettes × 2 modes = 12 user theme combinations. Usage:
+     <html class="palette-03 mode-studio">   palette and mode on the same root
+     <section class="mode-studio">           a mode may also scope a subtree
+   Put the palette class on <html> (or the same element as the outermost mode
+   class) so the semantic mapping below resolves against the right set.
+   Brand colours (--rd-electric, --rd-orange, gradients, --rd-dark-*) are fixed
+   and do not change with the palette; theme-aware components use semantic tokens.
+   ========================================================================== */
+
+/* Mode mapping: semantic tokens -> active set. Workspace is the default. */
+:root,
+.mode-workspace,
+.palette-01, .palette-02, .palette-03, .palette-04, .palette-05, .palette-06 {
+  --rd-bg: var(--rd-ws-bg);
+  --rd-surface: var(--rd-ws-surface);
+  --rd-surface-muted: var(--rd-ws-surface-muted);
+  --rd-line: var(--rd-ws-line);
+  --rd-line-strong: var(--rd-ws-line-strong);
+  --rd-ink: var(--rd-ws-ink);
+  --rd-ink-muted: var(--rd-ws-ink-muted);
+  --rd-ink-soft: var(--rd-ws-ink-soft);
+  --rd-ink-disabled: var(--rd-ws-ink-disabled);
+  --rd-primary: var(--rd-ws-primary);
+  --rd-on-primary: var(--rd-ws-on-primary);
+  --rd-action: var(--rd-ws-action);
+  --rd-on-action: var(--rd-ws-on-action);
+  --rd-tint: var(--rd-ws-tint);
+  --rd-focus: var(--rd-ws-focus);
+  color-scheme: light;
+}
+
+/* Must come after the block above so .palette-0X.mode-studio resolves to Studio. */
+.mode-studio {
+  --rd-bg: var(--rd-st-bg);
+  --rd-surface: var(--rd-st-surface);
+  --rd-surface-muted: var(--rd-st-surface-muted);
+  --rd-line: var(--rd-st-line);
+  --rd-line-strong: var(--rd-st-line-strong);
+  --rd-ink: var(--rd-st-ink);
+  --rd-ink-muted: var(--rd-st-ink-muted);
+  --rd-ink-soft: var(--rd-st-ink-soft);
+  --rd-ink-disabled: var(--rd-st-ink-disabled);
+  --rd-primary: var(--rd-st-primary);
+  --rd-on-primary: var(--rd-st-on-primary);
+  --rd-action: var(--rd-st-action);
+  --rd-on-action: var(--rd-st-on-action);
+  --rd-tint: var(--rd-st-tint);
+  --rd-focus: var(--rd-st-focus);
+  color-scheme: dark;
+}
+
+/* Tiers the brief's palettes do not specify, derived from each palette's own values. */
+.palette-01, .palette-02, .palette-03, .palette-04, .palette-05, .palette-06 {
+  --rd-ws-line-strong: color-mix(in srgb, var(--rd-ws-line), var(--rd-ws-ink) 12%);
+  --rd-ws-ink-soft: color-mix(in srgb, var(--rd-ws-ink) 50%, var(--rd-ws-ink-muted));
+  --rd-ws-ink-disabled: color-mix(in srgb, var(--rd-ws-ink-muted) 55%, var(--rd-ws-bg));
+  --rd-ws-focus: var(--rd-ws-primary);
+  --rd-st-line-strong: color-mix(in srgb, var(--rd-st-line), var(--rd-st-ink) 12%);
+  --rd-st-ink-soft: color-mix(in srgb, var(--rd-st-ink) 50%, var(--rd-st-ink-muted));
+  --rd-st-ink-disabled: color-mix(in srgb, var(--rd-st-ink-muted) 55%, var(--rd-st-bg));
+  --rd-st-focus: var(--rd-st-primary);
+}
+
+/* Palette 01 — Cream / Blue / Orange */
+.palette-01 {
+  --rd-ws-bg: #F6EFE7; --rd-ws-surface: #FFFFFF; --rd-ws-surface-muted: #EFE4D8;
+  --rd-ws-ink: #1E2533; --rd-ws-ink-muted: #5A6275; --rd-ws-line: #E2D6C9;
+  --rd-ws-primary: #F4721E; --rd-ws-on-primary: #1E2533;
+  --rd-ws-action: #4D6080; --rd-ws-on-action: #FFFFFF; --rd-ws-tint: #E9D9CA;
+
+  --rd-st-bg: #12151C; --rd-st-surface: #1B202B; --rd-st-surface-muted: #252B38;
+  --rd-st-ink: #F3ECE4; --rd-st-ink-muted: #A5ADBD; --rd-st-line: #2E3546;
+  --rd-st-primary: #F4721E; --rd-st-on-primary: #1E2533;
+  --rd-st-action: #8FA3C6; --rd-st-on-action: #12151C; --rd-st-tint: #E9D9CA;
+}
+
+/* Palette 02 — June Bud / Orange / Dark Blue */
+.palette-02 {
+  --rd-ws-bg: #F7F3E9; --rd-ws-surface: #FFFFFF; --rd-ws-surface-muted: #EFE7D4;
+  --rd-ws-ink: #12063F; --rd-ws-ink-muted: #574F70; --rd-ws-line: #E5DCC6;
+  --rd-ws-primary: #1A0088; --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: #FF5832; --rd-ws-on-action: #12063F; --rd-ws-tint: #B4D34F;
+
+  --rd-st-bg: #0D0726; --rd-st-surface: #170E3A; --rd-st-surface-muted: #22184D;
+  --rd-st-ink: #F4EFE2; --rd-st-ink-muted: #ABA4C4; --rd-st-line: #2E2459;
+  --rd-st-primary: #B4D34F; --rd-st-on-primary: #12063F;
+  --rd-st-action: #FF5832; --rd-st-on-action: #0D0726; --rd-st-tint: #B4D34F;
+}
+
+/* Palette 03 — Tangerine / Pistachio / Retro Green */
+.palette-03 {
+  --rd-ws-bg: #F4F3E4; --rd-ws-surface: #FFFFFF; --rd-ws-surface-muted: #E9E8CA;
+  --rd-ws-ink: #0F2A1B; --rd-ws-ink-muted: #4F5E54; --rd-ws-line: #DEDDBF;
+  --rd-ws-primary: #006732; --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: #FE7A25; --rd-ws-on-action: #0F2A1B; --rd-ws-tint: #E9E8CA;
+
+  --rd-st-bg: #0B140F; --rd-st-surface: #121F18; --rd-st-surface-muted: #1A2B21;
+  --rd-st-ink: #EEEDD6; --rd-st-ink-muted: #A3AE9F; --rd-st-line: #24382C;
+  --rd-st-primary: #FE7A25; --rd-st-on-primary: #0B140F;
+  --rd-st-action: #3FA36B; --rd-st-on-action: #0B140F; --rd-st-tint: #E9E8CA;
+}
+
+/* Palette 04 — Altitude */
+.palette-04 {
+  --rd-ws-bg: #F8F1F5; --rd-ws-surface: #FFFFFF; --rd-ws-surface-muted: #F2E6EE;
+  --rd-ws-ink: #0B0838; --rd-ws-ink-muted: #57546F; --rd-ws-line: #E6D8E1;
+  --rd-ws-primary: #0033FF; --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: #977DFF; --rd-ws-on-action: #0B0838; --rd-ws-tint: #F2E6EE;
+
+  --rd-st-bg: #08072B; --rd-st-surface: #100E3D; --rd-st-surface-muted: #1A1752;
+  --rd-st-ink: #F2E6EE; --rd-st-ink-muted: #ACA6CC; --rd-st-line: #26236A;
+  --rd-st-primary: #977DFF; --rd-st-on-primary: #08072B;
+  --rd-st-action: #5C7BFF; --rd-st-on-action: #08072B; --rd-st-tint: #F2E6EE;
+}
+
+/* Palette 05 — Electric Blue / Orange / Charcoal (original brief values, beige included) */
+.palette-05 {
+  --rd-ws-bg: #FFF6EF; --rd-ws-surface: #FFFFFF; --rd-ws-surface-muted: #FFE4D0;
+  --rd-ws-ink: #191919; --rd-ws-ink-muted: #5C5C5C; --rd-ws-line: #F0DCCB;
+  --rd-ws-primary: #2636F5; --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: #FF5A00; --rd-ws-on-action: #191919; --rd-ws-tint: #FFE4D0;
+
+  --rd-st-bg: #191919; --rd-st-surface: #222222; --rd-st-surface-muted: #2C2C2C;
+  --rd-st-ink: #F5F0EC; --rd-st-ink-muted: #A8A8A8; --rd-st-line: #363636;
+  --rd-st-primary: #FF5A00; --rd-st-on-primary: #191919;
+  --rd-st-action: #087BFF; --rd-st-on-action: #0B0B0B; --rd-st-tint: #FFE4D0;
+}
+
+/* Palette 06 — Fold / Bone White / Blue */
+.palette-06 {
+  --rd-ws-bg: #F5F5F5; --rd-ws-surface: #FFFFFF; --rd-ws-surface-muted: #ECECEC;
+  --rd-ws-ink: #141414; --rd-ws-ink-muted: #5E5E5E; --rd-ws-line: #E3E3E3;
+  --rd-ws-primary: #2860FF; --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: #FF6500; --rd-ws-on-action: #141414; --rd-ws-tint: #F7B34B;
+
+  --rd-st-bg: #101114; --rd-st-surface: #18191D; --rd-st-surface-muted: #222328;
+  --rd-st-ink: #F5F5F5; --rd-st-ink-muted: #A3A3A8; --rd-st-line: #2E2F35;
+  --rd-st-primary: #F7B34B; --rd-st-on-primary: #141414;
+  --rd-st-action: #5A85FF; --rd-st-on-action: #101114; --rd-st-tint: #F7B34B;
 }
