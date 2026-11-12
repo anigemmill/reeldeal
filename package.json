@@ -12,7 +12,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "check": "npm run validate:pricing && npm run check:tokens && npm run typecheck && npm run lint && npm run test",
-    "check:tokens": "tsx scripts/check-tokens.ts"
+    "check:tokens": "tsx scripts/check-tokens.ts",
+    "test:a11y": "tsx scripts/a11y.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -30,8 +31,10 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.14.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "playwright": "^1.63.0",
     "tailwindcss": "4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5",

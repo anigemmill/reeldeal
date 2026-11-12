@@ -36,7 +36,7 @@ export function HowItWorks() {
           <h2 id="how-title" className="font-display text-[clamp(44px,5.4vw,80px)] leading-[0.95] font-semibold tracking-[-0.045em]">
             From folder <Accent underline>to feed.</Accent>
           </h2>
-          <p className="max-w-[360px] text-[17px] leading-relaxed text-primary-foreground/85">
+          <p className="max-w-[360px] text-[17px] leading-relaxed text-primary-foreground">
             Six steps, and the AI does most of them. You stay in charge of the bits that matter: the brief and the final yes.
           </p>
         </div>
@@ -52,13 +52,14 @@ export function HowItWorks() {
                   <span
                     className={cn(
                       "rounded-pill px-2 py-1 font-mono text-[11px]",
-                      s.who.includes("AI") ? "bg-ai text-ai-foreground" : "bg-primary-foreground/15 text-primary-foreground",
+                      // Outlined on the primary colour: on-primary/primary is contrast-tested for every palette.
+                      s.who.includes("AI") ? "bg-ai text-ai-foreground" : "border border-primary-foreground/70 text-primary-foreground",
                     )}
                   >
                     {s.who}
                   </span>
                 </div>
-                <p className="mt-2.5 text-[15px] leading-normal text-primary-foreground/90">{s.text}</p>
+                <p className="mt-2.5 text-[15px] leading-normal text-primary-foreground">{s.text}</p>
               </div>
             </li>
           ))}
