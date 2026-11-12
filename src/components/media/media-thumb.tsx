@@ -19,6 +19,7 @@ export function MediaThumb({
   processing,
   selected,
   showTag = true,
+  showDuration = true,
   className,
   ...props
 }: {
@@ -29,6 +30,7 @@ export function MediaThumb({
   processing?: ProcessingState;
   selected?: boolean;
   showTag?: boolean;
+  showDuration?: boolean;
 } & ComponentProps<"div">) {
   const isPlaceholder = !asset.src;
   return (
@@ -53,7 +55,7 @@ export function MediaThumb({
           {score}
         </span>
       )}
-      {asset.kind === "video" && asset.duration !== undefined && !processing && (
+      {showDuration && asset.kind === "video" && asset.duration !== undefined && !processing && (
         <span className="absolute right-2 bottom-2 inline-flex h-6 items-center gap-1 rounded-pill bg-media-veil/55 px-2 font-mono text-[11px] text-on-media backdrop-blur-sm">
           <Play className="size-3 fill-current" aria-hidden />
           <span className="sr-only">Duration</span>

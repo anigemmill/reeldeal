@@ -105,3 +105,22 @@ controls reach 3:1; `scrim` is ink at 55% (Workspace) or the dark background at 
   (placeholder artwork; black/white overlays on top of imagery, which must not change with the theme).
 - Links to pages not built yet (website pages, Library, Projects…) are left as real links in the marketing
   nav (Phase 2 pages) but shown as "Soon" and not linked in the app sidebar.
+
+## Checkpoint 1 review (owner)
+- Status colours provisionally approved; keep them semantically consistent across palettes and modes.
+- Keep the illustrated placeholder scenes for now; screens follow a premium, cinematic, photography-led direction
+  so real photography and footage can replace the placeholders later.
+- All three typography options stay available until reviewed on the real screens.
+
+## Checkpoint 2
+- **Homepage** rebuilt from `W-Home.dc.html` as written (kinetic, orbit and testimonial stay off Home, per the
+  owner's canvas edits). Pricing teaser reads `config/pricing.json`; GST wording stays bracketed.
+- **Dashboard** (new design): Autopilot (full-bleed cinematic card with the brief box) and Studio (dark editor
+  preview resuming the latest project) lead the page. Below: recent projects strip, then footage processing with
+  AI-picked best moments, and recent exports. Usage is a slim strip in the header because the sidebar already
+  carries the meters. The brief box is a real GET form to `/autopilot?brief=…` (screen arrives at Checkpoint 3);
+  upload and "all projects/exports" are shown as "soon", not as working controls.
+- **Over-image tokens** `on-media` (white) and `media-veil` (near-black): text, chips and shading on top of photos
+  and video are the same in every theme, because the picture does not change with the theme.
+- Both screens can be reviewed in any palette, mode and type at `/design-system/screens/home` and
+  `/design-system/screens/dashboard`. The live homepage stays Crossroads Blue.

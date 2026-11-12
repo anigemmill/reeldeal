@@ -19,6 +19,8 @@ const SECTIONS = [
   { href: "/design-system/themes", label: "Themes" },
   { href: "/design-system/type", label: "Typography" },
   { href: "/design-system/contrast", label: "Contrast" },
+  { href: "/design-system/screens/home", label: "Homepage" },
+  { href: "/design-system/screens/dashboard", label: "Dashboard" },
 ];
 
 export function ReviewToolbar() {
