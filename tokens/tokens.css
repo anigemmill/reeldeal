@@ -30,6 +30,11 @@
 
   /* Theme sets (--rd-ws-*, --rd-st-*) and semantic tokens are declared in THEMES below. */
 
+  /* Over imagery. Text, chips and shading on top of photos and video stay the same in
+     every theme, because the picture underneath does not change with the theme. */
+  --rd-on-media: #FFFFFF;
+  --rd-media-veil: #0B0B0B;
+
   /* Gradients */
   --rd-grad-logo: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);
   --rd-grad-wordmark: linear-gradient(90deg, #007BFF 0%, #8FC2FF 12%, #FFE6D0 26%, #FF5A00 46%, #C8402E 58%, #6A3AA8 70%, #2038E2 82%, #1A1A1A 100%);

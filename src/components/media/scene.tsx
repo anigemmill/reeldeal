@@ -364,14 +364,14 @@ export function Scene({ variant, label, className }: { variant: SceneVariant; la
       {s.steam && (
         <div aria-hidden className="absolute inset-0">
           {[
-            [34, 40, 22, 44],
-            [50, 30, 18, 56],
-            [62, 50, 14, 34],
+            [36, 40, 12, 40],
+            [49, 30, 10, 52],
+            [60, 46, 9, 34],
           ].map(([l, t, w, h]) => (
             <span
               key={l}
               className="absolute rounded-full bg-white blur-2xl"
-              style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%`, opacity: 0.75 }}
+              style={{ left: `${l}%`, top: `${t}%`, width: `${w}%`, height: `${h}%`, opacity: 0.5 }}
             />
           ))}
         </div>

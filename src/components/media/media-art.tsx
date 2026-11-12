@@ -21,7 +21,7 @@ export function PlaceholderTag({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "pointer-events-none absolute top-2 left-2 rounded-pill bg-black/45 px-2 py-0.5 font-mono text-[10px] tracking-wide text-white uppercase backdrop-blur-sm",
+        "pointer-events-none absolute top-2 left-2 rounded-pill bg-media-veil/45 px-2 py-0.5 font-mono text-[10px] tracking-wide text-on-media uppercase backdrop-blur-sm",
         className,
       )}
     >
