@@ -21,6 +21,8 @@ const SECTIONS = [
   { href: "/design-system/contrast", label: "Contrast" },
   { href: "/design-system/screens/home", label: "Homepage" },
   { href: "/design-system/screens/dashboard", label: "Dashboard" },
+  { href: "/design-system/screens/autopilot", label: "Autopilot" },
+  { href: "/design-system/screens/studio", label: "Studio" },
 ];
 
 export function ReviewToolbar() {
