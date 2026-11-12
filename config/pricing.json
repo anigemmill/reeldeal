@@ -1,0 +1,97 @@
+{
+  "_note": "Master pricing (NZD/month). Source: docs/pricing-source.md. Keep configurable; validate margins before launch. GST inclusive/exclusive not yet confirmed.",
+  "currency": "NZD",
+  "gstIncluded": null,
+  "annualDiscount": { "monthsFree": 2 },
+  "recommendedPlan": "creator",
+  "plans": [
+    {
+      "id": "free", "name": "Free", "priceMonthly": 0, "priceAnnual": 0,
+      "tagline": "For people wanting to try the platform.",
+      "videoCredits": { "amount": 2, "period": "once" },
+      "storageGB": 5, "analysisMinutes": 30, "brandProfiles": 1, "users": 1,
+      "features": ["Basic templates", "Watermarked exports"]
+    },
+    {
+      "id": "starter", "name": "Starter", "priceMonthly": 49, "priceAnnual": 490,
+      "tagline": "For small businesses and independent operators.",
+      "videoCredits": { "amount": 5, "period": "month" },
+      "storageGB": 100, "analysisMinutes": 120, "brandProfiles": 1, "users": 1,
+      "features": ["Autopilot", "Basic Studio editing", "Standard templates", "1080p watermark-free exports"]
+    },
+    {
+      "id": "creator", "name": "Creator", "priceMonthly": 119, "priceAnnual": 1190,
+      "tagline": "For businesses regularly producing social content.",
+      "videoCredits": { "amount": 20, "period": "month" },
+      "storageGB": 500, "analysisMinutes": 600, "brandProfiles": 3, "users": 2,
+      "features": ["Full Autopilot and Studio", "Conversational editing", "Batch video production", "Custom templates", "Multilingual captions", "1080p exports"]
+    },
+    {
+      "id": "business", "name": "Business", "priceMonthly": 249, "priceAnnual": 2490,
+      "tagline": "For marketing teams and established businesses.",
+      "videoCredits": { "amount": 60, "period": "month" },
+      "storageGB": 2000, "analysisMinutes": 1800, "brandProfiles": 10, "users": 5,
+      "features": ["Advanced brand intelligence", "Advanced editing and colour tools", "Paid advertising variations", "Multilingual voiceovers and captions", "Team collaboration and approvals", "4K export allowance", "Priority processing"]
+    },
+    {
+      "id": "agency", "name": "Agency", "priceMonthly": 499, "priceAnnual": 4990,
+      "tagline": "For agencies, multi-brand operators and production teams.",
+      "videoCredits": { "amount": 150, "period": "month" },
+      "storageGB": 5000, "analysisMinutes": 4500, "brandProfiles": 25, "users": 10,
+      "features": ["Client workspaces", "Shared media libraries", "Custom branded templates", "Batch campaign production", "Advanced approval workflows", "4K export allowance", "Priority support"]
+    },
+    {
+      "id": "enterprise", "name": "Enterprise", "priceMonthly": null, "priceAnnual": null,
+      "tagline": "For large organisations and multi-site businesses.",
+      "videoCredits": { "amount": null, "period": "month" },
+      "features": ["Custom video allowances", "Custom storage and processing", "Flexible brands and users", "Advanced permissions and governance", "API and integrations", "Dedicated onboarding", "Custom support arrangements", "Service-level agreements"]
+    }
+  ],
+  "comparison": {
+    "columns": ["free", "starter", "creator", "business", "agency"],
+    "rows": [
+      ["AI media search", "Limited", "Yes", "Yes", "Advanced", "Advanced"],
+      ["Autopilot", "Trial", "Yes", "Yes", "Yes", "Yes"],
+      ["Studio", "Preview", "Basic", "Full", "Advanced", "Advanced"],
+      ["Conversational editing", "Trial", "Basic", "Yes", "Yes", "Yes"],
+      ["Batch production", "No", "Limited", "Yes", "Yes", "Yes"],
+      ["Custom templates", "No", "No", "5", "Yes", "Yes"],
+      ["Multilingual captions", "No", "Basic", "Yes", "Yes", "Yes"],
+      ["AI voiceovers", "No", "No", "Optional credits", "Yes", "Yes"],
+      ["Paid ad variations", "No", "No", "Limited", "Yes", "Yes"],
+      ["Advanced colour tools", "No", "No", "Basic", "Yes", "Yes"],
+      ["4K exports", "No", "No", "No", "Allowance", "Allowance"],
+      ["Team approvals", "No", "No", "Basic", "Yes", "Advanced"],
+      ["Client workspaces", "No", "No", "No", "Limited", "Yes"],
+      ["Priority processing", "No", "No", "No", "Yes", "Yes"],
+      ["Priority support", "No", "No", "No", "No", "Yes"]
+    ]
+  },
+  "creditCosts": [
+    { "activity": "Standard video up to 60 seconds", "credits": 1 },
+    { "activity": "Video 61–120 seconds", "credits": 2 },
+    { "activity": "Video 2–5 minutes", "credits": 3 },
+    { "activity": "Additional creative variation", "credits": 1 },
+    { "activity": "Separate aspect-ratio output", "credits": 1 },
+    { "activity": "Minor revision (up to 3)", "credits": 0, "label": "Included" },
+    { "activity": "Storyboard preview", "credits": 0, "label": "Free" },
+    { "activity": "Failed platform render", "credits": 0, "label": "Free" }
+  ],
+  "standardVideoIncludes": ["1080p resolution", "One aspect ratio", "AI footage selection and editing", "Brand styling", "Standard captions", "Music and audio treatment", "Initial render", "Up to three minor revisions"],
+  "addOns": {
+    "credits": [ { "amount": 5, "price": 29 }, { "amount": 15, "price": 69 }, { "amount": 30, "price": 119 } ],
+    "creditsExpiryDays": 90,
+    "storage": [ { "gb": 100, "priceMonthly": 12 }, { "gb": 500, "priceMonthly": 45 }, { "gb": 1000, "priceMonthly": 80 }, { "gb": 5000, "priceMonthly": null } ]
+  },
+  "wallets": [
+    { "id": "video", "covers": "Finished video outputs", "rolloverCycles": 1 },
+    { "id": "analysis", "covers": "New footage analysis and indexing", "rolloverCycles": 0 },
+    { "id": "ai_generation", "covers": "Synthetic video, imagery and premium AI services", "rolloverCycles": 1 }
+  ],
+  "rollover": {
+    "maxRollover": "one month's standard allocation",
+    "consumeOldestFirst": true,
+    "annualAllowancesMonthly": true
+  },
+  "storageExclusions": ["Temporary proxies", "Intermediate renders"]
+}

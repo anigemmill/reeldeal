@@ -1,0 +1,102 @@
+/* Reeldeal — Crossroads Blue design tokens
+   Import once in the global stylesheet. Components use these variables, never raw hex. */
+
+:root {
+  /* Brand colours */
+  --rd-electric: #2038E2;
+  --rd-bleu-ciel: #007BFF;
+  --rd-sky: #8FC2FF;
+  --rd-sky-soft: #DDEBFF;
+  --rd-ice: #EEF5FF;
+  --rd-ice-page: #F5F8FF;
+  --rd-white: #FFFFFF;
+  --rd-charcoal: #1A1A1A;
+  --rd-orange: #FF5A00;            /* action + AI only, 5–10% of a screen */
+  --rd-orange-deep: #C24400;
+
+  /* Light surfaces (website + light app) */
+  --rd-bg: var(--rd-white);
+  --rd-surface: var(--rd-white);
+  --rd-surface-muted: var(--rd-ice);
+  --rd-line: #DCE6F5;
+  --rd-line-strong: #C9DAF2;
+  --rd-ink: var(--rd-charcoal);
+  --rd-ink-muted: #4B5563;
+  --rd-ink-soft: #36415A;
+  --rd-ink-disabled: #9AA3B5;
+
+  /* Dark surfaces (dark sections, Studio) */
+  --rd-dark-bg: #1A1A1A;
+  --rd-dark-bg-deep: #141414;
+  --rd-dark-surface: #232323;
+  --rd-dark-surface-2: #2D2D2D;
+  --rd-dark-panel: #1E1E1E;
+  --rd-dark-line: #33394A;
+  --rd-dark-ink: #F5F8FF;
+  --rd-dark-ink-muted: #B8C2D9;
+  --rd-dark-ink-soft: #7D879C;
+
+  /* Semantic */
+  --rd-primary: var(--rd-electric);
+  --rd-on-primary: #FFFFFF;
+  --rd-action: var(--rd-orange);
+  --rd-on-action: var(--rd-charcoal);
+  --rd-focus: var(--rd-bleu-ciel);
+
+  /* Gradients */
+  --rd-grad-logo: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);
+  --rd-grad-wordmark: linear-gradient(90deg, #007BFF 0%, #8FC2FF 12%, #FFE6D0 26%, #FF5A00 46%, #C8402E 58%, #6A3AA8 70%, #2038E2 82%, #1A1A1A 100%);
+  --rd-grad-clear-sky: linear-gradient(90deg, #FFFFFF 0%, #DDEBFF 20%, #8FC2FF 42%, #007BFF 66%, #2038E2 88%, #1A1A1A 100%);
+  --rd-grad-blue: linear-gradient(135deg, #DDEBFF, #8FC2FF 30%, #007BFF 60%, #2038E2);
+  --rd-grad-sky-spark: linear-gradient(90deg, #8FC2FF 0%, #007BFF 30%, #2038E2 62%, #FF5A00 88%, #C24400 100%);
+  --rd-grad-ice: linear-gradient(90deg, #FFFFFF 0%, #EEF5FF 35%, #CFE3FF 70%, #8FC2FF 100%);
+  --rd-glow-hero: radial-gradient(closest-side, #8FC2FF 0%, #BFDBFF 35%, #EEF5FF 65%, rgba(255,255,255,0) 100%);
+
+  /* Type */
+  --rd-font-display: "Space Grotesk", system-ui, sans-serif;
+  --rd-font-body: "Inter", system-ui, sans-serif;
+  --rd-font-mono: "Geist Mono", ui-monospace, monospace;
+  --rd-font-accent: "Instrument Serif", Georgia, serif; /* italic, 1–2 words per headline */
+
+  --rd-text-xs: 11px;
+  --rd-text-sm: 13px;
+  --rd-text-base: 15px;
+  --rd-text-lg: 18px;
+  --rd-text-xl: 22px;
+  --rd-text-2xl: 32px;
+  --rd-display-sm: clamp(36px, 4vw, 56px);
+  --rd-display-md: clamp(40px, 5vw, 72px);
+  --rd-display-lg: clamp(44px, 6vw, 88px);
+  --rd-display-xl: clamp(56px, 9vw, 148px);
+  --rd-tracking-display: -0.04em;
+  --rd-tracking-label: 0.12em;
+
+  /* Radius */
+  --rd-radius-sm: 8px;
+  --rd-radius-md: 12px;
+  --rd-radius-lg: 16px;
+  --rd-radius-xl: 24px;
+  --rd-radius-2xl: 28px;
+  --rd-radius-pill: 999px;
+
+  /* Spacing (4px base) */
+  --rd-space-1: 4px;  --rd-space-2: 8px;  --rd-space-3: 12px; --rd-space-4: 16px;
+  --rd-space-5: 20px; --rd-space-6: 24px; --rd-space-8: 32px; --rd-space-10: 40px;
+  --rd-space-14: 56px; --rd-space-20: 80px; --rd-space-28: 112px; --rd-space-30: 120px;
+  --rd-container: 1360px;
+
+  /* Shadow */
+  --rd-shadow-card: 0 10px 30px rgba(32, 56, 226, 0.10);
+  --rd-shadow-float: 0 24px 60px rgba(26, 26, 26, 0.25);
+  --rd-shadow-prompt: 0 18px 50px rgba(32, 56, 226, 0.14);
+
+  /* Motion */
+  --rd-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --rd-dur-fast: 150ms;
+  --rd-dur: 250ms;
+  --rd-dur-slow: 600ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --rd-dur-fast: 0ms; --rd-dur: 0ms; --rd-dur-slow: 0ms; }
+}

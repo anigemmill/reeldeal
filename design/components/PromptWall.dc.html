@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prompt wall</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes mqUp{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes mqDown{from{transform:translateY(-50%)}to{transform:translateY(0)}}
+@keyframes caret{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<section style="font-family: 'Inter', sans-serif; background: #1A1A1A; color: #F5F8FF; overflow: hidden;">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 48px;">
+    <div style="flex: 1 1 360px; min-width: 0; padding: 96px 0;">
+      <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #B8C2D9;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>ONE LINE IN. FINISHED VIDEO OUT.</p>
+      <h2 style="margin: 0 0 22px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(44px, 5.2vw, 76px); line-height: 0.96; letter-spacing: -0.04em; font-weight: 600;">Type it.<br><span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; text-decoration: underline; text-decoration-color: #FF5A00; text-decoration-thickness: 0.07em; text-underline-offset: 0.14em;">Watch it happen.</span></h2>
+      <p style="margin: 0 0 32px; max-width: 420px; font-size: 18px; line-height: 1.55; color: #B8C2D9;">Every card started as one sentence and a folder of raw clips. The AI found the shots, cut the edit and applied the brand.</p>
+      <a href="W-Auth.dc.html" style="display: inline-block; padding: 15px 24px; border-radius: 999px; background: #FF5A00; color: #1A1A1A; font-weight: 600; text-decoration: none;">Try a prompt</a>
+    </div>
+    <div style="flex: 1.4 1 560px; min-width: 0; position: relative; height: 760px;">
+      <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;" aria-hidden="true">
+        <sc-for list="{{wall}}" as="col" hint-placeholder-count="4">
+          <div style="overflow: hidden; height: 760px;">
+            <div class="mv" style="display: flex; flex-direction: column; gap: 16px; animation: {{col.anim}};">
+              <sc-for list="{{col.cards}}" as="cd">
+                <div style="position: relative; height: 230px; border-radius: 14px; overflow: hidden; background: {{cd.bg}}; flex: none;">
+                  <sc-if value="{{cd.scene}}" hint-placeholder-val="{{true}}"><dc-import name="Scene" variant="{{cd.v}}" hint-size="100%,100%"></dc-import></sc-if>
+                  <sc-if value="{{cd.word}}" hint-placeholder-val="{{false}}"><span style="position: absolute; left: 14px; top: 10px; font-family: {{cd.font}}; font-style: {{cd.style}}; font-weight: 600; font-size: 64px; line-height: 0.9; letter-spacing: -0.04em; color: {{cd.fg}};">{{cd.w}}</span></sc-if>
+                  <span style="position: absolute; left: 10px; right: 10px; top: 46%; display: flex; align-items: center; gap: 6px; padding: 5px 5px 5px 10px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-size: 10px;"><span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{cd.p}}</span><span style="width: 16px; height: 16px; border-radius: 50%; background: #FF5A00; flex: none;"></span></span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="position: absolute; left: 50%; top: 50%; width: 340px; height: 450px; margin: -225px 0 0 -170px; border-radius: 22px; overflow: hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.6);">
+        <dc-import name="Scene" variant="{{feat}}" hint-size="100%,100%"></dc-import>
+        <div style="position: absolute; left: 18px; right: 18px; top: 46%; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 18px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-size: 16px;">
+          <span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden;">{{typed}}<span class="mv" style="display: inline-block; width: 2px; height: 18px; margin-left: 2px; vertical-align: -3px; background: #FF5A00; animation: caret 1s steps(1) infinite;"></span></span>
+          <span style="flex: none; width: 36px; height: 36px; border-radius: 50%; background: #FF5A00; color: #1A1A1A; display: flex; align-items: center; justify-content: center;" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><polyline points="6 11 12 5 18 11"></polyline></svg></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const PH=[{ p: 'Wedding venue tour, 45 seconds', v: 'dawn' },{ p: 'Weekend specials for Instagram', v: 'night' },{ p: 'Meet our guides', v: 'forest' },{ p: 'Hot pools at golden hour', v: 'geyser' }];
+const PROMPTS=['Weekend specials','Meet the team','New season menu','Group bookings','Sunset cruise teaser','Thank our guests','Rainy day ideas','Staff picks','Launch the trail','Last-minute deals','Wedding venue tour','Family pass promo'];
+const WORDS=['Go.','Book','now','Reel','Hey!','wow'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { pi: 0, ci: 0, hold: 0 }; }
+  componentDidMount(){
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (reduce) { this.setState({ ci: 99 }); return; }
+    this.timer = setInterval(() => {
+      let { pi, ci, hold } = this.state; const len = PH[pi].p.length;
+      if (ci < len) ci += 1; else if (hold < 30) hold += 1; else { pi = (pi + 1) % PH.length; ci = 0; hold = 0; }
+      this.setState({ pi, ci, hold });
+    }, 70);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  renderVals() {
+    const variants = ['lake', 'dawn', 'forest', 'geyser', 'coast', 'night'];
+    const fills = ['#8FC2FF', '#EEF5FF', '#2038E2', '#007BFF', '#2D2D2D', 'linear-gradient(135deg, #DDEBFF, #8FC2FF 30%, #007BFF 60%, #2038E2)'];
+    const inks = ['#1A1A1A', '#1A1A1A', '#FFFFFF', '#1A1A1A', '#F5F8FF', '#1A1A1A'];
+    const col = (ci) => {
+      const cards = [];
+      for (let k = 0; k < 5; k++) {
+        const n = ci * 5 + k, isWord = (n % 3) === 1;
+        cards.push({ scene: !isWord, word: isWord, v: variants[n % 6], w: WORDS[n % WORDS.length], bg: isWord ? fills[n % fills.length] : '#232323', fg: inks[n % inks.length], font: n % 2 ? "'Instrument Serif', serif" : "'Space Grotesk', sans-serif", style: n % 2 ? 'italic' : 'normal', p: PROMPTS[n % PROMPTS.length] });
+      }
+      return cards.concat(cards);
+    };
+    const anims = ['mqUp 38s linear infinite', 'mqDown 46s linear infinite', 'mqUp 52s linear infinite', 'mqDown 34s linear infinite'];
+    const s = this.state;
+    return { wall: [0, 1, 2, 3].map((i) => ({ anim: anims[i], cards: col(i) })), typed: PH[s.pi].p.slice(0, s.ci), feat: PH[s.pi].v };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Render and export</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #F5F8FF; color: #1A1A1A; min-height: 1000px; display: flex; flex-wrap: wrap; font-size: 14px;">
+  <div style="flex: none;"><dc-import name="AppNav" active="Exports" hint-size="248px,1000px"></dc-import></div>
+  <main style="flex: 999 1 640px; min-width: 0; padding: 24px 28px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 18px; align-content: flex-start;">
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 18px;">
+      <header>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.03em; font-weight: 600;">Renders and exports</h1>
+        <p style="margin: 6px 0 0; color: #4B5563;">Final videos are rendered in the cloud. You can close this page and we’ll let you know when they’re ready.</p>
+      </header>
+
+      <section aria-label="Rendering now" style="border-radius: 20px; background: #1A1A1A; color: #F5F8FF; padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+        <div style="position: relative; width: 120px; height: 213px; border-radius: 14px; overflow: hidden; flex: none;">
+          <dc-import name="Scene" variant="coast" hint-size="100%,100%"></dc-import>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: {{veil}}; background: rgba(26,26,26,0.6);"></div>
+        </div>
+        <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #B8C2D9;"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{dot}};"></span>{{state}}</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600;">Summer bookings reel · v3</div>
+          <div style="color: #B8C2D9;">9:16 · 1080p · 30s · captions burned in · 1 credit</div>
+          <div style="height: 8px; border-radius: 999px; background: #33394A; overflow: hidden;"><div style="height: 8px; width: {{pct}}; border-radius: 999px; background: #FF5A00;"></div></div>
+          <div style="display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 12px; color: #B8C2D9;"><span>{{step}}</span><span>{{pct}}</span></div>
+          <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <button type="button" style="padding: 12px 18px; border-radius: 12px; border: 0; background: #FF5A00; color: #1A1A1A; font-weight: 600;">Download MP4</button>
+              <button type="button" style="padding: 12px 18px; border-radius: 12px; border: 1px solid #33394A; background: transparent; color: #F5F8FF;">Copy share link</button>
+            </div>
+          </sc-if>
+        </div>
+      </section>
+
+      <section aria-label="Queue and history" style="border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 8px 18px;">
+        <sc-for list="{{queue}}" as="q" hint-placeholder-count="5">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 0; border-top: {{q.bt}};">
+            <div style="position: relative; width: {{q.tw}}; height: 48px; border-radius: 8px; overflow: hidden; flex: none;"><dc-import name="Scene" variant="{{q.v}}" hint-size="100%,100%"></dc-import></div>
+            <div style="flex: 1 1 200px; min-width: 0;"><div style="font-weight: 600;">{{q.n}}</div><div style="font-size: 12px; color: #4B5563;">{{q.d}}</div></div>
+            <span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563;">{{q.cr}}</span>
+            <span style="min-width: 96px; text-align: center; padding: 5px 10px; border-radius: 999px; background: {{q.sbg}}; color: {{q.sfg}}; font-family: 'Geist Mono', monospace; font-size: 10px;">{{q.s}}</span>
+            <button type="button" style="padding: 8px 12px; border-radius: 10px; border: 1px solid #DCE6F5; background: #FFFFFF; color: #1A1A1A; font-size: 13px;">{{q.a}}</button>
+          </div>
+        </sc-for>
+      </section>
+    </div>
+
+    <aside aria-label="Export settings" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+      <div style="border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px;">Export settings</div>
+        <div>
+          <div style="font-size: 12px; color: #4B5563; margin-bottom: 8px;">Resolution</div>
+          <div style="display: flex; gap: 6px;">
+            <span style="flex: 1; text-align: center; padding: 10px; border-radius: 10px; background: #1A1A1A; color: #FFFFFF;">1080p</span>
+            <span style="flex: 1; text-align: center; padding: 10px; border-radius: 10px; border: 1px dashed #DCE6F5; color: #9AA3B5;">4K <span style="font-family: 'Geist Mono', monospace; font-size: 10px;">BUSINESS</span></span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 12px; color: #4B5563;">Options</div>
+          <sc-for list="{{opts}}" as="o">
+            <button type="button" onClick="{{o.toggle}}" role="switch" aria-checked="{{o.on}}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid #DCE6F5; background: #FFFFFF; color: #1A1A1A; text-align: left;">
+              <span>{{o.l}}</span>
+              <span style="width: 38px; height: 22px; border-radius: 999px; background: {{o.track}}; position: relative; flex: none;" aria-hidden="true"><span style="position: absolute; top: 3px; left: {{o.knob}}; width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF;"></span></span>
+            </button>
+          </sc-for>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: #4B5563; margin-bottom: 8px;">Send to</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{dests}}" as="d"><span style="padding: 8px 12px; border-radius: 999px; border: 1px solid {{d.bd}}; background: {{d.bg}}; color: {{d.fg}}; font-size: 13px;">{{d.l}}</span></sc-for></div>
+          <p style="margin: 10px 0 0; font-size: 12px; color: #4B5563; line-height: 1.5;">Direct posting needs each account connected once. [Confirm which channels launch first.]</p>
+        </div>
+      </div>
+      <div style="border-radius: 20px; background: #EEF5FF; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px;">Get sign-off</div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #36415A;">Send a review link. Reviewers can comment on the timeline without an account.</p>
+        <div style="display: flex; gap: 6px; padding: 6px 6px 6px 12px; border-radius: 12px; background: #FFFFFF; align-items: center;"><span style="flex: 1; font-family: 'Geist Mono', monospace; font-size: 12px; color: #4B5563; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">[yourdomain]/review/sbr-v3</span><button type="button" style="padding: 8px 12px; border-radius: 9px; border: 0; background: #2038E2; color: #FFFFFF; font-weight: 600;">Copy</button></div>
+      </div>
+      <div style="border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 18px; display: flex; justify-content: space-between; align-items: center;">
+        <div><div style="font-size: 12px; color: #4B5563;">Credits this month</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px;">13 of 20 left</div></div>
+        <a href="W-Pricing.dc.html" style="padding: 9px 13px; border-radius: 10px; border: 1px solid #DCE6F5; font-size: 13px; font-weight: 500;">Top up</a>
+      </div>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const STEPS = [[0, 'Preparing source footage'], [20, 'Cutting and colour'], [55, 'Mixing music and captions'], [80, 'Encoding 1080p'], [96, 'Checking the file']];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { p: 8, burn: true, logo: true, name: false }; }
+  componentDidMount(){
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (reduce) { this.setState({ p: 100 }); return; }
+    this.timer = setInterval(() => { if (this.state.p < 100) this.setState({ p: Math.min(100, this.state.p + 0.8) }); }, 120);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  renderVals() {
+    const s = this.state, p = Math.round(s.p), ready = p >= 100;
+    const step = STEPS.filter((x) => p >= x[0]).pop()[1];
+    const sw = (l, key) => ({ l, on: String(s[key]), track: s[key] ? '#2038E2' : '#DCE6F5', knob: s[key] ? '19px' : '3px', toggle: () => this.setState({ [key]: !s[key] }) });
+    return {
+      pct: p + '%', ready, veil: (100 - p) + '%',
+      state: ready ? 'READY' : 'RENDERING', dot: ready ? '#8FC2FF' : '#FF5A00',
+      step: ready ? 'Done in 1 min 48 s' : step,
+      queue: [
+        { v: 'coast', tw: '64px', n: 'Summer bookings reel · 1:1', d: 'Square version for feed · starts after 9:16', cr: '1 CREDIT', s: 'QUEUED', sbg: '#EEF5FF', sfg: '#2038E2', a: 'Cancel', bt: '0' },
+        { v: 'lake', tw: '27px', n: 'Kayak hire promo · 9:16', d: 'Yesterday · 15s · downloaded 3 times', cr: '1 CREDIT', s: '✓ READY', sbg: '#1A1A1A', sfg: '#FFFFFF', a: 'Download', bt: '1px solid #EEF5FF' },
+        { v: 'dawn', tw: '85px', n: 'Website hero · 16:9', d: '10 Nov · 45s · 1080p', cr: '1 CREDIT', s: '✓ READY', sbg: '#1A1A1A', sfg: '#FFFFFF', a: 'Download', bt: '1px solid #EEF5FF' },
+        { v: 'night', tw: '27px', n: 'Friday night set · 9:16', d: '8 Nov · failed on our side, re-rendered', cr: 'FREE', s: '✓ READY', sbg: '#1A1A1A', sfg: '#FFFFFF', a: 'Download', bt: '1px solid #EEF5FF' }
+      ],
+      opts: [sw('Burn captions into video', 'burn'), sw('Logo end card', 'logo'), sw('Add date to file name', 'name')],
+      dests: [['Download', true], ['Instagram', false], ['TikTok', false], ['YouTube', false], ['Facebook', false], ['Website embed', false]].map(([l, on]) => ({ l, bg: on ? '#1A1A1A' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1A1A1A', bd: on ? '#1A1A1A' : '#DCE6F5' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

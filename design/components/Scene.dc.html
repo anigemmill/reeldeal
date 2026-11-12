@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Footage placeholder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: absolute; inset: 0; overflow: hidden; background: {{s.sky2}};" role="img" aria-label="{{label}}">
+  <div style="position: absolute; inset: 0; background: linear-gradient(180deg, {{s.sky1}} 0%, {{s.sky2}} 70%);"></div>
+  <sc-if value="{{s.stars}}" hint-placeholder-val="{{false}}">
+    <span style="position: absolute; left: 12%; top: 14%; width: 3px; height: 3px; border-radius: 50%; background: #FFFFFF; opacity: 0.8;"></span>
+    <span style="position: absolute; left: 34%; top: 8%; width: 2px; height: 2px; border-radius: 50%; background: #FFFFFF; opacity: 0.7;"></span>
+    <span style="position: absolute; left: 58%; top: 18%; width: 3px; height: 3px; border-radius: 50%; background: #FFFFFF; opacity: 0.6;"></span>
+    <span style="position: absolute; left: 82%; top: 10%; width: 2px; height: 2px; border-radius: 50%; background: #FFFFFF; opacity: 0.8;"></span>
+    <span style="position: absolute; left: 70%; top: 30%; width: 2px; height: 2px; border-radius: 50%; background: #FFFFFF; opacity: 0.5;"></span>
+  </sc-if>
+  <sc-if value="{{s.sun}}" hint-placeholder-val="{{true}}">
+    <span style="position: absolute; left: {{s.sunX}}; top: {{s.sunY}}; width: 16%; aspect-ratio: 1 / 1; border-radius: 50%; background: {{s.sunC}}; box-shadow: 0 0 80px 30px {{s.glow}};"></span>
+  </sc-if>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 64%; background: {{s.far}}; clip-path: {{s.farPoly}};"></div>
+  <sc-if value="{{s.water}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 34%; background: linear-gradient(180deg, {{s.water1}} 0%, {{s.water2}} 100%);"></div>
+    <span style="position: absolute; left: {{s.sunX}}; bottom: 6%; width: 16%; height: 26%; background: {{s.sunC}}; opacity: 0.22; filter: blur(14px);"></span>
+  </sc-if>
+  <sc-if value="{{s.plume}}" hint-placeholder-val="{{false}}">
+    <span style="position: absolute; left: 44%; top: 6%; width: 22%; height: 62%; border-radius: 50%; background: #FFFFFF; opacity: 0.55; filter: blur(22px);"></span>
+    <span style="position: absolute; left: 36%; top: 22%; width: 18%; height: 44%; border-radius: 50%; background: #FFFFFF; opacity: 0.4; filter: blur(18px);"></span>
+  </sc-if>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: {{s.near}}; clip-path: {{s.nearPoly}};"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: {{s.ground}}; clip-path: {{s.groundPoly}};"></div>
+  <div style="position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%);"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["dawn","lake","forest","geyser","coast","night"],"default":"lake"},"$preview":{"width":480,"height":270}}'>
+const ridge = 'polygon(0% 100%, 0% 46%, 9% 30%, 18% 44%, 28% 18%, 38% 38%, 47% 26%, 58% 46%, 68% 14%, 79% 36%, 88% 24%, 100% 40%, 100% 100%)';
+const soft = 'polygon(0% 100%, 0% 52%, 14% 38%, 30% 56%, 44% 34%, 60% 58%, 76% 30%, 90% 48%, 100% 36%, 100% 100%)';
+const shore = 'polygon(0% 100%, 0% 30%, 10% 22%, 22% 46%, 30% 100%, 70% 100%, 78% 52%, 88% 18%, 100% 26%, 100% 100%)';
+const trees = 'polygon(0% 100%, 0% 40%, 4% 10%, 8% 40%, 12% 0%, 17% 42%, 22% 16%, 27% 44%, 33% 6%, 38% 46%, 70% 46%, 74% 8%, 79% 40%, 84% 0%, 89% 38%, 94% 12%, 100% 36%, 100% 100%)';
+const flat = 'polygon(0% 100%, 0% 50%, 20% 40%, 45% 56%, 70% 38%, 100% 52%, 100% 100%)';
+const V = {
+  dawn:   { label: 'Mountain ridge at sunrise', sky1: '#F7D7B3', sky2: '#E98A6B', sun: true, sunC: '#FFF1D6', glow: 'rgba(255,214,170,0.6)', sunX: '58%', sunY: '30%', far: '#B8707A', near: '#6E3F55', ground: '#2E1B2E', farPoly: ridge, nearPoly: soft, groundPoly: flat },
+  lake:   { label: 'Lake with hills in morning light', sky1: '#D6E8F0', sky2: '#97BDD2', sun: true, sunC: '#FFFFFF', glow: 'rgba(255,255,255,0.45)', sunX: '22%', sunY: '18%', far: '#7C9DB0', water: true, water1: '#6E9DB4', water2: '#2F5B72', near: '#3D6A5C', ground: '#1E352C', farPoly: soft, nearPoly: shore, groundPoly: 'polygon(0% 100%, 0% 60%, 18% 40%, 26% 100%)' },
+  forest: { label: 'Forest trail with tall trees', sky1: '#E3ECD9', sky2: '#AFC8A6', sun: false, far: '#7C9A73', near: '#355A3F', ground: '#18291C', farPoly: soft, nearPoly: trees, groundPoly: flat, sunC: '#FFFFFF', glow: 'rgba(0,0,0,0)', sunX: '0%', sunY: '0%' },
+  geyser: { label: 'Geothermal valley with steam', sky1: '#DCE2E6', sky2: '#A6B1BA', sun: false, plume: true, far: '#85877F', near: '#4E4B44', ground: '#2A2824', farPoly: soft, nearPoly: ridge, groundPoly: flat, sunC: '#FFFFFF', glow: 'rgba(0,0,0,0)', sunX: '0%', sunY: '0%' },
+  coast:  { label: 'Coastline at sunset', sky1: '#FDE6CB', sky2: '#F2A277', sun: true, sunC: '#FFE7B8', glow: 'rgba(255,190,120,0.6)', sunX: '64%', sunY: '38%', far: '#A86F62', water: true, water1: '#4A7A95', water2: '#1F3C52', near: '#5A3B3A', ground: '#1F2A33', farPoly: soft, nearPoly: shore, groundPoly: 'polygon(70% 100%, 84% 46%, 100% 30%, 100% 100%)' },
+  night:  { label: 'Hills under a night sky', sky1: '#141B36', sky2: '#3A3E6C', sun: true, stars: true, sunC: '#F2E6C8', glow: 'rgba(242,230,200,0.25)', sunX: '72%', sunY: '16%', far: '#2A2F55', near: '#171B36', ground: '#0A0C1B', farPoly: ridge, nearPoly: soft, groundPoly: flat }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const s = V[this.props.variant] || V.lake;
+    return { s, label: s.label };
+  }
+}
+</script>
+</body>
+</html>

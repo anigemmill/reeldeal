@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gradient system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; padding: 56px clamp(20px, 4vw, 56px); box-sizing: border-box; min-height: 1000px;">
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 36px;">
+    <div>
+      <p style="margin: 0 0 10px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;">CROSSROADS · BLUE-FORWARD REVISION</p>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 56px; letter-spacing: -0.04em; font-weight: 600; line-height: 1;">Four gradients. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">No peach.</span></h1>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <sc-for list="{{base}}" as="b" hint-placeholder-count="7">
+        <div style="width: 104px;">
+          <div style="height: 56px; border-radius: 14px; background: {{b.c}}; border: 1px solid #DCE6F5;"></div>
+          <div style="margin-top: 6px; font-size: 12px; font-weight: 600;">{{b.n}}</div>
+          <div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563;">{{b.c}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <sc-for list="{{grads}}" as="g" hint-placeholder-count="4">
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch;">
+        <div style="flex: 3 1 560px; min-height: 150px; border-radius: 24px; background: {{g.css}}; border: 1px solid #DCE6F5; padding: 22px 26px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; color: {{g.ink}};">
+          <span style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">{{g.n}}</span>
+          <span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.85;">{{g.stops}}</span>
+        </div>
+        <div style="flex: 1 1 260px; padding: 18px 4px; display: flex; flex-direction: column; gap: 8px; justify-content: center;">
+          <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #4B5563;">USE FOR</span>
+          <span style="font-size: 15px; line-height: 1.5;">{{g.use}}</span>
+          <span style="font-size: 13px; color: #4B5563;">Seen in: {{g.where}}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      base: [
+        { n: 'White', c: '#FFFFFF' }, { n: 'Ice', c: '#EEF5FF' }, { n: 'Sky', c: '#8FC2FF' }, { n: 'Bleu Ciel', c: '#007BFF' },
+        { n: 'Electric', c: '#2038E2' }, { n: 'Charcoal', c: '#1A1A1A' }, { n: 'Orange (action)', c: '#FF5A00' }
+      ],
+      grads: [
+        { n: 'Clear Sky', ink: '#1A1A1A', css: 'linear-gradient(90deg, #FFFFFF 0%, #DDEBFF 20%, #8FC2FF 42%, #007BFF 66%, #2038E2 88%, #1A1A1A 100%)', stops: '#FFFFFF 0 · #DDEBFF 20 · #8FC2FF 42 · #007BFF 66 · #2038E2 88 · #1A1A1A 100', use: 'The new signature. Glows behind heroes, gradient text, progress bars.', where: 'Concepts A and D' },
+        { n: 'Horizon', ink: '#1A1A1A', css: 'linear-gradient(90deg, #FFFFFF 0%, #EEF5FF 16%, #8FC2FF 38%, #007BFF 58%, #2038E2 78%, #1A1A1A 100%)', stops: 'Run top to bottom: white sky → blue → charcoal night', use: 'Full-bleed vertical backgrounds where a light section meets a dark one.', where: 'Concept B' },
+        { n: 'Ice', ink: '#1A1A1A', css: 'linear-gradient(90deg, #FFFFFF 0%, #EEF5FF 35%, #CFE3FF 70%, #8FC2FF 100%)', stops: '#FFFFFF 0 · #EEF5FF 35 · #CFE3FF 70 · #8FC2FF 100', use: 'Quiet, light-only. Card fills, app backgrounds, Autopilot screens.', where: 'Concept C' },
+        { n: 'Sky + Spark', ink: '#FFFFFF', css: 'linear-gradient(90deg, #8FC2FF 0%, #007BFF 30%, #2038E2 62%, #FF5A00 86%, #1A1A1A 100%)', stops: '#8FC2FF 0 · #007BFF 30 · #2038E2 62 · #FF5A00 86 · #1A1A1A 100', use: 'Keeps a hit of full-strength orange (no peach) for campaigns and CTAs.', where: 'Concept D sign-up panel' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

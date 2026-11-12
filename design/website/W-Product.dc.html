@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeldeal — Product</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+button{font:inherit;cursor:pointer}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes unspin{to{transform:rotate(-360deg)}}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes orbitBack{to{transform:rotate(-360deg)}}
+.orb-a{animation:orbit 14s linear infinite}
+.orb-b{animation:orbitBack 22s linear infinite}
+@media (prefers-reduced-motion: reduce){.mv,.orb-a,.orb-b{animation:none !important}}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <dc-import name="Nav" tone="light" active="Product" hint-size="100%,88px"></dc-import>
+
+  <!-- HERO -->
+  <section style="position: relative; z-index: 0; padding: 72px 0 0; text-align: center; overflow: hidden;">
+    <div style="position: absolute; z-index: -1; left: 10%; right: 10%; top: -160px; height: 300px; background: linear-gradient(90deg, #DDEBFF 0%, #8FC2FF 30%, #007BFF 60%, #2038E2 100%); filter: blur(90px); opacity: 0.45;" aria-hidden="true"></div>
+    <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>THE PRODUCT</p>
+    <h1 style="margin: 0 auto; max-width: 1080px; padding: 0 20px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 5.4vw, 80px); line-height: 1.06; letter-spacing: -0.04em; font-weight: 600;">A video studio that works <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">for you</span>, or
+      <span style="display: inline-block; padding: 0 0.25em; border-radius: 0.24em; background: #8FC2FF; transform: rotate(-1.5deg); text-decoration: underline; text-decoration-color: #FF5A00; text-decoration-thickness: 0.07em; text-underline-offset: 0.14em;">with you.</span></h1>
+    <p style="margin: 24px auto 0; max-width: 620px; padding: 0 20px; font-size: 19px; line-height: 1.55; color: #4B5563;">Autopilot makes the video for you. Studio lets you shape every cut. Both run on the same brand, library and projects.</p>
+    <div role="navigation" aria-label="On this page" style="margin: 36px auto 0; display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 5px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE6F5; font-size: 14px; font-weight: 500;">
+      <a href="#autopilot" style="padding: 9px 16px; border-radius: 999px; background: #1A1A1A; color: #FFFFFF;">Autopilot</a>
+      <a href="#studio" style="padding: 9px 16px;">Studio</a>
+      <a href="#brand" style="padding: 9px 16px;">Brand intelligence</a>
+      <a href="#library" style="padding: 9px 16px;">Media library</a>
+      <a href="#export" style="padding: 9px 16px;">Export</a>
+    </div>
+    <div style="max-width: 1180px; margin: 56px auto 0; padding: 0 20px; box-sizing: border-box;">
+      <div style="position: relative; height: 640px; border-radius: 24px 24px 0 0; overflow: hidden; border: 1px solid #33394A; border-bottom: 0; box-shadow: 0 40px 100px rgba(26,26,26,0.25);">
+        <div style="position: absolute; left: 0; top: 0; width: 1440px; transform: scale(0.8167); transform-origin: top left;">
+          <dc-import name="Studio" palette="05 · Electric Blue / Orange / Charcoal" mode="Dark Studio" hint-size="1440px,900px"></dc-import>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTOPILOT -->
+  <section id="autopilot" style="background: #EEF5FF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;">
+      <div style="flex: 1 1 380px; min-width: 0;">
+        <span style="display: inline-block; padding: 6px 12px; border-radius: 999px; background: #1A1A1A; color: #F5F8FF; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em;">AUTOPILOT · MOBILE FIRST</span>
+        <h2 style="margin: 20px 0 18px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.8vw, 68px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Three taps <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">to a finished video.</span></h2>
+        <p style="margin: 0 0 32px; font-size: 18px; line-height: 1.55; color: #36415A;">Made for the person who shot the footage and has ten minutes between guests. No timeline, no jargon.</p>
+        <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column;">
+          <sc-for list="{{ap}}" as="s" hint-placeholder-count="3">
+            <li style="display: flex; gap: 18px; padding: 18px 0; border-top: 1px solid #C9DAF2;">
+              <span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #2038E2; padding-top: 3px;">{{s.n}}</span>
+              <span><b style="display: block; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 4px;">{{s.t}}</b><span style="font-size: 15px; line-height: 1.5; color: #36415A;">{{s.d}}</span></span>
+            </li>
+          </sc-for>
+        </ol>
+      </div>
+      <div style="flex: 1.3 1 560px; min-width: 0; display: flex; gap: 16px; justify-content: center; align-items: flex-end;">
+        <div style="flex: none; width: 211px; height: 456px; padding: 6px; border-radius: 32px; background: #1A1A1A; transform: translateY(0px);">
+          <div style="position: relative; width: 199px; height: 444px; border-radius: 27px; overflow: hidden;">
+            <div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform: scale(0.5103); transform-origin: top left;">
+              <dc-import name="AutopilotBrief" palette="06 · Fold / Bone White / Blue" mode="Light Workspace" hint-size="390px,844px"></dc-import>
+            </div>
+          </div>
+        </div>
+        <div style="flex: none; width: 211px; height: 456px; padding: 6px; border-radius: 32px; background: #1A1A1A; transform: translateY(-40px);">
+          <div style="position: relative; width: 199px; height: 444px; border-radius: 27px; overflow: hidden;">
+            <div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform: scale(0.5103); transform-origin: top left;">
+              <dc-import name="AutopilotWorking" palette="06 · Fold / Bone White / Blue" mode="Light Workspace" hint-size="390px,844px"></dc-import>
+            </div>
+          </div>
+        </div>
+        <div style="flex: none; width: 211px; height: 456px; padding: 6px; border-radius: 32px; background: #1A1A1A; transform: translateY(0px);">
+          <div style="position: relative; width: 199px; height: 444px; border-radius: 27px; overflow: hidden;">
+            <div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform: scale(0.5103); transform-origin: top left;">
+              <dc-import name="AutopilotReview" palette="06 · Fold / Bone White / Blue" mode="Light Workspace" hint-size="390px,844px"></dc-import>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDIO -->
+  <section id="studio" style="background: #1A1A1A; color: #F5F8FF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 56px;">
+        <div>
+          <span style="display: inline-block; padding: 6px 12px; border-radius: 999px; background: #2038E2; color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em;">STUDIO · DESKTOP</span>
+          <h2 style="margin: 20px 0 0; max-width: 760px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.8vw, 68px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Powerful enough to finish it. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Simple enough to enjoy.</span></h2>
+        </div>
+        <p style="margin: 0; max-width: 380px; font-size: 17px; line-height: 1.55; color: #B8C2D9;">Open any Autopilot draft and keep going. Same project, same versions, nothing lost.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
+        <sc-for list="{{feats}}" as="f" hint-placeholder-count="6">
+          <div style="padding: 28px; border-radius: 22px; background: #232323; border: 1px solid #33394A; display: flex; flex-direction: column; gap: 40px; min-height: 220px; box-sizing: border-box;">
+            <span style="width: 48px; height: 48px; border-radius: 14px; background: {{f.c}}; color: {{f.fg}}; display: flex; align-items: center; justify-content: center;" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{f.d}}"></path></svg></span>
+            <div><h3 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">{{f.t}}</h3><p style="margin: 0; font-size: 15px; line-height: 1.5; color: #B8C2D9;">{{f.b}}</p></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Orbit" hint-size="100%,820px"></dc-import>
+
+  <!-- LIBRARY -->
+  <section id="library" style="padding: 120px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; text-align: center;">
+      <p style="margin: 0 0 16px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>MEDIA LIBRARY</p>
+      <h2 style="margin: 0 0 40px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(48px, 7vw, 108px); line-height: 0.92; letter-spacing: -0.05em; font-weight: 600; color: #BCD3F2;">Find <span style="color: #1A1A1A;">your shot</span></h2>
+      <div style="max-width: 720px; margin: 0 auto 48px; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 24px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE6F5; box-shadow: 0 18px 50px rgba(26,26,26,0.08); text-align: left;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="flex: 1; font-size: 18px;">guests laughing on the jetty at sunset</span>
+        <span style="padding: 12px 18px; border-radius: 999px; background: #1A1A1A; color: #F5F8FF; font-weight: 600; font-size: 14px;">Search 312 clips</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; text-align: left;">
+        <sc-for list="{{results}}" as="r" hint-placeholder-count="4">
+          <div style="border-radius: 22px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 10px;">
+            <div style="position: relative; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden;">
+              <dc-import name="Scene" variant="{{r.v}}" hint-size="100%,100%"></dc-import>
+              <span style="position: absolute; right: 10px; top: 10px; padding: 4px 8px; border-radius: 999px; background: #FF5A00; color: #1A1A1A; font-family: 'Geist Mono', monospace; font-size: 11px;">{{r.score}}</span>
+            </div>
+            <div style="padding: 12px 6px 6px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; justify-content: space-between; gap: 8px;"><span style="font-weight: 600; font-size: 14px;">{{r.name}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563;">{{r.t}}</span></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 5px;"><sc-for list="{{r.tags}}" as="tg"><span style="padding: 4px 9px; border-radius: 999px; background: #EEF5FF; font-size: 12px;">{{tg.l}}</span></sc-for></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPORT -->
+  <section id="export" style="background: #2038E2; color: #FFFFFF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;">
+      <div style="flex: 1 1 380px; min-width: 0;">
+        <p style="margin: 0 0 16px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #D6DCFF;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>EXPORT</p>
+        <h2 style="margin: 0 0 18px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.8vw, 68px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Every size. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">One click.</span></h2>
+        <p style="margin: 0; font-size: 18px; line-height: 1.55; color: #E4E8FF;">Reframed for each format so the subject stays in shot. Captions, logo and safe zones handled per channel. Each extra format uses one video credit.</p>
+      </div>
+      <div style="flex: 1.2 1 520px; min-width: 0; display: flex; gap: 18px; align-items: flex-end; justify-content: center; flex-wrap: wrap;">
+        <sc-for list="{{formats}}" as="fm" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <div style="position: relative; width: {{fm.w}}; height: {{fm.h}}; border-radius: 14px; overflow: hidden; border: 2px solid #FFFFFF;"><dc-import name="Scene" variant="lake" hint-size="100%,100%"></dc-import></div>
+            <span style="font-family: 'Geist Mono', monospace; font-size: 13px;">{{fm.r}}</span>
+            <span style="font-size: 13px; color: #D6DCFF;">{{fm.use}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,1200px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":5600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      ap: [
+        { n: '01', t: 'Upload and describe', d: 'Pick clips straight from your camera roll and say what the video is for.' },
+        { n: '02', t: 'AI builds three options', d: 'It picks the best moments and edits to your brand. Usually a couple of minutes.' },
+        { n: '03', t: 'Approve or ask for changes', d: '“Shorter”, “different music”, “open on the lake”. Then export.' }
+      ],
+      feats: [
+        { t: 'Timeline and storyboard', b: 'Switch between a shot-by-shot board and a precise timeline.', c: '#007BFF', fg: '#1A1A1A', d: 'M3 5h18v14H3zM3 10h18M8 5v14' },
+        { t: 'AI assistant', b: 'Ask for edits in plain language. Every change can be kept or undone.', c: '#FF5A00', fg: '#1A1A1A', d: 'M4 5h16v11H8l-4 4zM8 10h8' },
+        { t: 'Captions and text', b: 'Auto-timed captions and titles, styled to your brand.', c: '#EEF5FF', fg: '#1A1A1A', d: 'M4 6h16M4 12h10M4 18h13' },
+        { t: 'Music and audio', b: 'Licensed tracks matched to the mood, with automatic ducking under voice.', c: '#2038E2', fg: '#FFFFFF', d: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3zM20 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3z' },
+        { t: 'Brand controls', b: 'Lock colours, fonts, logo and end cards so every edit stays on brand.', c: '#8FC2FF', fg: '#1A1A1A', d: 'M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z' },
+        { t: 'Versions and history', b: 'Every draft is saved. Compare, restore or branch a new version.', c: '#007BFF', fg: '#1A1A1A', d: 'M3 12a9 9 0 1 0 3-6.7M3 3v6h6M12 7v5l3 2' }
+      ],
+      results: [
+        { v: 'coast', name: 'jetty_dusk_03.mov', t: '00:18', score: '9.4', tags: [{ l: 'Sunset' }, { l: 'Guests ×4' }, { l: 'Laughing' }] },
+        { v: 'lake', name: 'kayak_02.mov', t: '00:41', score: '9.1', tags: [{ l: 'Golden hour' }, { l: 'Water' }, { l: 'Wide' }] },
+        { v: 'night', name: 'deck_firepit.mov', t: '00:27', score: '8.7', tags: [{ l: 'Evening' }, { l: 'Guests ×2' }] },
+        { v: 'dawn', name: 'ridge_sunrise_04.mov', t: '00:22', score: '8.2', tags: [{ l: 'Sunrise' }, { l: 'Landscape' }] }
+      ],
+      formats: [
+        { r: '9:16', use: 'Reels, TikTok', w: '112px', h: '199px' },
+        { r: '4:5', use: 'Feed', w: '150px', h: '188px' },
+        { r: '1:1', use: 'Feed, ads', w: '170px', h: '170px' },
+        { r: '16:9', use: 'YouTube, web', w: '260px', h: '146px' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

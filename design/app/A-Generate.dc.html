@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generate — AI working</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #F5F8FF; color: #1A1A1A; min-height: 1000px; display: flex; flex-wrap: wrap; font-size: 14px;">
+  <div style="flex: none;"><dc-import name="AppNav" active="Projects" hint-size="248px,1000px"></dc-import></div>
+  <main style="flex: 999 1 640px; min-width: 0; padding: 24px 28px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+    <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+      <div>
+        <nav aria-label="Breadcrumb" style="display: flex; gap: 8px; color: #4B5563; margin-bottom: 6px;"><span>Projects</span><span aria-hidden="true">/</span><span>Summer campaign</span></nav>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.03em; font-weight: 600;">Summer bookings reel</h1>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="padding: 8px 12px; border-radius: 999px; background: {{stBg}}; color: {{stFg}}; font-family: 'Geist Mono', monospace; font-size: 11px;" role="status">{{stLabel}}</span>
+        <button type="button" onClick="{{restart}}" style="padding: 9px 14px; border-radius: 10px; border: 1px solid #DCE6F5; background: #FFFFFF; color: #1A1A1A;">Restart demo</button>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch;">
+      <!-- Brief -->
+      <section aria-label="Brief" style="flex: 1 1 260px; border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #4B5563;">THE BRIEF</div>
+        <p style="margin: 0; font-family: 'Instrument Serif', serif; font-size: 24px; line-height: 1.25;">“A calm summer morning at the lodge. Kayaking, coffee on the deck, ending on the lake view. Push direct bookings.”</p>
+        <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 13px;">
+          <dt style="color: #4B5563;">Goal</dt><dd style="margin: 0; font-weight: 500;">Drive bookings</dd>
+          <dt style="color: #4B5563;">Brand</dt><dd style="margin: 0; font-weight: 500;">Lakeside Lodge</dd>
+          <dt style="color: #4B5563;">Format</dt><dd style="margin: 0; font-weight: 500;">9:16 Reel · 30 seconds</dd>
+          <dt style="color: #4B5563;">Footage</dt><dd style="margin: 0; font-weight: 500;">Whole library (312 clips)</dd>
+          <dt style="color: #4B5563;">Options</dt><dd style="margin: 0; font-weight: 500;">3 storyboards</dd>
+        </dl>
+        <div style="margin-top: auto; padding: 12px; border-radius: 14px; background: #EEF5FF; font-size: 13px; line-height: 1.5;"><b>No credits used yet.</b> Storyboard previews are free. You only spend a credit when you render the one you like.</div>
+      </section>
+
+      <!-- Pipeline -->
+      <section aria-label="Progress" style="flex: 1.6 1 420px; border-radius: 20px; background: #1A1A1A; color: #F5F8FF; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <div style="position: relative; width: 96px; height: 96px; flex: none;" aria-hidden="true">
+            <div style="position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(#FF5A00 {{deg}}, #33394A 0);"></div>
+            <div style="position: absolute; inset: 8px; border-radius: 50%; background: #1A1A1A; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 22px;">{{pct}}</div>
+            <div class="mv" style="position: absolute; inset: -6px; border-radius: 50%; border: 1px dashed #33394A; animation: spin 14s linear infinite; animation-play-state: {{play}};"></div>
+          </div>
+          <div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1;">{{headline}}</div>
+            <div style="margin-top: 6px; color: #B8C2D9;">{{sub}}</div>
+          </div>
+        </div>
+        <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{stages}}" as="s" hint-placeholder-count="6">
+            <li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: {{s.bg}};">
+              <span style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: {{s.dot}}; border: {{s.bd}}; box-sizing: border-box; color: {{s.dfg}}; display: flex; align-items: center; justify-content: center; font-size: 11px;" aria-hidden="true">{{s.icon}}</span>
+              <span style="flex: 1; color: {{s.fg}}; font-weight: {{s.fw}};">{{s.l}}</span>
+              <span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #B8C2D9;">{{s.m}}</span>
+            </li>
+          </sc-for>
+        </ol>
+        <div style="margin-top: auto; padding: 12px 14px; border-radius: 12px; background: #232323; font-family: 'Geist Mono', monospace; font-size: 11px; line-height: 1.7; color: #B8C2D9; min-height: 92px;" aria-label="Activity log">
+          <sc-for list="{{log}}" as="lg"><div>{{lg.l}}</div></sc-for>
+        </div>
+        <sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+          <a href="A-Storyboard.dc.html" style="padding: 15px; border-radius: 14px; background: #FF5A00; color: #1A1A1A; font-weight: 600; text-align: center;">Review 3 storyboards →</a>
+        </sc-if>
+      </section>
+
+      <!-- Footage selection -->
+      <section aria-label="Footage selection" style="flex: 1.2 1 320px; border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #4B5563;">FOOTAGE PICKED</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px;">{{picked}} / 312</span></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+          <sc-for list="{{thumbs}}" as="th" hint-placeholder-count="12">
+            <div style="position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; opacity: {{th.op}}; outline: {{th.ring}}; outline-offset: 2px;">
+              <dc-import name="Scene" variant="{{th.v}}" hint-size="100%,100%"></dc-import>
+              <sc-if value="{{th.on}}" hint-placeholder-val="{{false}}"><span style="position: absolute; right: 5px; top: 5px; width: 18px; height: 18px; border-radius: 50%; background: #FF5A00; color: #1A1A1A; font-size: 11px; display: flex; align-items: center; justify-content: center;" aria-hidden="true">✓</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #4B5563;">Picked for calm mood, morning light, guests on the water and the lake view you asked to end on.</p>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const STAGES = [
+  ['Reading your brief', 'goal, mood, ending'],
+  ['Searching 312 clips', 'AI media search'],
+  ['Picking the best moments', '14 clips'],
+  ['Building 3 storyboards', 'calm · energetic · story'],
+  ['Timing to music', 'warm acoustic'],
+  ['Applying Lakeside Lodge brand', 'fonts, colours, end card']
+];
+const LOG = ['brief parsed: objective=bookings mood=calm end=lake_view', 'query: "kayak morning", "deck coffee", "lake wide" → 41 candidates', 'scored 41 clips · kept 14 (score ≥ 8.4, steady, no faces cut off)', 'storyboard A: hook kayak_02 00:03 → … → lake_wide 00:27', 'beat grid locked at 92 bpm · 11 cuts', 'captions styled · logo end card 00:27–00:30'];
+const V = ['lake', 'coast', 'dawn', 'forest', 'night', 'geyser', 'lake', 'coast', 'dawn', 'forest', 'lake', 'coast'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { t: 0 }; }
+  componentDidMount(){
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (reduce) { this.setState({ t: 999 }); return; }
+    this.timer = setInterval(() => { if (this.state.t < 130) this.setState({ t: this.state.t + 1 }); }, 110);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  renderVals() {
+    const t = Math.min(this.state.t, 130);
+    const per = 20;
+    const p = Math.min(100, Math.round(t / (per * STAGES.length) * 100));
+    const done = p >= 100;
+    const cur = Math.min(STAGES.length - 1, Math.floor(t / per));
+    const stages = STAGES.map(([l, m], i) => {
+      const st = done || i < cur ? 'done' : (i === cur ? 'now' : 'next');
+      return { l, m: st === 'next' ? '' : m, bg: st === 'now' ? '#2D2D2D' : 'transparent', dot: st === 'done' ? '#8FC2FF' : (st === 'now' ? '#FF5A00' : 'transparent'), bd: st === 'next' ? '1.5px solid #33394A' : '0', dfg: '#1A1A1A', icon: st === 'done' ? '✓' : (st === 'now' ? '•' : ''), fg: st === 'next' ? '#7D879C' : '#F5F8FF', fw: st === 'now' ? '600' : '400' };
+    });
+    const picked = Math.min(14, Math.max(0, Math.round((t - per) / (per * 2) * 14)));
+    return {
+      pct: p + '%', deg: (p * 3.6) + 'deg', done, play: done ? 'paused' : 'running',
+      headline: done ? '3 storyboards ready' : STAGES[cur][0] + '…',
+      sub: done ? 'Took about 2 minutes. Nothing rendered yet.' : 'Usually about 2 minutes. You can leave this page.',
+      stLabel: done ? '✓ READY TO REVIEW' : 'AI WORKING', stBg: done ? '#1A1A1A' : '#FF5A00', stFg: done ? '#FFFFFF' : '#1A1A1A',
+      stages, log: LOG.slice(0, done ? LOG.length : cur + 1).slice(-4).map((l) => ({ l: '› ' + l })),
+      picked,
+      thumbs: V.map((v, i) => { const on = i < Math.round(picked * 12 / 14); return { v, on, op: on ? 1 : 0.35, ring: on ? '2px solid #FF5A00' : 'none' }; }),
+      restart: () => this.setState({ t: 0 })
+    };
+  }
+}
+</script>
+</body>
+</html>

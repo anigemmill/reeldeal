@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeldeal — Book a demo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <dc-import name="Nav" tone="light" active="Company" hint-size="100%,88px"></dc-import>
+
+  <section style="max-width: 1360px; margin: 0 auto; padding: 56px clamp(20px, 4vw, 40px) 112px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+    <div style="flex: 1 1 400px; min-width: 0; padding-top: 24px;">
+      <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>BOOK A DEMO</p>
+      <h1 style="margin: 0 0 22px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(44px, 5.4vw, 80px); line-height: 0.95; letter-spacing: -0.045em; font-weight: 600;">See it with <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">your own footage.</span></h1>
+      <p style="margin: 0 0 32px; max-width: 460px; font-size: 18px; line-height: 1.55; color: #4B5563;">Send us a handful of clips before the call and we will build your first videos live, in 30 minutes.</p>
+      <ul style="margin: 0 0 40px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 16px;">
+        <li style="display: flex; gap: 12px;"><span style="color: #FF5A00;" aria-hidden="true">●</span>A walkthrough of Autopilot and Studio</li>
+        <li style="display: flex; gap: 12px;"><span style="color: #2038E2;" aria-hidden="true">●</span>Your brand profile set up on the call</li>
+        <li style="display: flex; gap: 12px;"><span style="color: #007BFF;" aria-hidden="true">●</span>Plan advice for agencies and multi-site teams</li>
+      </ul>
+      <div style="padding: 22px; border-radius: 22px; background: #FFFFFF; border: 1px solid #DCE6F5; display: flex; flex-direction: column; gap: 8px; font-size: 15px;">
+        <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #4B5563;">PREFER EMAIL?</span>
+        <a href="#" style="font-weight: 600;">[hello@yourdomain]</a>
+        <span style="color: #4B5563;">We reply within one working day.</span>
+      </div>
+    </div>
+
+    <div style="flex: 1.1 1 520px; min-width: 0; border-radius: 30px; padding: 3px; background: linear-gradient(135deg, #DDEBFF, #8FC2FF 30%, #007BFF 60%, #2038E2);">
+      <div style="border-radius: 27px; background: #FFFFFF; padding: clamp(24px, 3vw, 40px);">
+        <sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+          <div style="text-align: center; padding: 72px 12px;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 50%; background: #FF5A00; display: flex; align-items: center; justify-content: center; font-size: 28px;" aria-hidden="true">✓</div>
+            <h2 style="margin: 0 0 10px; font-family: 'Space Grotesk', sans-serif; font-size: 34px; letter-spacing: -0.03em; font-weight: 600;">You’re booked in.</h2>
+            <p style="margin: 0 0 24px; font-size: 16px; color: #4B5563;">{{slotLabel}}. A calendar invite and an upload link are on their way.</p>
+            <button type="button" onClick="{{reset}}" style="padding: 12px 20px; border-radius: 999px; border: 1px solid #1A1A1A; background: transparent; color: #1A1A1A;">Change time</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{notDone}}" hint-placeholder-val="{{true}}">
+          <form style="display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+              <label style="display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 500;">Full name<input type="text" style="padding: 13px 14px; border-radius: 12px; border: 1px solid #D4E0F2; background: #FFFFFF; color: #1A1A1A;"></label>
+              <label style="display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 500;">Work email<input type="email" style="padding: 13px 14px; border-radius: 12px; border: 1px solid #D4E0F2; background: #FFFFFF; color: #1A1A1A;"></label>
+              <label style="display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 500;">Business name<input type="text" style="padding: 13px 14px; border-radius: 12px; border: 1px solid #D4E0F2; background: #FFFFFF; color: #1A1A1A;"></label>
+              <label style="display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 500;">Industry
+                <select style="padding: 13px 14px; border-radius: 12px; border: 1px solid #D4E0F2; background: #FFFFFF; color: #1A1A1A;">
+                  <option>Tours and activities</option><option>Accommodation</option><option>Attractions</option><option>Hospitality</option><option>Destination or RTO</option><option>Agency</option><option>Other</option>
+                </select>
+              </label>
+            </div>
+            <fieldset style="margin: 0; padding: 0; border: 0;">
+              <legend style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Team size</legend>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <sc-for list="{{sizes}}" as="z"><button type="button" onClick="{{z.pick}}" aria-pressed="{{z.sel}}" style="padding: 10px 16px; border-radius: 999px; border: 1px solid {{z.bd}}; background: {{z.bg}}; color: {{z.fg}}; font-size: 14px;">{{z.l}}</button></sc-for>
+              </div>
+            </fieldset>
+            <fieldset style="margin: 0; padding: 0; border: 0;">
+              <legend style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Pick a time <span style="font-weight: 400; color: #4B5563;">(your time zone)</span></legend>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+                <sc-for list="{{slots}}" as="sl" hint-placeholder-count="6">
+                  <button type="button" onClick="{{sl.pick}}" aria-pressed="{{sl.sel}}" style="padding: 12px; border-radius: 14px; border: 1px solid {{sl.bd}}; background: {{sl.bg}}; color: {{sl.fg}}; text-align: left;">
+                    <span style="display: block; font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8;">{{sl.d}}</span>
+                    <span style="display: block; font-weight: 600; margin-top: 2px;">{{sl.t}}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </fieldset>
+            <label style="display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 500;">What would you like to make? <span style="font-weight: 400; color: #4B5563;">Optional</span><textarea rows="3" style="padding: 13px 14px; border-radius: 12px; border: 1px solid #D4E0F2; background: #FFFFFF; color: #1A1A1A; resize: vertical;"></textarea></label>
+            <button type="button" onClick="{{submit}}" style="padding: 17px; border-radius: 999px; border: 0; background: #FF5A00; color: #1A1A1A; font-weight: 600; font-size: 16px;">Book my demo</button>
+          </form>
+        </sc-if>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,1200px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2000}}'>
+const SLOTS = [['MON', '10:00'], ['MON', '14:30'], ['TUE', '09:00'], ['WED', '11:00'], ['WED', '15:00'], ['THU', '10:30']];
+const SIZES = ['Just me', '2–10', '11–50', '50+', 'Agency'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { slot: 1, size: 1, done: false }; }
+  renderVals() {
+    const s = this.state;
+    const on = (y) => ({ bg: y ? '#1A1A1A' : '#FFFFFF', fg: y ? '#F5F8FF' : '#1A1A1A', bd: y ? '#1A1A1A' : '#D4E0F2', sel: String(y) });
+    return {
+      done: s.done, notDone: !s.done,
+      slotLabel: SLOTS[s.slot][0].charAt(0) + SLOTS[s.slot][0].slice(1).toLowerCase() + ' at ' + SLOTS[s.slot][1],
+      sizes: SIZES.map((l, i) => ({ l, ...on(i === s.size), pick: () => this.setState({ size: i }) })),
+      slots: SLOTS.map(([d, t], i) => ({ d, t, ...on(i === s.slot), pick: () => this.setState({ slot: i }) })),
+      submit: () => this.setState({ done: true }),
+      reset: () => this.setState({ done: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeldeal — Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+@keyframes caret{50%{opacity:0}}
+@keyframes grow{from{width:0}to{width:100%}}
+@keyframes mqUp{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes mqDown{from{transform:translateY(-50%)}to{transform:translateY(0)}}
+@keyframes mqLeft{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes mqRight{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes unspin{to{transform:rotate(-360deg)}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <div style="background: #FFFFFF;"><dc-import name="Nav" tone="light" active="" hint-size="100%,88px"></dc-import></div>
+  <dc-import name="ArcHero" hint-size="100%,900px"></dc-import>
+  <dc-import name="PromptWall" hint-size="100%,900px"></dc-import>
+
+  <!-- HOW IT WORKS: index on electric blue -->
+  <section style="background: #2038E2; color: #FFFFFF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 56px;">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: clamp(44px, 5.4vw, 80px); line-height: 0.95; letter-spacing: -0.045em; font-weight: 600;">From folder <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; text-decoration: underline; text-decoration-color: #FF5A00; text-decoration-thickness: 0.07em; text-underline-offset: 0.14em;">to feed.</span></h2>
+        <p style="margin: 0; max-width: 360px; font-size: 17px; line-height: 1.55; color: #D6DCFF;">Six steps, and the AI does most of them. You stay in charge of the bits that matter: the brief and the final yes.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); column-gap: 64px;">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 24px; padding: 26px 0; border-top: 1px solid rgba(255,255,255,0.28);">
+            <span style="flex: none; width: 96px; font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 400; letter-spacing: -0.04em; line-height: 1;">{{s.n}}</span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.6); font-size: 14px; font-weight: 500;">{{s.t}}</span>
+                <span style="font-family: 'Geist Mono', monospace; font-size: 11px; padding: 4px 8px; border-radius: 999px; background: {{s.wbg}}; color: {{s.wfg}};">{{s.who}}</span>
+              </div>
+              <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: #E4E8FF;">{{s.d}}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENTO -->
+  <section style="padding: 120px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <div style="text-align: center; margin-bottom: 56px;">
+        <p style="margin: 0 0 16px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>ONE PLATFORM, TWO WAYS TO WORK</p>
+        <h2 style="margin: 0 auto; max-width: 860px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 5vw, 72px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Hand it over, or <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; text-decoration: underline; text-decoration-color: #FF5A00; text-decoration-thickness: 0.07em; text-underline-offset: 0.14em;">take the wheel.</span></h2>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+        <!-- Autopilot -->
+        <a href="W-Product.dc.html" style="flex: 2 1 560px; min-height: 480px; border-radius: 28px; background: #EEF5FF; padding: 36px; box-sizing: border-box; display: flex; gap: 28px; overflow: hidden;">
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0;">
+            <div>
+              <span style="display: inline-block; padding: 6px 12px; border-radius: 999px; background: #1A1A1A; color: #F5F8FF; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em;">AUTOPILOT</span>
+              <h3 style="margin: 18px 0 10px; font-family: 'Space Grotesk', sans-serif; font-size: 40px; line-height: 1; letter-spacing: -0.03em; font-weight: 600;">Let the AI make it.</h3>
+              <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #36415A;">On your phone. Upload, describe, approve. No editing skills needed.</p>
+            </div>
+            <span style="font-weight: 600;">Explore Autopilot →</span>
+          </div>
+          <div style="flex: none; width: 210px; height: 410px; align-self: flex-end; margin-bottom: -60px; border-radius: 34px; background: #1A1A1A; padding: 8px; box-sizing: border-box;">
+            <div style="position: relative; width: 100%; height: 100%; border-radius: 27px; overflow: hidden;">
+              <dc-import name="Scene" variant="coast" hint-size="100%,100%"></dc-import>
+              <span style="position: absolute; left: 12px; right: 12px; top: 44%; padding: 9px 12px; border-radius: 999px; background: #FFFFFF; font-size: 11px;">Sunset cruise, 20s</span>
+              <span style="position: absolute; left: 12px; right: 12px; bottom: 70px; padding: 11px; border-radius: 14px; background: #FF5A00; color: #1A1A1A; font-size: 12px; font-weight: 600; text-align: center;">Approve option 2</span>
+            </div>
+          </div>
+        </a>
+        <!-- Studio -->
+        <a href="W-Product.dc.html" style="flex: 2 1 560px; min-height: 480px; border-radius: 28px; background: #1A1A1A; color: #F5F8FF; padding: 36px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px;">
+          <div style="display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+            <div>
+              <span style="display: inline-block; padding: 6px 12px; border-radius: 999px; background: #2038E2; color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em;">STUDIO</span>
+              <h3 style="margin: 18px 0 10px; font-family: 'Space Grotesk', sans-serif; font-size: 40px; line-height: 1; letter-spacing: -0.03em; font-weight: 600;">Take the controls.</h3>
+              <p style="margin: 0; max-width: 360px; font-size: 16px; line-height: 1.55; color: #B8C2D9;">A focused desktop editor with an assistant that edits on request.</p>
+            </div>
+            <span style="font-weight: 600; align-self: flex-end;">Explore Studio →</span>
+          </div>
+          <div style="margin-top: auto; border-radius: 18px; background: #232323; border: 1px solid #33394A; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 10px;">
+              <div style="position: relative; flex: 1; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden;"><dc-import name="Scene" variant="forest" hint-size="100%,100%"></dc-import></div>
+              <div style="width: 36%; border-radius: 10px; background: #2D2D2D; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+                <span style="font-family: 'Geist Mono', monospace; color: #B8C2D9;">ASSISTANT</span>
+                <span style="padding: 7px; border-radius: 8px; background: #1A1A1A;">Open on the trail, tighten the middle.</span>
+                <span style="padding: 7px; border-radius: 8px; background: #FF5A00; color: #1A1A1A;">Done. 3 edits applied.</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px; height: 20px;"><span style="flex: 3; border-radius: 5px; background: #007BFF;"></span><span style="flex: 2; border-radius: 5px; background: #007BFF;"></span><span style="flex: 4; border-radius: 5px; background: #007BFF;"></span><span style="flex: 2; border-radius: 5px; background: #007BFF;"></span></div>
+            <div style="display: flex; gap: 4px; height: 12px;"><span style="flex: 1;"></span><span style="flex: 3; border-radius: 4px; background: #EEF5FF;"></span><span style="flex: 5;"></span><span style="flex: 2; border-radius: 4px; background: #FF5A00;"></span></div>
+          </div>
+        </a>
+        <!-- small cards -->
+        <div style="flex: 1 1 260px; min-height: 300px; border-radius: 24px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 26px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; gap: 6px;"><span style="width: 36px; height: 36px; border-radius: 10px; background: #2038E2;"></span><span style="width: 36px; height: 36px; border-radius: 10px; background: #FF5A00;"></span><span style="width: 36px; height: 36px; border-radius: 10px; background: #EEF5FF;"></span><span style="width: 36px; height: 36px; border-radius: 10px; background: #1A1A1A; color: #F5F8FF; font-family: 'Instrument Serif', serif; font-style: italic; font-size: 20px; display: flex; align-items: center; justify-content: center;">Aa</span></div>
+          <div><h3 style="margin: 0 0 6px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">Brand profiles</h3><p style="margin: 0; font-size: 14px; line-height: 1.5; color: #4B5563;">Colours, fonts, logo and tone, applied to every cut.</p></div>
+        </div>
+        <div style="flex: 1 1 260px; min-height: 300px; border-radius: 24px; overflow: hidden; position: relative; color: #FFFFFF;">
+          <dc-import name="Scene" variant="lake" hint-size="100%,100%"></dc-import>
+          <span style="position: absolute; left: 16px; right: 16px; top: 20px; display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-size: 13px;"><span style="flex: 1;">kayak at sunset</span><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #4B5563;">23 clips</span></span>
+          <div style="position: absolute; left: 22px; right: 22px; bottom: 22px; text-shadow: 0 1px 12px rgba(0,0,0,0.5);"><h3 style="margin: 0 0 6px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">A library that knows its shots</h3><p style="margin: 0; font-size: 14px;">Search by what is in the frame.</p></div>
+        </div>
+        <div style="flex: 1 1 260px; min-height: 300px; border-radius: 24px; background: #2038E2; color: #FFFFFF; padding: 26px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="position: relative; height: 120px;">
+            <div style="position: absolute; left: 0; top: 18px; width: 76px; height: 100px; border-radius: 10px; overflow: hidden; transform: rotate(-8deg);"><dc-import name="Scene" variant="dawn" hint-size="100%,100%"></dc-import></div>
+            <div style="position: absolute; left: 56px; top: 6px; width: 76px; height: 100px; border-radius: 10px; overflow: hidden; transform: rotate(2deg);"><dc-import name="Scene" variant="lake" hint-size="100%,100%"></dc-import></div>
+            <div style="position: absolute; left: 112px; top: 14px; width: 76px; height: 100px; border-radius: 10px; overflow: hidden; transform: rotate(10deg);"><dc-import name="Scene" variant="night" hint-size="100%,100%"></dc-import></div>
+          </div>
+          <div><h3 style="margin: 0 0 6px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">Batch versions</h3><p style="margin: 0; font-size: 14px; line-height: 1.5;">One brief, every format and length, in one go.</p></div>
+        </div>
+        <div style="flex: 1 1 260px; min-height: 300px; border-radius: 24px; background: #007BFF; color: #1A1A1A; padding: 26px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+            <span style="padding: 6px 10px; border-radius: 8px; background: #1A1A1A; color: #FFFFFF; font-weight: 600; font-size: 15px;">Wake up to this.</span>
+            <span style="padding: 6px 10px; border-radius: 8px; background: #FFFFFF; font-weight: 600; font-size: 15px;">Book direct and save.</span>
+            <span style="font-family: 'Geist Mono', monospace; font-size: 11px;">AUTO-TIMED · BRAND-STYLED</span>
+          </div>
+          <div><h3 style="margin: 0 0 6px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">Captions, done</h3><p style="margin: 0; font-size: 14px; line-height: 1.5;">Styled to your brand, timed automatically.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  
+
+  <!-- TOURISM -->
+  <section style="padding: 120px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 48px; align-items: center;">
+      <div style="flex: 1.2 1 520px; min-width: 0; position: relative; height: 560px; border-radius: 28px; overflow: hidden;">
+        <dc-import name="Scene" variant="geyser" hint-size="100%,100%"></dc-import>
+        <div style="position: absolute; right: 20px; bottom: 20px; width: 260px; padding: 16px; border-radius: 18px; background: #FFFFFF; box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
+          <div style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #4B5563; margin-bottom: 6px;">THIS WEEK</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px; margin-bottom: 10px;">Valley Geothermal</div>
+          <div style="display: flex; gap: 6px;"><span style="padding: 5px 9px; border-radius: 999px; background: #EEF5FF; font-size: 12px;">3 reels</span><span style="padding: 5px 9px; border-radius: 999px; background: #EEF5FF; font-size: 12px;">1 ad</span><span style="padding: 5px 9px; border-radius: 999px; background: #EEF5FF; font-size: 12px;">2 stories</span></div>
+        </div>
+      </div>
+      <div style="flex: 1 1 400px; min-width: 0;">
+        <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>SOLUTIONS</p>
+        <h2 style="margin: 0 0 20px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.8vw, 68px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Built for tourism. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Ready for anyone.</span></h2>
+        <p style="margin: 0 0 28px; font-size: 18px; line-height: 1.55; color: #4B5563;">Operators shoot great footage and never have time to edit it. We started there, and it works for any business with a camera roll.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+          <sc-for list="{{inds}}" as="i"><span style="padding: 10px 16px; border-radius: 999px; border: 1px solid #1A1A1A; font-size: 14px;">{{i.l}}</span></sc-for>
+        </div>
+        <a href="W-Solutions.dc.html" style="display: inline-block; padding: 15px 24px; border-radius: 999px; background: #1A1A1A; color: #F5F8FF; font-weight: 600;">See tourism solutions</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIAL -->
+  
+
+  <!-- PRICING TEASER -->
+  <section style="padding: 120px 0; background-color: #EEF5FF">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 48px;">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 5vw, 72px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Pick a plan. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Start free.</span></h2>
+        <a href="W-Pricing.dc.html" style="font-weight: 600; border-bottom: 1.5px solid #1A1A1A; padding-bottom: 2px;">Compare all plans →</a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        <sc-for list="{{tiers}}" as="tr" hint-placeholder-count="3">
+          <div style="border-radius: 28px; padding: 3px; background: {{tr.frame}};">
+            <div style="height: 100%; box-sizing: border-box; border-radius: 25px; padding: 30px; background: {{tr.bg}}; color: {{tr.ink}}; display: flex; flex-direction: column; gap: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600;">{{tr.name}}</span><sc-if value="{{tr.hot}}" hint-placeholder-val="{{false}}"><span style="padding: 5px 10px; border-radius: 999px; background: #FF5A00; color: #1A1A1A; font-family: 'Geist Mono', monospace; font-size: 10px;">RECOMMENDED</span></sc-if></div>
+              <p style="margin: 0; font-size: 15px; color: {{tr.mu}};">{{tr.who}}</p>
+              <p style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 44px; letter-spacing: -0.03em; font-weight: 600;">{{tr.price}}<span style="font-size: 15px; font-weight: 400; color: {{tr.mu}};"> NZD / month</span></p>
+              <div style="padding: 12px 14px; border-radius: 14px; background: {{tr.stat}}; display: flex; align-items: baseline; gap: 8px;"><span style="font-family: 'Geist Mono', monospace; font-size: 26px;">{{tr.videos}}</span><span style="font-size: 14px;">videos a month</span></div>
+              <a href="{{tr.href}}" style="margin-top: auto; padding: 14px; border-radius: 999px; text-align: center; background: {{tr.btn}}; color: {{tr.btnInk}}; font-weight: 600;">{{tr.cta}}</a>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 24px 0 0; font-size: 15px; color: #4B5563;">Just looking? <a href="W-Auth.dc.html" style="color: #1A1A1A; font-weight: 600; text-decoration: underline; text-decoration-color: #FF5A00; text-underline-offset: 3px;">Start on Free</a> with two videos, no card needed. Agency and Enterprise plans on the <a href="W-Pricing.dc.html" style="color: #1A1A1A; font-weight: 600; text-decoration: underline;">pricing page</a>.</p>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,1200px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":6400}}'>
+const G = 'linear-gradient(135deg, #DDEBFF, #8FC2FF 30%, #007BFF 60%, #2038E2)';
+class Component extends DCLogic {
+  renderVals() {
+    const ai = (w) => (w.indexOf('AI') >= 0 ? { wbg: '#FF5A00', wfg: '#1A1A1A' } : { wbg: 'rgba(255,255,255,0.14)', wfg: '#FFFFFF' });
+    return {
+      steps: [
+        { n: '01', t: 'Upload', who: 'YOU', d: 'Drop in clips from your phone, drive or camera roll. Any length, any order.', ...ai('YOU') },
+        { n: '02', t: 'Brand', who: 'ONCE', d: 'Set your colours, fonts, logo and tone a single time. Every video follows it.', ...ai('ONCE') },
+        { n: '03', t: 'Brief', who: 'YOU', d: 'Pick a goal and describe the video in a sentence.', ...ai('YOU') },
+        { n: '04', t: 'Generate', who: 'AI', d: 'It finds the best moments and cuts three on-brand options.', ...ai('AI') },
+        { n: '05', t: 'Refine', who: 'YOU + AI', d: 'Approve, ask for changes in plain words, or open it in Studio.', ...ai('YOU + AI') },
+        { n: '06', t: 'Export', who: 'AI', d: 'Sized for every channel you post to, ready to go.', ...ai('AI') }
+      ],
+      inds: [{ l: 'Tours and activities' }, { l: 'Accommodation' }, { l: 'Attractions' }, { l: 'Hospitality' }, { l: 'Destinations' }, { l: 'Agencies' }],
+      tiers: [
+        { name: 'Starter', price: '$49', videos: '5', who: 'Small businesses and independent operators.', hot: false, frame: '#DCE6F5', bg: '#FFFFFF', ink: '#1A1A1A', mu: '#4B5563', stat: '#EEF5FF', btn: '#2038E2', btnInk: '#FFFFFF', cta: 'Choose Starter', href: 'W-Pricing.dc.html' },
+        { name: 'Creator', price: '$119', videos: '20', who: 'Businesses regularly producing social content.', hot: true, frame: '#FF5A00', bg: '#1A1A1A', ink: '#F5F8FF', mu: '#B8C2D9', stat: '#2D2D2D', btn: '#FF5A00', btnInk: '#1A1A1A', cta: 'Choose Creator', href: 'W-Pricing.dc.html' },
+        { name: 'Business', price: '$249', videos: '60', who: 'Marketing teams and established businesses.', hot: false, frame: '#DCE6F5', bg: '#FFFFFF', ink: '#1A1A1A', mu: '#4B5563', stat: '#EEF5FF', btn: '#2038E2', btnInk: '#FFFFFF', cta: 'Choose Business', href: 'W-Pricing.dc.html' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

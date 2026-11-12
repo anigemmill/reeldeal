@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sitemap</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; padding: 56px clamp(20px, 4vw, 56px); box-sizing: border-box; min-height: 1000px;">
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 40px;">
+    <div>
+      <p style="margin: 0 0 10px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;">PROPOSED SITEMAP · V1</p>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 56px; letter-spacing: -0.04em; font-weight: 600; line-height: 1;">Five things in the nav. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Nothing more.</span></h1>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px;">
+      <span style="padding: 7px 12px; border-radius: 999px; background: #1A1A1A; color: #F5F8FF;">Page</span>
+      <span style="padding: 7px 12px; border-radius: 999px; border: 1px solid #1A1A1A;">Section of a page</span>
+      <span style="padding: 7px 12px; border-radius: 999px; border: 1px dashed #4B5563; color: #4B5563;">Later</span>
+      <span style="padding: 7px 12px; border-radius: 999px; background: #2038E2; color: #FFFFFF;">App starts here</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+    <sc-for list="{{cols}}" as="c" hint-placeholder-count="6">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="padding: 16px; border-radius: 16px; background: {{c.bg}}; color: {{c.fg}};">
+          <div style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.75;">{{c.path}}</div>
+          <div style="margin-top: 6px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">{{c.name}}</div>
+        </div>
+        <sc-for list="{{c.kids}}" as="k">
+          <div style="padding: 11px 14px; border-radius: 12px; background: {{k.bg}}; color: {{k.fg}}; border: {{k.bd}}; font-size: 14px; display: flex; justify-content: space-between; gap: 8px;"><span>{{k.l}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 10px; opacity: 0.7; padding-top: 2px;">{{k.t}}</span></div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
+    <div style="padding: 22px; border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5;">
+      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #4B5563; margin-bottom: 10px;">WHY THIS SHAPE</div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6;">Product is one long page with anchors, not five thin ones. Autopilot, Studio and brand intelligence make more sense told together. Split them out later only if search traffic justifies it.</p>
+    </div>
+    <div style="padding: 22px; border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5;">
+      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #4B5563; margin-bottom: 10px;">CONVERSION PATHS</div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6;">Every page ends in the same two actions: <b>Start free</b> (self-serve, goes to Create account) and <b>Book a demo</b> (sales-led, for agencies and multi-site businesses).</p>
+    </div>
+    <div style="padding: 22px; border-radius: 20px; background: #1A1A1A; color: #F5F8FF;">
+      <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #B8C2D9; margin-bottom: 10px;">WHERE THE WEBSITE ENDS</div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6;">Sign in and Create account are the last public pages. Everything after them (dashboard, Autopilot, Studio, library) is the app.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const PG = { bg: '#FFFFFF', fg: '#1A1A1A', bd: '1px solid #1A1A1A' };
+const SEC = { bg: 'transparent', fg: '#1A1A1A', bd: '1px solid #DCE6F5' };
+const LATER = { bg: 'transparent', fg: '#4B5563', bd: '1px dashed #B8C2D9' };
+class Component extends DCLogic {
+  renderVals() {
+    const k = (l, s, t) => ({ l, t, ...s });
+    return {
+      cols: [
+        { path: '/', name: 'Home', bg: '#1A1A1A', fg: '#F5F8FF', kids: [k('Showcase slider + prompt', SEC, 'HERO'), k('Prompt wall', SEC, ''), k('How it works', SEC, ''), k('Autopilot + Studio', SEC, ''), k('Brand intelligence', SEC, ''), k('Pricing teaser', SEC, '')] },
+        { path: '/product', name: 'Product', bg: '#8FC2FF', fg: '#1A1A1A', kids: [k('Autopilot', SEC, '#autopilot'), k('Studio', SEC, '#studio'), k('Brand intelligence', SEC, '#brand'), k('Media library', SEC, '#library'), k('Export', SEC, '#export'), k('Templates', LATER, 'LATER')] },
+        { path: '/solutions', name: 'Solutions', bg: '#2038E2', fg: '#FFFFFF', kids: [k('Tourism and hospitality', PG, 'PAGE'), k('Agencies', PG, 'PAGE'), k('All industries', SEC, 'HUB'), k('More industries', LATER, 'LATER')] },
+        { path: '/showcase', name: 'Showcase', bg: '#EEF5FF', fg: '#1A1A1A', kids: [k('Filterable video wall', SEC, ''), k('Case study pages', LATER, 'LATER')] },
+        { path: '/pricing', name: 'Pricing', bg: '#FFFFFF', fg: '#1A1A1A', kids: [k('Plans', SEC, ''), k('Compare features', SEC, ''), k('FAQ', SEC, '')] },
+        { path: '/company', name: 'Company', bg: '#FFFFFF', fg: '#1A1A1A', kids: [k('About', PG, 'PAGE'), k('Book a demo + contact', PG, 'PAGE'), k('Resources / blog', LATER, 'LATER'), k('Privacy, Terms', PG, 'FOOTER')] },
+        { path: '/login', name: 'Sign in', bg: '#2038E2', fg: '#FFFFFF', kids: [k('Create account', PG, 'PAGE'), k('→ App dashboard', { bg: '#2038E2', fg: '#FFFFFF', bd: '0' }, 'APP')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

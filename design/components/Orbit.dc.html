@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orbit analysis</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes unspin{to{transform:rotate(-360deg)}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<section id="brand" style="font-family: 'Inter', sans-serif; background: #1A1A1A; color: #F5F8FF; padding: 120px 0;">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 64px;">
+    <div style="flex: 1 1 520px; min-width: 0; display: flex; justify-content: center;">
+      <div style="position: relative; width: 520px; max-width: 100%; aspect-ratio: 1 / 1;" aria-hidden="true">
+        <span style="position: absolute; inset: 0; border-radius: 50%; border: 1px solid #33394A;"></span>
+        <span style="position: absolute; inset: 18%; border-radius: 50%; border: 1px dashed #33394A;"></span>
+        <div class="mv" style="position: absolute; inset: 0; animation: spin 40s linear infinite;">
+          <sc-for list="{{outer}}" as="o">
+            <div style="position: absolute; left: {{o.x}}; top: {{o.y}}; width: 96px; height: 64px; margin: -32px 0 0 -48px;">
+              <div class="mv" style="position: relative; width: 100%; height: 100%; border-radius: 10px; overflow: hidden; border: 2px solid {{o.ring}}; box-sizing: border-box; animation: unspin 40s linear infinite;"><dc-import name="Scene" variant="{{o.v}}" hint-size="100%,100%"></dc-import></div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="mv" style="position: absolute; inset: 18%; animation: unspin 28s linear infinite;">
+          <sc-for list="{{inner}}" as="o">
+            <div style="position: absolute; left: {{o.x}}; top: {{o.y}}; width: 72px; height: 48px; margin: -24px 0 0 -36px;">
+              <div class="mv" style="position: relative; width: 100%; height: 100%; border-radius: 8px; overflow: hidden; border: 2px solid {{o.ring}}; box-sizing: border-box; animation: spin 28s linear infinite;"><dc-import name="Scene" variant="{{o.v}}" hint-size="100%,100%"></dc-import></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position: absolute; inset: 34%; border-radius: 50%; border: 6px solid transparent; box-sizing: border-box; background: linear-gradient(#1A1A1A, #1A1A1A) padding-box, linear-gradient(135deg, #DDEBFF, #8FC2FF 30%, #007BFF 60%, #2038E2) border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px;">
+          <span style="font-family: 'Geist Mono', monospace; font-size: 30px; color: #FF5A00;">14</span>
+          <span style="font-size: 12px; font-weight: 600;">best clips<br>from 312</span>
+        </div>
+      </div>
+    </div>
+    <div style="flex: 1 1 380px; min-width: 0;">
+      <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #B8C2D9;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>BRAND INTELLIGENCE</p>
+      <h2 style="margin: 0 0 22px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.6vw, 66px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">It watches every clip, <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">so you don’t have to.</span></h2>
+      <p style="margin: 0 0 28px; font-size: 18px; line-height: 1.55; color: #B8C2D9;">Your whole library is analysed for scenes, people, light and steadiness, then matched to your brand and your goal.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <sc-for list="{{chips}}" as="ch"><span style="padding: 9px 14px; border-radius: 999px; border: 1px solid #33394A; font-size: 14px;">{{ch.l}}</span></sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ring = (n, vs, colr) => vs.map((v, i) => { const a = (i / n) * Math.PI * 2; return { v, x: (50 + 50 * Math.cos(a)).toFixed(2) + '%', y: (50 + 50 * Math.sin(a)).toFixed(2) + '%', ring: colr(i) }; });
+    return {
+      outer: ring(6, ['lake', 'dawn', 'forest', 'geyser', 'coast', 'night'], (i) => (i % 2 ? '#FF5A00' : '#33394A')),
+      inner: ring(4, ['coast', 'forest', 'lake', 'dawn'], (i) => (i === 0 ? '#007BFF' : '#33394A')),
+      chips: [{ l: 'Golden hour' }, { l: 'Guests smiling' }, { l: 'Steady shot' }, { l: 'Wide landscape' }, { l: 'Logo-safe' }, { l: 'Best moment 00:12' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

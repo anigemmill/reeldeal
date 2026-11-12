@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Concept A — Clear Sky</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+button{font:inherit;cursor:pointer}
+@keyframes caret{50%{opacity:0}}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.08);opacity:.95}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <header style="max-width: 1360px; margin: 0 auto; padding: 22px clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
+    <span style="display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 21px;"><span style="position: relative; width: 26px; height: 26px; display: inline-block;" aria-hidden="true"><span style="position: absolute; left: 0; top: 0; width: 18px; height: 18px; border-radius: 6px; background: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);"></span><span style="position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; border-radius: 6px; border: 2px solid #1A1A1A; box-sizing: border-box;"></span></span>Reeldeal</span>
+    <nav aria-label="Main" style="display: flex; gap: 2px; padding: 5px; border-radius: 999px; background: #EEF5FF; font-size: 14px; font-weight: 500;"><a href="#" style="padding: 8px 15px;">Product</a><a href="#" style="padding: 8px 15px;">Solutions</a><a href="#" style="padding: 8px 15px; border-radius: 999px; background: #FFFFFF;">Showcase</a><a href="#" style="padding: 8px 15px;">Pricing</a></nav>
+    <span style="display: flex; gap: 8px; font-size: 14px; font-weight: 500;"><a href="#" style="padding: 10px 8px;">Sign in</a><a href="#" style="padding: 11px 18px; border-radius: 999px; background: #1A1A1A; color: #FFFFFF;">Start free</a></span>
+  </header>
+
+  <section style="position: relative; z-index: 0; padding: 48px 0 88px; text-align: center; overflow: hidden;">
+    <div class="mv" style="position: absolute; z-index: -1; left: 50%; top: 250px; width: 1500px; height: 620px; margin-left: -750px; border-radius: 50%; background: radial-gradient(closest-side, #8FC2FF 0%, #BFDBFF 35%, #EEF5FF 65%, rgba(255,255,255,0) 100%); animation: breathe 9s ease-in-out infinite;" aria-hidden="true"></div>
+    <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;">AI VIDEO PRODUCTION FOR BUSINESS</p>
+    <h1 style="margin: 0 auto; max-width: 1060px; padding: 0 20px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: clamp(40px, 5.4vw, 78px); line-height: 1.05; letter-spacing: -0.04em;">
+      Your footage, <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">finished</span> for
+      <span style="display: inline-block; padding: 0 0.28em; border-radius: 0.24em; background: #2038E2; color: #FFFFFF; transform: rotate(-2deg);">Reels</span>
+      <span style="display: inline-block; padding: 0 0.28em; border-radius: 0.24em; background: #8FC2FF; color: #1A1A1A; transform: rotate(1.5deg);">Ads</span>
+      <span style="display: inline-block; padding: 0 0.28em; border-radius: 0.24em; border: 2px solid #1A1A1A; background: #FFFFFF;">Websites</span>
+    </h1>
+
+    <div style="position: relative; height: 470px; margin-top: 44px; overflow: hidden; perspective: 2200px; perspective-origin: 50% 45%;" aria-label="Videos made on the platform">
+      <div style="position: absolute; left: 50%; top: 50px; width: 0; height: 0; transform-style: preserve-3d;">
+        <sc-for list="{{arc}}" as="a" hint-placeholder-count="12">
+          <figure style="position: absolute; left: 0; top: 0; margin: 0; width: 256px; height: 340px; transform: {{a.tf}}; opacity: {{a.op}}; backface-visibility: hidden;">
+            <div style="position: relative; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; box-shadow: {{a.ring}};">
+              <dc-import name="Scene" variant="{{a.v}}" hint-size="100%,100%"></dc-import>
+              <figcaption style="position: absolute; left: 12px; right: 12px; bottom: 16px; color: #FFFFFF; text-align: left; text-shadow: 0 1px 10px rgba(0,0,0,0.5);">
+                <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 17px;">{{a.title}}</div>
+                <div style="font-family: 'Geist Mono', monospace; font-size: 10px; margin-top: 3px;">{{a.meta}}</div>
+              </figcaption>
+            </div>
+          </figure>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="max-width: 600px; margin: 0 auto; padding: 0 20px; box-sizing: border-box;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 22px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE6F5; box-shadow: 0 18px 50px rgba(32,56,226,0.14); text-align: left;">
+        <span style="flex: 1; min-width: 0; font-size: 18px; white-space: nowrap; overflow: hidden;">{{typed}}<span class="mv" style="display: inline-block; width: 2px; height: 20px; margin-left: 2px; vertical-align: -3px; background: #2038E2; animation: caret 1s steps(1) infinite;"></span></span>
+        <a href="#" aria-label="Create this video" style="flex: none; width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #007BFF, #2038E2); color: #FFFFFF; display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><polyline points="6 11 12 5 18 11"></polyline></svg></a>
+      </div>
+      <p style="margin: 16px 0 0; font-size: 14px; color: #4B5563;">Describe it. Get three edits made from your own footage.</p>
+    </div>
+  </section>
+
+  <section style="background: #EEF5FF; padding: 104px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <h2 style="margin: 0 0 48px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(44px, 5.4vw, 78px); line-height: 0.95; letter-spacing: -0.045em; font-weight: 600;">From folder <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">to feed.</span></h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+          <div style="padding: 28px; border-radius: 24px; background: #FFFFFF; min-height: 260px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 88px; font-weight: 600; line-height: 0.9; letter-spacing: -0.05em; color: transparent; background: linear-gradient(160deg, #8FC2FF 0%, #007BFF 45%, #2038E2 100%); -webkit-background-clip: text; background-clip: text;">{{s.n}}</span>
+            <div><h3 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600;">{{s.t}}</h3><p style="margin: 0; font-size: 15px; line-height: 1.5; color: #4B5563;">{{s.d}}</p></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 96px clamp(20px, 4vw, 40px);">
+    <div style="max-width: 1360px; margin: 0 auto; border-radius: 32px; padding: clamp(32px, 5vw, 64px); background: linear-gradient(90deg, #FFFFFF 0%, #DDEBFF 22%, #8FC2FF 46%, #007BFF 70%, #2038E2 90%, #1A1A1A 100%); border: 1px solid #DCE6F5; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 28px;">
+      <h2 style="margin: 0; max-width: 560px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(34px, 4vw, 54px); line-height: 1; letter-spacing: -0.035em; font-weight: 600;">Bring a folder of clips. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Leave with a week of content.</span></h2>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="#" style="padding: 16px 26px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-weight: 600;">Start free</a>
+        <a href="#" style="padding: 16px 26px; border-radius: 999px; background: #1A1A1A; color: #FFFFFF; font-weight: 500;">Book a demo</a>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+const TILES=[
+  { v: 'lake', title: 'Lakeside Lodge', meta: 'REEL · 0:24' }, { v: 'geyser', title: 'Valley Geothermal', meta: 'STORY · 0:15' },
+  { v: 'forest', title: 'Redwoods Trail Co.', meta: 'TIKTOK · 0:18' }, { v: 'coast', title: 'Bay Sail Charters', meta: 'FEED · 0:30' },
+  { v: 'night', title: 'Night Market', meta: 'REEL · 0:20' }, { v: 'dawn', title: 'Ridge Walks', meta: 'WEBSITE · 0:45' },
+  { v: 'lake', title: 'Kayak Hire', meta: 'REEL · 0:12' }, { v: 'forest', title: 'Canopy Tours', meta: 'AD · 0:15' },
+  { v: 'coast', title: 'Harbour Café', meta: 'STORY · 0:10' }, { v: 'geyser', title: 'Hot Pools Spa', meta: 'REEL · 0:30' },
+  { v: 'night', title: 'Rooftop Bar', meta: 'TIKTOK · 0:14' }, { v: 'dawn', title: 'Alpine Retreat', meta: 'FEED · 0:30' }
+];
+const PHRASES=['30s reel for summer bookings','Kayak tour highlights, 15 seconds','Sunrise walk for our website'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { off: 0, pi: 0, ci: 0, hold: 0 }; }
+  componentDidMount(){
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (reduce) { this.setState({ ci: 99 }); return; }
+    this.timer = setInterval(() => {
+      let { pi, ci, hold, off } = this.state; const len = PHRASES[pi].length;
+      if (ci < len) ci += 1; else if (hold < 45) hold += 1; else { pi = (pi + 1) % PHRASES.length; ci = 0; hold = 0; }
+      this.setState({ off: off + 0.012, pi, ci, hold });
+    }, 60);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  renderVals() {
+    const s = this.state, N = TILES.length;
+    return {
+      arc: TILES.map((t, i) => { let p = i - s.off; p = ((p % N) + N) % N; if (p > N / 2) p -= N;
+        return { ...t, tf: 'translateX(-50%) translateZ(1800px) rotateY(' + (-p * 9).toFixed(3) + 'deg) translateZ(-1800px)', op: Math.abs(p) > 5.2 ? 0 : 1, ring: Math.abs(p) < 0.5 ? '0 0 0 3px #FFFFFF, 0 0 0 6px #007BFF' : '0 10px 30px rgba(32,56,226,0.18)' }; }),
+      typed: PHRASES[s.pi].slice(0, s.ci),
+      steps: [
+        { n: '01', t: 'Upload', d: 'Clips from your phone, drive or camera roll.' },
+        { n: '02', t: 'Describe', d: 'Pick a goal and say what the video is for.' },
+        { n: '03', t: 'Generate', d: 'Three on-brand edits from your best moments.' },
+        { n: '04', t: 'Post', d: 'Every format, ready for every channel.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

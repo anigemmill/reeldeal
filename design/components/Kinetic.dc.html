@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kinetic type</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes mqLeft{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes mqRight{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<section style="background: #1A1A1A; padding: 72px 0; overflow: hidden;" aria-label="Upload, describe, approve, post. Reels, stories, ads, websites. In minutes, not weeks.">
+  <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+    <div style="overflow: hidden; white-space: nowrap;" aria-hidden="true">
+      <div class="mv" style="display: inline-flex; animation: {{r.anim}};">
+        <sc-for list="{{r.items}}" as="it"><span style="font-family: {{it.font}}; font-style: {{it.st}}; font-weight: {{it.fw}}; font-size: clamp(64px, 9vw, 140px); line-height: 1.04; letter-spacing: -0.045em; padding-right: 0.35em; color: {{it.c}}; -webkit-text-stroke: {{it.s}}; background: {{it.bg}}; -webkit-background-clip: {{it.clip}}; background-clip: {{it.clip}};">{{it.w}}</span></sc-for>
+      </div>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":560}}'>
+const G = 'linear-gradient(90deg, #FFFFFF 0%, #DDEBFF 20%, #8FC2FF 45%, #007BFF 72%, #2038E2 100%)';
+const fill = (w) => ({ w, c: 'transparent', s: '0px transparent', bg: G, clip: 'text', font: "'Space Grotesk', sans-serif", st: 'normal', fw: '700' });
+const line = (w) => ({ w, c: 'transparent', s: '2px #F5F8FF', bg: 'none', clip: 'border-box', font: "'Space Grotesk', sans-serif", st: 'normal', fw: '700' });
+const serif = (w) => ({ w, c: '#F5F8FF', s: '0px transparent', bg: 'none', clip: 'border-box', font: "'Instrument Serif', serif", st: 'italic', fw: '400' });
+const org = (w) => ({ w, c: '#FF5A00', s: '0px transparent', bg: 'none', clip: 'border-box', font: "'Space Grotesk', sans-serif", st: 'normal', fw: '700' });
+const dbl = (a) => a.concat(a);
+class Component extends DCLogic {
+  renderVals() {
+    return { rows: [
+      { anim: 'mqLeft 30s linear infinite', items: dbl([fill('Upload'), line('Describe'), serif('approve,'), org('Post')]) },
+      { anim: 'mqRight 36s linear infinite', items: dbl([line('Reels'), fill('Stories'), serif('ads'), line('Websites'), org('TikTok')]) },
+      { anim: 'mqLeft 26s linear infinite', items: dbl([fill('In minutes,'), org('not weeks.'), fill('In minutes,'), serif('not weeks.')]) }
+    ] };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Studio editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Sora:wght@400;600;700&amp;family=DM+Sans:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.82}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: {{t.b}}; background: {{c.bg}}; color: {{c.ink}}; min-height: 900px; display: flex; flex-direction: column; font-size: 13px;">
+
+  <!-- Top bar -->
+  <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border-bottom: 1px solid {{c.ln}};">
+    <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
+      <span style="position: relative; width: 22px; height: 22px; display: inline-block; flex: none;" aria-hidden="true">
+        <span style="position: absolute; left: 0; top: 0; width: 15px; height: 15px; border-radius: 5px; background: {{c.ac}};"></span>
+        <span style="position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; border-radius: 5px; border: 2px solid {{c.ink}}; box-sizing: border-box;"></span>
+      </span>
+      <nav aria-label="Breadcrumb" style="display: flex; align-items: center; gap: 8px; color: {{c.mu}}; white-space: nowrap; overflow: hidden;">
+        <a href="#">Lakeside Lodge</a><span aria-hidden="true">/</span><a href="#">Summer campaign</a><span aria-hidden="true">/</span>
+        <span style="color: {{c.ink}}; font-weight: 600;">Lakefront stay · 30s</span>
+      </nav>
+    </div>
+    <div role="group" aria-label="Aspect ratio" style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: {{c.sf}}; border: 1px solid {{c.ln}};">
+      <sc-for list="{{ratios}}" as="r" hint-placeholder-count="3">
+        <button type="button" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="border: 0; padding: 6px 14px; border-radius: 999px; font-family: {{mono}}; font-size: 12px; background: {{r.bg}}; color: {{r.fg}};">{{r.l}}</button>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-family: {{mono}}; font-size: 12px; color: {{c.mu}}; padding-right: 6px;">v3 · saved</span>
+      <button type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid {{c.ln}}; background: transparent; color: {{c.ink}};">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 3 3 9 9 9"></polyline><polyline points="12 7 12 12 15 14"></polyline></svg>
+        Versions
+      </button>
+      <button type="button" style="padding: 8px 12px; border-radius: 10px; border: 1px solid {{c.ln}}; background: transparent; color: {{c.ink}};">Share</button>
+      <button type="button" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 0; background: {{c.ac}}; color: {{c.on}}; font-weight: 600;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><polyline points="7 10 12 15 17 10"></polyline><path d="M5 21h14"></path></svg>
+        Export
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; box-sizing: border-box;">
+
+    <!-- Rail -->
+    <nav aria-label="App" style="flex: none; width: 56px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0; border-radius: 16px; background: {{c.sf}};">
+      <sc-for list="{{rail}}" as="n" hint-placeholder-count="7">
+        <a href="#" aria-label="{{n.l}}" title="{{n.l}}" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: {{n.bg}}; color: {{n.fg}};">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+        </a>
+      </sc-for>
+    </nav>
+
+    <!-- Library -->
+    <aside aria-label="Media library" style="flex: 0 1 272px; min-width: 240px; border-radius: 16px; background: {{c.sf}}; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; gap: 4px; font-weight: 500;">
+        <span style="padding: 6px 10px; border-radius: 8px; background: {{c.sf2}};">Media</span>
+        <span style="padding: 6px 10px; color: {{c.mu}};">Brand</span>
+        <span style="padding: 6px 10px; color: {{c.mu}};">Text</span>
+        <span style="padding: 6px 10px; color: {{c.mu}};">Audio</span>
+      </div>
+      <label style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 10px; background: {{c.bg}}; border: 1px solid {{c.ln}};">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search footage</span>
+        <input type="text" placeholder="Search “kayak at sunset”" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: {{c.ink}}; font: inherit;">
+      </label>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <span style="padding: 5px 10px; border-radius: 999px; background: {{c.ac}}; color: {{c.on}}; font-weight: 600;">AI picks · 14</span>
+        <span style="padding: 5px 10px; border-radius: 999px; border: 1px solid {{c.ln}};">All · 312</span>
+        <span style="padding: 5px 10px; border-radius: 999px; border: 1px solid {{c.ln}};">People</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+        <sc-for list="{{clips}}" as="cl" hint-placeholder-count="8">
+          <div>
+            <div style="position: relative; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; outline: {{cl.ring}}; outline-offset: 1px;">
+              <dc-import name="Scene" variant="{{cl.v}}" hint-size="100%,100%"></dc-import>
+              <span style="position: absolute; right: 5px; bottom: 5px; padding: 2px 5px; border-radius: 5px; background: rgba(0,0,0,0.6); color: #FFFFFF; font-family: {{mono}}; font-size: 10px;">{{cl.dur}}</span>
+            </div>
+            <div style="margin-top: 5px; font-size: 11px; color: {{c.mu}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{cl.name}}</div>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+
+    <!-- Center -->
+    <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+      <section aria-label="Preview" style="border-radius: 16px; background: {{c.sf}}; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: {{c.bg}};">
+          <div style="position: relative; height: 372px; max-width: 100%; aspect-ratio: {{arCss}}; border-radius: 6px; overflow: hidden;">
+            <dc-import name="Scene" variant="lake" hint-size="100%,100%"></dc-import>
+            <span style="position: absolute; inset: 6%; border: 1px dashed rgba(255,255,255,0.45); border-radius: 4px;"></span>
+            <div style="position: absolute; left: 8%; bottom: 12%; right: 8%; color: #FFFFFF;">
+              <div style="display: inline-block; padding: 4px 8px; border-radius: 6px; background: {{c.ac}}; color: {{c.on}}; font-family: {{mono}}; font-size: 10px; letter-spacing: 0.06em; margin-bottom: 8px;">LAKESIDE LODGE</div>
+              <div style="font-family: {{t.h}}; font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: -0.02em; text-shadow: 0 2px 16px rgba(0,0,0,0.35);">Wake up to this.</div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+          <span style="font-family: {{mono}}; font-size: 13px;">00:08.12 <span style="color: {{c.mu}};">/ 00:30.00</span></span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" aria-label="Previous clip" style="width: 36px; height: 36px; border-radius: 10px; border: 0; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="19 5 9 12 19 19 19 5"></polygon><line x1="5" y1="5" x2="5" y2="19"></line></svg></button>
+            <button type="button" aria-label="Play" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: {{c.ink}}; color: {{c.bg}}; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg></button>
+            <button type="button" aria-label="Next clip" style="width: 36px; height: 36px; border-radius: 10px; border: 0; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 5 15 12 5 19 5 5"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <span style="padding: 6px 10px; border-radius: 8px; background: {{c.sf2}};">Captions on</span>
+            <span style="padding: 6px 10px; border-radius: 8px; border: 1px solid {{c.ln}};">Safe zones</span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Timeline" style="flex: 1; border-radius: 16px; background: {{c.sf}}; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+          <div role="tablist" aria-label="Edit view" style="display: flex; gap: 4px;">
+            <button type="button" role="tab" aria-selected="{{tabTimeline}}" onClick="{{showTimeline}}" style="border: 0; padding: 6px 12px; border-radius: 8px; font-weight: 600; background: {{tlBg}}; color: {{c.ink}};">Timeline</button>
+            <button type="button" role="tab" aria-selected="{{tabStory}}" onClick="{{showStory}}" style="border: 0; padding: 6px 12px; border-radius: 8px; font-weight: 600; background: {{sbBg}}; color: {{c.ink}};">Storyboard</button>
+          </div>
+          <div style="display: flex; gap: 4px; color: {{c.mu}};">
+            <span style="padding: 6px 10px; border-radius: 8px; border: 1px solid {{c.ln}};">Split</span>
+            <span style="padding: 6px 10px; border-radius: 8px; border: 1px solid {{c.ln}};">Trim</span>
+            <span style="padding: 6px 10px; border-radius: 8px; border: 1px solid {{c.ln}};">Text</span>
+            <span style="padding: 6px 10px; border-radius: 8px; border: 1px solid {{c.ln}};">Transition</span>
+          </div>
+        </div>
+
+        <sc-if value="{{isTimeline}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; gap: 8px;">
+              <span style="width: 72px; flex: none;"></span>
+              <div style="flex: 1; display: flex; justify-content: space-between; font-family: {{mono}}; font-size: 10px; color: {{c.mu}};">
+                <span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span><span>00:20</span><span>00:25</span><span>00:30</span>
+              </div>
+            </div>
+            <div style="position: relative; display: flex; flex-direction: column; gap: 6px;">
+              <sc-for list="{{tracks}}" as="tk" hint-placeholder-count="5">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span style="width: 72px; flex: none; font-size: 11px; color: {{c.mu}};">{{tk.l}}</span>
+                  <div style="position: relative; flex: 1; height: {{tk.h}}; border-radius: 8px; background: {{c.bg}};">
+                    <sc-for list="{{tk.items}}" as="it">
+                      <span style="position: absolute; top: 0; bottom: 0; left: {{it.x}}; width: {{it.w}}; border-radius: 7px; background: {{tk.fill}}; color: {{tk.fg}}; font-size: 10px; padding: 0 8px; box-sizing: border-box; display: flex; align-items: center; white-space: nowrap; overflow: hidden; box-shadow: {{it.sel}};">{{it.l}}</span>
+                    </sc-for>
+                    <sc-if value="{{tk.wave}}" hint-placeholder-val="{{false}}">
+                      <div style="position: absolute; inset: 0; display: flex; align-items: center; gap: 2px; padding: 0 8px; border-radius: 7px; background: {{c.sf2}};">
+                        <sc-for list="{{wave}}" as="w"><span style="flex: 1; height: {{w.h}}; border-radius: 2px; background: {{c.ac2}};"></span></sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+              <span style="position: absolute; top: -6px; bottom: 0; left: calc(80px + (100% - 80px) * 0.27); width: 2px; background: {{c.ac}};" aria-hidden="true"></span>
+              <span style="position: absolute; top: -12px; left: calc(80px + (100% - 80px) * 0.27 - 5px); width: 12px; height: 12px; border-radius: 3px; background: {{c.ac}};" aria-hidden="true"></span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isStory}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;">
+            <sc-for list="{{board}}" as="b" hint-placeholder-count="6">
+              <div style="flex: none; width: 150px; padding: 8px; border-radius: 12px; background: {{c.bg}}; border: 1px solid {{c.ln}};">
+                <div style="position: relative; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden;"><dc-import name="Scene" variant="{{b.v}}" hint-size="100%,100%"></dc-import></div>
+                <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 11px;"><span style="font-weight: 600;">{{b.n}} {{b.l}}</span><span style="font-family: {{mono}}; color: {{c.mu}};">{{b.d}}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </section>
+    </main>
+
+    <!-- Assistant -->
+    <aside aria-label="AI assistant" style="flex: 0 1 320px; min-width: 280px; border-radius: 16px; background: {{c.sf}}; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 4px; font-weight: 500;">
+          <span style="padding: 6px 10px; border-radius: 8px; background: {{c.sf2}};">Assistant</span>
+          <span style="padding: 6px 10px; color: {{c.mu}};">Inspector</span>
+        </div>
+        <span style="display: flex; align-items: center; gap: 6px; font-family: {{mono}}; font-size: 11px; color: {{c.mu}};"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{c.ac}};"></span>READY</span>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+        <div style="padding: 12px; border-radius: 14px; background: {{c.bg}}; line-height: 1.5;">Draft 2 uses 14 clips. It opens on the lake at golden hour, with warm acoustic music and brand captions.</div>
+        <div style="align-self: flex-end; max-width: 85%; padding: 12px; border-radius: 14px; background: {{c.ac2}}; color: {{c.on2}}; line-height: 1.5;">Open with the kayak shot and make the middle faster.</div>
+        <div style="padding: 12px; border-radius: 14px; background: {{c.bg}}; display: flex; flex-direction: column; gap: 8px;">
+          <span style="line-height: 1.5;">Done. Three changes:</span>
+          <sc-for list="{{changes}}" as="ch">
+            <div style="display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: {{c.sf2}}; font-size: 12px;"><span>{{ch.l}}</span><span style="font-family: {{mono}}; color: {{c.mu}};">{{ch.m}}</span></div>
+          </sc-for>
+          <div style="display: flex; gap: 6px; margin-top: 2px;">
+            <button type="button" style="flex: 1; padding: 8px; border-radius: 10px; border: 0; background: {{c.ac}}; color: {{c.on}}; font-weight: 600;">Keep</button>
+            <button type="button" style="flex: 1; padding: 8px; border-radius: 10px; border: 1px solid {{c.ln}}; background: transparent; color: {{c.ink}};">Undo</button>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <span style="padding: 6px 10px; border-radius: 999px; border: 1px solid {{c.ln}}; font-size: 12px;">Make a 15s cut</span>
+        <span style="padding: 6px 10px; border-radius: 999px; border: 1px solid {{c.ln}}; font-size: 12px;">Add logo end card</span>
+        <span style="padding: 6px 10px; border-radius: 999px; border: 1px solid {{c.ln}}; font-size: 12px;">3 versions for A/B</span>
+      </div>
+      <form style="display: flex; gap: 8px; align-items: center; padding: 6px 6px 6px 12px; border-radius: 14px; background: {{c.bg}}; border: 1px solid {{c.ln}};">
+        <label style="flex: 1; min-width: 0;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Ask for an edit</span><input type="text" placeholder="Ask for an edit…" style="width: 100%; border: 0; outline: none; background: transparent; color: {{c.ink}}; font: inherit;"></label>
+        <button type="button" aria-label="Send" style="width: 36px; height: 36px; border-radius: 10px; border: 0; background: {{c.ac}}; color: {{c.on}}; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><polyline points="13 6 19 12 13 18"></polyline></svg></button>
+      </form>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["01 · Cream / Blue / Orange","02 · June Bud / Orange / Dark Blue","03 · Tangerine / Pistachio / Retro Green","04 · Altitude","05 · Electric Blue / Orange / Charcoal","06 · Fold / Bone White / Blue"],"default":"04 · Altitude","section":"Theme"},"mode":{"editor":"enum","options":["Dark Studio","Light Workspace"],"default":"Dark Studio","section":"Theme"},"type":{"editor":"enum","options":["A · Space Grotesk + Inter","B · Sora + DM Sans","C · Manrope"],"default":"A · Space Grotesk + Inter","section":"Theme"},"$preview":{"width":1440,"height":900}}'>
+const P={
+'01':{L:{bg:'#F6EFE7',sf:'#FFFFFF',sf2:'#EFE4D8',ink:'#1E2533',mu:'#5A6275',ln:'#E2D6C9',ac:'#F4721E',on:'#1E2533',ac2:'#4D6080',on2:'#FFFFFF',tint:'#E9D9CA'},D:{bg:'#12151C',sf:'#1B202B',sf2:'#252B38',ink:'#F3ECE4',mu:'#A5ADBD',ln:'#2E3546',ac:'#F4721E',on:'#1E2533',ac2:'#8FA3C6',on2:'#12151C',tint:'#E9D9CA'}},
+'02':{L:{bg:'#F7F3E9',sf:'#FFFFFF',sf2:'#EFE7D4',ink:'#12063F',mu:'#574F70',ln:'#E5DCC6',ac:'#1A0088',on:'#FFFFFF',ac2:'#FF5832',on2:'#12063F',tint:'#B4D34F'},D:{bg:'#0D0726',sf:'#170E3A',sf2:'#22184D',ink:'#F4EFE2',mu:'#ABA4C4',ln:'#2E2459',ac:'#B4D34F',on:'#12063F',ac2:'#FF5832',on2:'#0D0726',tint:'#B4D34F'}},
+'03':{L:{bg:'#F4F3E4',sf:'#FFFFFF',sf2:'#E9E8CA',ink:'#0F2A1B',mu:'#4F5E54',ln:'#DEDDBF',ac:'#006732',on:'#FFFFFF',ac2:'#FE7A25',on2:'#0F2A1B',tint:'#E9E8CA'},D:{bg:'#0B140F',sf:'#121F18',sf2:'#1A2B21',ink:'#EEEDD6',mu:'#A3AE9F',ln:'#24382C',ac:'#FE7A25',on:'#0B140F',ac2:'#3FA36B',on2:'#0B140F',tint:'#E9E8CA'}},
+'04':{L:{bg:'#F8F1F5',sf:'#FFFFFF',sf2:'#F2E6EE',ink:'#0B0838',mu:'#57546F',ln:'#E6D8E1',ac:'#0033FF',on:'#FFFFFF',ac2:'#977DFF',on2:'#0B0838',tint:'#F2E6EE'},D:{bg:'#08072B',sf:'#100E3D',sf2:'#1A1752',ink:'#F2E6EE',mu:'#ACA6CC',ln:'#26236A',ac:'#977DFF',on:'#08072B',ac2:'#5C7BFF',on2:'#08072B',tint:'#F2E6EE'}},
+'05':{L:{bg:'#FFF6EF',sf:'#FFFFFF',sf2:'#FFE4D0',ink:'#191919',mu:'#5C5C5C',ln:'#F0DCCB',ac:'#2636F5',on:'#FFFFFF',ac2:'#FF5A00',on2:'#191919',tint:'#FFE4D0'},D:{bg:'#191919',sf:'#222222',sf2:'#2C2C2C',ink:'#F5F0EC',mu:'#A8A8A8',ln:'#363636',ac:'#FF5A00',on:'#191919',ac2:'#087BFF',on2:'#0B0B0B',tint:'#FFE4D0'}},
+'06':{L:{bg:'#F5F5F5',sf:'#FFFFFF',sf2:'#ECECEC',ink:'#141414',mu:'#5E5E5E',ln:'#E3E3E3',ac:'#2860FF',on:'#FFFFFF',ac2:'#FF6500',on2:'#141414',tint:'#F7B34B'},D:{bg:'#101114',sf:'#18191D',sf2:'#222328',ink:'#F5F5F5',mu:'#A3A3A8',ln:'#2E2F35',ac:'#F7B34B',on:'#141414',ac2:'#5A85FF',on2:'#101114',tint:'#F7B34B'}}};
+const T={A:{h:"'Space Grotesk', sans-serif",b:"'Inter', sans-serif"},B:{h:"'Sora', sans-serif",b:"'DM Sans', sans-serif"},C:{h:"'Manrope', sans-serif",b:"'Manrope', sans-serif"}};
+const MONO="'Geist Mono', ui-monospace, monospace";
+const ICONS={
+  Home:'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+  Autopilot:'M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5M21 3l-9 9',
+  Studio:'M3 5h18v14H3zM3 9h18M8 5v4M16 5v4',
+  Library:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  Brands:'M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z',
+  Templates:'M4 4h16v6H4zM4 14h7v6H4zM15 14h5v6h-5z',
+  Exports:'M12 3v12M7 10l5 5 5-5M5 21h14'
+};
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { ar: '16:9', tab: 'timeline' }; }
+  renderVals() {
+    const pal = P[String(this.props.palette ?? '04').slice(0, 2)] || P['04'];
+    const c = (this.props.mode ?? 'Dark Studio') === 'Light Workspace' ? pal.L : pal.D;
+    const t = T[String(this.props.type ?? 'A')[0]] || T.A;
+    const ar = this.state.ar, tab = this.state.tab;
+    const arMap = { '9:16': '9 / 16', '1:1': '1 / 1', '16:9': '16 / 9' };
+    const ratios = ['9:16', '1:1', '16:9'].map((l) => ({ l, pressed: String(ar === l), bg: ar === l ? c.ink : 'transparent', fg: ar === l ? c.bg : c.ink, pick: () => this.setState({ ar: l }) }));
+    const rail = Object.keys(ICONS).map((l) => ({ l, d: ICONS[l], bg: l === 'Studio' ? c.ac : 'transparent', fg: l === 'Studio' ? c.on : c.mu }));
+    const sel = '0 0 0 2px ' + c.ink;
+    const wave = []; for (let i = 0; i < 64; i++) { wave.push({ h: (30 + Math.round(60 * Math.abs(Math.sin(i * 0.7) * Math.cos(i * 0.23)))) + '%' }); }
+    return {
+      c, t, mono: MONO, ratios, rail, wave,
+      arCss: arMap[ar],
+      isTimeline: tab === 'timeline', isStory: tab === 'storyboard',
+      tabTimeline: String(tab === 'timeline'), tabStory: String(tab === 'storyboard'),
+      tlBg: tab === 'timeline' ? c.sf2 : 'transparent', sbBg: tab === 'storyboard' ? c.sf2 : 'transparent',
+      showTimeline: () => this.setState({ tab: 'timeline' }), showStory: () => this.setState({ tab: 'storyboard' }),
+      clips: [
+        { v: 'lake', dur: '00:41', name: 'kayak_02.mov', ring: '2px solid ' + c.ac },
+        { v: 'dawn', dur: '00:22', name: 'ridge_sunrise_04.mov', ring: '2px solid ' + c.ac },
+        { v: 'forest', dur: '01:05', name: 'trail_walk_01.mov', ring: '2px solid ' + c.ac },
+        { v: 'coast', dur: '00:18', name: 'jetty_dusk.mov', ring: 'none' },
+        { v: 'geyser', dur: '00:33', name: 'steam_valley.mov', ring: '2px solid ' + c.ac },
+        { v: 'night', dur: '00:27', name: 'deck_firepit.mov', ring: 'none' },
+        { v: 'lake', dur: '00:12', name: 'room_view.mov', ring: 'none' },
+        { v: 'forest', dur: '00:46', name: 'drone_canopy.mov', ring: '2px solid ' + c.ac }
+      ],
+      tracks: [
+        { l: 'Video', h: '40px', fill: c.ac2, fg: c.on2, items: [
+          { x: '0%', w: '15%', l: 'kayak_02', sel: sel }, { x: '15.4%', w: '12%', l: 'ridge_sunrise', sel: 'none' }, { x: '27.8%', w: '18%', l: 'trail_walk', sel: 'none' },
+          { x: '46.2%', w: '14%', l: 'steam_valley', sel: 'none' }, { x: '60.6%', w: '20%', l: 'drone_canopy', sel: 'none' }, { x: '81%', w: '19%', l: 'room_view', sel: 'none' } ] },
+        { l: 'Text', h: '24px', fill: c.tint, fg: '#141414', items: [ { x: '2%', w: '20%', l: 'Wake up to this.', sel: 'none' }, { x: '84%', w: '15%', l: 'Book direct', sel: 'none' } ] },
+        { l: 'Captions', h: '24px', fill: c.sf2, fg: c.ink, items: [ { x: '0%', w: '30%', l: 'Auto captions · EN', sel: 'none' }, { x: '31%', w: '34%', l: 'Auto captions · EN', sel: 'none' }, { x: '66%', w: '34%', l: 'Auto captions · EN', sel: 'none' } ] },
+        { l: 'Logo', h: '24px', fill: c.ac, fg: c.on, items: [ { x: '88%', w: '12%', l: 'End card', sel: 'none' } ] },
+        { l: 'Music', h: '34px', fill: c.sf2, fg: c.ink, wave: true, items: [] }
+      ],
+      board: [
+        { v: 'lake', n: '01', l: 'Kayak', d: '4.5s' }, { v: 'dawn', n: '02', l: 'Ridge', d: '3.6s' }, { v: 'forest', n: '03', l: 'Trail', d: '5.4s' },
+        { v: 'geyser', n: '04', l: 'Steam', d: '4.2s' }, { v: 'forest', n: '05', l: 'Canopy', d: '6.0s' }, { v: 'lake', n: '06', l: 'Room view', d: '5.7s' }
+      ],
+      changes: [ { l: 'Moved kayak_02 to the opening', m: '00:00' }, { l: 'Trimmed 3 middle clips', m: '−4.2s' }, { l: 'Re-timed captions', m: '12 cues' } ]
+    };
+  }
+}
+</script>
+</body>
+</html>

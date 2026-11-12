@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Studio editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+input{font:inherit}
+input[type=range]{accent-color:#FF5A00}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #141414; color: #F5F8FF; min-height: 1000px; display: flex; flex-direction: column; font-size: 13px;">
+  <!-- Top bar -->
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #2A2F3C;">
+    <a href="A-Storyboard.dc.html" aria-label="Back to storyboard" style="width: 36px; height: 36px; border-radius: 10px; background: #232323; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 6 9 12 15 18"></polyline></svg></a>
+    <span style="position: relative; width: 22px; height: 22px; display: inline-block;" aria-hidden="true">
+      <span style="position: absolute; left: 0; top: 0; width: 15px; height: 15px; border-radius: 5px; background: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);"></span>
+      <span style="position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; border-radius: 5px; border: 2px solid #F5F8FF; box-sizing: border-box;"></span>
+    </span>
+    <div style="display: flex; flex-direction: column; min-width: 0;"><span style="font-weight: 600; font-size: 14px;">Summer bookings reel</span><span style="font-size: 11px; color: #B8C2D9;">Lakeside Lodge · Option 1 · saved just now</span></div>
+    <div style="flex: 1;"></div>
+    <div role="group" aria-label="Aspect ratio" style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #232323;">
+      <sc-for list="{{ratios}}" as="r"><button type="button" onClick="{{r.pick}}" aria-pressed="{{r.on}}" style="border: 0; padding: 6px 12px; border-radius: 999px; background: {{r.bg}}; color: {{r.fg}}; font-family: 'Geist Mono', monospace; font-size: 11px;">{{r.l}}</button></sc-for>
+    </div>
+    <button type="button" aria-label="Undo" style="width: 34px; height: 34px; border-radius: 9px; border: 0; background: #232323; color: #F5F8FF;">↶</button>
+    <button type="button" aria-label="Redo" style="width: 34px; height: 34px; border-radius: 9px; border: 0; background: #232323; color: #F5F8FF;">↷</button>
+    <button type="button" style="padding: 9px 13px; border-radius: 10px; border: 1px solid #2A2F3C; background: transparent; color: #F5F8FF;">Share for review</button>
+    <a href="A-Render.dc.html" style="padding: 10px 16px; border-radius: 10px; background: #FF5A00; color: #1A1A1A; font-weight: 600;">Render · 1 credit</a>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px;">
+    <!-- Media panel -->
+    <aside aria-label="Media" style="flex: 0 1 250px; min-width: 220px; border-radius: 16px; background: #1E1E1E; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; gap: 2px;"><span style="padding: 6px 10px; border-radius: 8px; background: #2D2D2D; font-weight: 500;">Media</span><span style="padding: 6px 10px; color: #B8C2D9;">Brand</span><span style="padding: 6px 10px; color: #B8C2D9;">Text</span><span style="padding: 6px 10px; color: #B8C2D9;">Audio</span></div>
+      <div style="padding: 8px 10px; border-radius: 10px; background: #141414; color: #7D879C; border: 1px solid #2A2F3C;">Search “guests laughing”…</div>
+      <div style="font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #B8C2D9;">AI SUGGESTS FOR THIS SPOT</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+        <sc-for list="{{media}}" as="m" hint-placeholder-count="8">
+          <div>
+            <div style="position: relative; aspect-ratio: 16 / 10; border-radius: 9px; overflow: hidden;">
+              <dc-import name="Scene" variant="{{m.v}}" hint-size="100%,100%"></dc-import>
+              <span style="position: absolute; left: 5px; top: 5px; padding: 1px 6px; border-radius: 999px; background: {{m.sbg}}; color: #1A1A1A; font-family: 'Geist Mono', monospace; font-size: 9px;">{{m.s}}</span>
+              <span style="position: absolute; right: 5px; bottom: 5px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,0.6); font-family: 'Geist Mono', monospace; font-size: 9px;">{{m.d}}</span>
+            </div>
+            <div style="margin-top: 4px; font-size: 11px; color: #B8C2D9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{m.n}}</div>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+
+    <!-- Preview -->
+    <section aria-label="Preview" style="flex: 999 1 480px; min-width: 0; border-radius: 16px; background: #1E1E1E; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+      <div style="flex: 1; min-height: 420px; border-radius: 12px; background: #0E0E0E; display: flex; align-items: center; justify-content: center;">
+        <div style="position: relative; height: 400px; max-width: 100%; aspect-ratio: {{ar}}; border-radius: 6px; overflow: hidden;">
+          <dc-import name="Scene" variant="{{cur.v}}" hint-size="100%,100%"></dc-import>
+          <span style="position: absolute; inset: 6%; border: 1px dashed rgba(255,255,255,0.35); border-radius: 4px;" aria-hidden="true"></span>
+          <sc-if value="{{cur.hasCap}}" hint-placeholder-val="{{true}}">
+            <div style="position: absolute; left: 8%; right: 8%; bottom: 13%; color: #FFFFFF;">
+              <div style="display: inline-block; padding: 3px 7px; border-radius: 5px; background: #2038E2; font-family: 'Geist Mono', monospace; font-size: 9px; letter-spacing: 0.06em; margin-bottom: 6px;">LAKESIDE LODGE</div>
+              <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 26px; line-height: 1.02; letter-spacing: -0.02em; text-shadow: 0 2px 14px rgba(0,0,0,0.4);">{{cur.cap}}</div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <span style="font-family: 'Geist Mono', monospace; font-size: 13px;">{{tc}} <span style="color: #7D879C;">/ 00:30.00</span></span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" aria-label="Back 5 seconds" style="width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: #F5F8FF;">«</button>
+          <button type="button" onClick="{{togglePlay}}" aria-label="{{playLabel}}" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: #F5F8FF; color: #141414; display: flex; align-items: center; justify-content: center; font-size: 14px;">{{playIcon}}</button>
+          <button type="button" aria-label="Forward 5 seconds" style="width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: #F5F8FF;">»</button>
+        </div>
+        <div style="display: flex; gap: 6px;"><span style="padding: 6px 10px; border-radius: 8px; background: #2D2D2D;">Captions</span><span style="padding: 6px 10px; border-radius: 8px; border: 1px solid #2A2F3C;">Safe zones</span></div>
+      </div>
+    </section>
+
+    <!-- Right panel -->
+    <aside aria-label="Tools" style="flex: 0 1 320px; min-width: 280px; border-radius: 16px; background: #1E1E1E; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+      <div role="tablist" aria-label="Panel" style="display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #141414;">
+        <sc-for list="{{tabs}}" as="tb"><button type="button" role="tab" aria-selected="{{tb.on}}" onClick="{{tb.pick}}" style="flex: 1; border: 0; padding: 7px; border-radius: 8px; background: {{tb.bg}}; color: {{tb.fg}}; font-weight: 500; font-size: 12px;">{{tb.l}}</button></sc-for>
+      </div>
+
+      <sc-if value="{{isAssist}}" hint-placeholder-val="{{true}}">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 11px; border-radius: 12px; background: #141414; line-height: 1.5;">This cut is 30s with 6 shots, warm acoustic music and brand captions. What would you like to change?</div>
+          <div style="align-self: flex-end; max-width: 85%; padding: 11px; border-radius: 12px; background: #2038E2; line-height: 1.5;">Open on the jetty laughing shot and make the middle faster.</div>
+          <div style="padding: 11px; border-radius: 12px; background: #141414; display: flex; flex-direction: column; gap: 7px;">
+            <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #FF5A00;"></span>Done. 3 changes:</span>
+            <span style="display: flex; justify-content: space-between; padding: 7px 9px; border-radius: 9px; background: #232323; font-size: 12px;"><span>Opened on jetty_dusk_03</span><span style="font-family: 'Geist Mono', monospace; color: #B8C2D9;">00:00</span></span>
+            <span style="display: flex; justify-content: space-between; padding: 7px 9px; border-radius: 9px; background: #232323; font-size: 12px;"><span>Trimmed 3 middle shots</span><span style="font-family: 'Geist Mono', monospace; color: #B8C2D9;">−4.2s</span></span>
+            <span style="display: flex; justify-content: space-between; padding: 7px 9px; border-radius: 9px; background: #232323; font-size: 12px;"><span>Re-timed captions to beat</span><span style="font-family: 'Geist Mono', monospace; color: #B8C2D9;">3 cues</span></span>
+            <div style="display: flex; gap: 6px;"><button type="button" style="flex: 1; padding: 8px; border-radius: 9px; border: 0; background: #FF5A00; color: #1A1A1A; font-weight: 600;">Keep</button><button type="button" style="flex: 1; padding: 8px; border-radius: 9px; border: 1px solid #2A2F3C; background: transparent; color: #F5F8FF;">Undo</button></div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto;">
+            <span style="padding: 6px 10px; border-radius: 999px; border: 1px solid #2A2F3C; font-size: 11px;">Make a 15s cut</span>
+            <span style="padding: 6px 10px; border-radius: 999px; border: 1px solid #2A2F3C; font-size: 11px;">Warmer colour</span>
+            <span style="padding: 6px 10px; border-radius: 999px; border: 1px solid #2A2F3C; font-size: 11px;">Try different music</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; padding: 6px 6px 6px 12px; border-radius: 12px; background: #141414; border: 1px solid #2A2F3C;">
+            <label style="flex: 1; min-width: 0;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Ask for an edit</span><input type="text" placeholder="Ask for an edit…" style="width: 100%; border: 0; outline: none; background: transparent; color: #F5F8FF;"></label>
+            <button type="button" aria-label="Send" style="width: 34px; height: 34px; border-radius: 9px; border: 0; background: #FF5A00; color: #1A1A1A;">↑</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isInspect}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="position: relative; width: 64px; height: 40px; border-radius: 8px; overflow: hidden; flex: none;"><dc-import name="Scene" variant="{{cur.v}}" hint-size="100%,100%"></dc-import></div>
+            <div><div style="font-weight: 600;">{{cur.n}}</div><div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #B8C2D9;">Shot {{cur.i}} of 6 · {{cur.len}}</div></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+            <div style="padding: 9px; border-radius: 10px; background: #141414;"><div style="font-size: 11px; color: #B8C2D9;">In</div><div style="font-family: 'Geist Mono', monospace;">{{cur.in}}</div></div>
+            <div style="padding: 9px; border-radius: 10px; background: #141414;"><div style="font-size: 11px; color: #B8C2D9;">Out</div><div style="font-family: 'Geist Mono', monospace;">{{cur.out}}</div></div>
+          </div>
+          <div><div style="font-size: 11px; color: #B8C2D9; margin-bottom: 6px;">Speed</div><div style="display: flex; gap: 4px;"><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; border: 1px solid #2A2F3C;">0.5×</span><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; background: #F5F8FF; color: #141414;">1×</span><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; border: 1px solid #2A2F3C;">1.5×</span><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; border: 1px solid #2A2F3C;">2×</span></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 11px; color: #B8C2D9;">Colour</div>
+            <label style="display: flex; align-items: center; gap: 10px;"><span style="width: 70px;">Exposure</span><input type="range" min="-100" max="100" style="flex: 1;"></label>
+            <label style="display: flex; align-items: center; gap: 10px;"><span style="width: 70px;">Warmth</span><input type="range" min="-100" max="100" style="flex: 1;"></label>
+            <label style="display: flex; align-items: center; gap: 10px;"><span style="width: 70px;">Contrast</span><input type="range" min="-100" max="100" style="flex: 1;"></label>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-radius: 10px; background: #141414;"><span>Keep subject in frame</span><span style="padding: 3px 9px; border-radius: 999px; background: #FF5A00; color: #1A1A1A; font-family: 'Geist Mono', monospace; font-size: 10px;">AI ON</span></div>
+          <div><div style="font-size: 11px; color: #B8C2D9; margin-bottom: 6px;">Transition in</div><div style="display: flex; gap: 4px;"><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; background: #F5F8FF; color: #141414;">Cut</span><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; border: 1px solid #2A2F3C;">Dissolve</span><span style="flex: 1; text-align: center; padding: 6px; border-radius: 8px; border: 1px solid #2A2F3C;">Whip</span></div></div>
+          <button type="button" style="padding: 10px; border-radius: 10px; border: 1px solid #FF5A00; background: transparent; color: #FF5A00; font-weight: 600;">Ask AI for a better shot here</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isVersions}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{versions}}" as="vr">
+            <div style="padding: 11px; border-radius: 12px; background: {{vr.bg}}; border: 1px solid {{vr.bd}}; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 600;">{{vr.v}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 999px; background: {{vr.wbg}}; color: #1A1A1A;">{{vr.who}}</span></div>
+              <span style="color: #B8C2D9; font-size: 12px;">{{vr.d}}</span>
+              <span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #7D879C;">{{vr.when}}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top: 6px; font-size: 12px; color: #B8C2D9; line-height: 1.5;">Every change is saved. Restore any version, or branch a new one to compare side by side.</div>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+
+  <!-- Timeline -->
+  <section aria-label="Timeline" style="margin: 0 8px 8px; border-radius: 16px; background: #1E1E1E; padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;">
+      <div style="display: flex; gap: 4px;"><span style="padding: 6px 11px; border-radius: 8px; background: #2D2D2D; font-weight: 600;">Timeline</span><a href="A-Storyboard.dc.html" style="padding: 6px 11px; color: #B8C2D9;">Storyboard</a></div>
+      <div style="display: flex; gap: 4px; color: #B8C2D9;"><span style="padding: 6px 10px; border-radius: 8px; border: 1px solid #2A2F3C;">Split</span><span style="padding: 6px 10px; border-radius: 8px; border: 1px solid #2A2F3C;">Trim</span><span style="padding: 6px 10px; border-radius: 8px; border: 1px solid #2A2F3C;">Text</span><span style="padding: 6px 10px; border-radius: 8px; border: 1px solid #2A2F3C;">Transition</span></div>
+      <span style="font-size: 12px; color: #B8C2D9;"><span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #FF5A00; margin-right: 6px;"></span>2 review comments</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <span style="width: 64px; flex: none;"></span>
+      <div style="position: relative; flex: 1; display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 10px; color: #7D879C; height: 16px;">
+        <span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span><span>00:20</span><span>00:25</span><span>00:30</span>
+        <span style="position: absolute; left: 38%; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: #FF5A00;" title="Comment: logo too small"></span>
+        <span style="position: absolute; left: 81%; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: #FF5A00;" title="Comment: add booking link"></span>
+      </div>
+    </div>
+    <div style="position: relative; display: flex; flex-direction: column; gap: 5px;">
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="width: 64px; flex: none; font-size: 11px; color: #B8C2D9;">Video</span>
+        <div style="position: relative; flex: 1; height: 44px; border-radius: 8px; background: #141414;">
+          <sc-for list="{{clips}}" as="c">
+            <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" aria-label="{{c.n}}" style="position: absolute; top: 0; bottom: 0; left: {{c.x}}; width: {{c.w}}; padding: 0; border: 0; border-radius: 7px; overflow: hidden; box-shadow: {{c.ring}}; background: #2038E2;">
+              <span style="position: absolute; left: 0; top: 0; bottom: 0; width: 40px; overflow: hidden;"><dc-import name="Scene" variant="{{c.v}}" hint-size="100%,100%"></dc-import></span>
+              <span style="position: absolute; left: 46px; right: 6px; top: 50%; transform: translateY(-50%); text-align: left; color: #FFFFFF; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.n}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="width: 64px; flex: none; font-size: 11px; color: #B8C2D9;">Text</span>
+        <div style="position: relative; flex: 1; height: 22px; border-radius: 6px; background: #141414;">
+          <span style="position: absolute; top: 0; bottom: 0; left: 1%; width: 18%; border-radius: 6px; background: #8FC2FF; color: #1A1A1A; font-size: 10px; padding: 0 8px; display: flex; align-items: center;">Wake up to this.</span>
+          <span style="position: absolute; top: 0; bottom: 0; left: 40%; width: 18%; border-radius: 6px; background: #8FC2FF; color: #1A1A1A; font-size: 10px; padding: 0 8px; display: flex; align-items: center;">Lakeside, 20 min…</span>
+          <span style="position: absolute; top: 0; bottom: 0; left: 80%; width: 19%; border-radius: 6px; background: #8FC2FF; color: #1A1A1A; font-size: 10px; padding: 0 8px; display: flex; align-items: center;">Book direct</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="width: 64px; flex: none; font-size: 11px; color: #B8C2D9;">Captions</span>
+        <div style="position: relative; flex: 1; height: 22px; border-radius: 6px; background: #141414;"><span style="position: absolute; inset: 0; border-radius: 6px; background: #2D2D2D; color: #B8C2D9; font-size: 10px; padding: 0 8px; display: flex; align-items: center;">Auto captions · EN · brand style</span></div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="width: 64px; flex: none; font-size: 11px; color: #B8C2D9;">Music</span>
+        <div style="position: relative; flex: 1; height: 30px; border-radius: 6px; background: #141414; display: flex; align-items: center; gap: 2px; padding: 0 6px; box-sizing: border-box;">
+          <sc-for list="{{wave}}" as="w"><span style="flex: 1; height: {{w.h}}; border-radius: 2px; background: #007BFF;"></span></sc-for>
+        </div>
+      </div>
+      <span style="position: absolute; top: -8px; bottom: 0; left: calc(72px + (100% - 72px) * {{ph}}); width: 2px; background: #FF5A00;" aria-hidden="true"></span>
+      <span style="position: absolute; top: -14px; left: calc(72px + (100% - 72px) * {{ph}} - 5px); width: 12px; height: 12px; border-radius: 3px; background: #FF5A00;" aria-hidden="true"></span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const CLIPS = [
+  { v: 'coast', n: 'jetty_dusk_03', x: 0, w: 14, in: '00:09.20', cap: 'Wake up to this.' },
+  { v: 'lake', n: 'kayak_02', x: 14.3, w: 16, in: '00:03.00' },
+  { v: 'forest', n: 'deck_coffee', x: 30.6, w: 12, in: '00:01.10' },
+  { v: 'dawn', n: 'ridge_sunrise_04', x: 42.9, w: 19, in: '00:06.00', cap: 'Lakeside, 20 min from town' },
+  { v: 'geyser', n: 'steam_valley', x: 62.2, w: 16, in: '00:11.12' },
+  { v: 'lake', n: 'lake_wide_end', x: 78.5, w: 21.5, in: '00:00.00', cap: 'Book direct and save' }
+];
+const pad = (n) => (n < 10 ? '0' : '') + n;
+const tcode = (sec) => '00:' + pad(Math.floor(sec)) + '.' + pad(Math.floor((sec % 1) * 100));
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { ar: '9:16', tab: 'Assistant', sel: 0, ph: 0.06, playing: false }; }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  togglePlay(){
+    if (this.state.playing) { clearInterval(this.timer); this.setState({ playing: false }); return; }
+    this.setState({ playing: true });
+    this.timer = setInterval(() => { const ph = this.state.ph + 0.004; this.setState({ ph: ph > 1 ? 0 : ph }); }, 100);
+  }
+  renderVals() {
+    const s = this.state;
+    const atIdx = Math.max(0, CLIPS.findIndex((c) => s.ph * 100 >= c.x && s.ph * 100 < c.x + c.w));
+    const showIdx = s.playing ? atIdx : s.sel;
+    const c = CLIPS[showIdx];
+    const len = (c.w / 100 * 30);
+    const inSec = parseFloat(c.in.slice(3));
+    const wave = []; for (let i = 0; i < 120; i++) wave.push({ h: (25 + Math.round(65 * Math.abs(Math.sin(i * 0.45) * Math.cos(i * 0.11)))) + '%' });
+    const arMap = { '9:16': '9 / 16', '1:1': '1 / 1', '16:9': '16 / 9' };
+    return {
+      ratios: ['9:16', '1:1', '16:9'].map((l) => ({ l, on: String(l === s.ar), bg: l === s.ar ? '#F5F8FF' : 'transparent', fg: l === s.ar ? '#141414' : '#F5F8FF', pick: () => this.setState({ ar: l }) })),
+      ar: arMap[s.ar],
+      tabs: ['Assistant', 'Inspector', 'Versions'].map((l) => ({ l, on: String(l === s.tab), bg: l === s.tab ? '#2D2D2D' : 'transparent', fg: l === s.tab ? '#F5F8FF' : '#B8C2D9', pick: () => this.setState({ tab: l }) })),
+      isAssist: s.tab === 'Assistant', isInspect: s.tab === 'Inspector', isVersions: s.tab === 'Versions',
+      cur: { v: c.v, n: c.n, i: showIdx + 1, len: len.toFixed(1) + 's', in: c.in, out: tcode(inSec + len), hasCap: !!c.cap, cap: c.cap || '' },
+      clips: CLIPS.map((x, i) => ({ ...x, x: x.x + '%', w: 'calc(' + x.w + '% - 3px)', on: String(i === s.sel), ring: i === s.sel ? '0 0 0 2px #FF5A00' : 'none', pick: () => this.setState({ sel: i, tab: 'Inspector', ph: x.x / 100 + 0.005 }) })),
+      ph: s.ph.toFixed(4), tc: tcode(s.ph * 30),
+      togglePlay: () => this.togglePlay(), playIcon: s.playing ? '❚❚' : '▶', playLabel: s.playing ? 'Pause' : 'Play',
+      media: [['coast', 'jetty_dusk_03', '9.4', '00:18'], ['lake', 'kayak_02', '9.1', '00:41'], ['dawn', 'ridge_sunrise', '8.9', '00:22'], ['forest', 'trail_walk_01', '8.6', '01:05'], ['night', 'deck_firepit', '8.4', '00:27'], ['geyser', 'steam_valley', '8.1', '00:33'], ['lake', 'room_view', '7.8', '00:12'], ['forest', 'drone_canopy', '7.6', '00:46']].map(([v, n, sc, d]) => ({ v, n, s: sc, d, sbg: parseFloat(sc) >= 8.4 ? '#FF5A00' : '#F5F8FF' })),
+      wave,
+      versions: [
+        { v: 'v3 · current', who: 'YOU + AI', wbg: '#FF5A00', d: 'Opened on jetty, faster middle', when: '2 min ago', bg: '#232323', bd: '#FF5A00' },
+        { v: 'v2', who: 'YOU', wbg: '#8FC2FF', d: 'Changed end card text', when: '9 min ago', bg: '#141414', bd: '#2A2F3C' },
+        { v: 'v1', who: 'AI', wbg: '#8FC2FF', d: 'Storyboard option 1 · Calm', when: '14 min ago', bg: '#141414', bd: '#2A2F3C' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

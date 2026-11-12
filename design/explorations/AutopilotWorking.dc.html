@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Autopilot — Building your video</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Sora:wght@400;600;700&amp;family=DM+Sans:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes orbitBack{to{transform:rotate(-360deg)}}
+.orb-a{animation:orbit 14s linear infinite}
+.orb-b{animation:orbitBack 22s linear infinite}
+@media (prefers-reduced-motion: reduce){.orb-a,.orb-b{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; overflow: hidden; font-family: {{t.b}}; background: {{c.bg}}; color: {{c.ink}}; display: flex; flex-direction: column; font-size: 14px;">
+  <header style="display: flex; justify-content: center; padding: 32px 20px 0;">
+    <span style="font-family: {{mono}}; font-size: 12px; color: {{c.mu}};">AUTOPILOT · STEP 3 OF 3</span>
+  </header>
+
+  <div style="display: flex; justify-content: center; padding: 36px 0 28px;">
+    <div style="position: relative; width: 260px; height: 260px;" aria-hidden="true">
+      <span style="position: absolute; inset: 0; border-radius: 50%; border: 1px solid {{c.ln}};"></span>
+      <span style="position: absolute; inset: 40px; border-radius: 50%; border: 1px dashed {{c.ln}};"></span>
+      <div class="orb-a" style="position: absolute; inset: 0;">
+        <span style="position: absolute; left: 50%; top: -9px; margin-left: -9px; width: 18px; height: 18px; border-radius: 50%; background: {{c.ac}};"></span>
+        <span style="position: absolute; left: 6px; bottom: 50px; width: 12px; height: 12px; border-radius: 50%; background: {{c.ac2}};"></span>
+      </div>
+      <div class="orb-b" style="position: absolute; inset: 40px;">
+        <div style="position: absolute; right: -24px; top: 30px; width: 54px; height: 36px; border-radius: 9px; overflow: hidden; border: 2px solid {{c.bg}};"><div style="position: relative; width: 100%; height: 100%;"><dc-import name="Scene" variant="lake" hint-size="100%,100%"></dc-import></div></div>
+        <div style="position: absolute; left: -20px; bottom: 26px; width: 54px; height: 36px; border-radius: 9px; overflow: hidden; border: 2px solid {{c.bg}};"><div style="position: relative; width: 100%; height: 100%;"><dc-import name="Scene" variant="dawn" hint-size="100%,100%"></dc-import></div></div>
+      </div>
+      <div style="position: absolute; inset: 82px; border-radius: 50%; background: {{c.ink}}; color: {{c.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+        <span style="font-family: {{mono}}; font-size: 26px;">62%</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 20px; flex: 1;">
+    <div>
+      <h1 style="margin: 0 0 8px; font-family: {{t.h}}; font-size: 32px; line-height: 1.02; letter-spacing: -0.03em; font-weight: 600;">Building your video</h1>
+      <p style="margin: 0; color: {{c.mu}}; line-height: 1.5;">Usually under two minutes. You can leave this screen and we’ll let you know when it’s ready.</p>
+    </div>
+    <div role="progressbar" aria-label="Progress" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" style="height: 8px; border-radius: 999px; background: {{c.sf2}};">
+      <div style="width: 62%; height: 8px; border-radius: 999px; background: {{c.ac}};"></div>
+    </div>
+    <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px;">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+        <li style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: {{s.bg}};">
+          <span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; color: {{s.dotFg}}; border: {{s.dotBorder}}; box-sizing: border-box; font-size: 12px;" aria-hidden="true">{{s.icon}}</span>
+          <span style="flex: 1; font-weight: {{s.fw}}; color: {{s.fg}};">{{s.l}}</span>
+          <span style="font-family: {{mono}}; font-size: 11px; color: {{c.mu}};">{{s.m}}</span>
+        </li>
+      </sc-for>
+    </ol>
+  </div>
+
+  <div style="padding: 16px 20px 28px; display: flex; flex-direction: column; gap: 8px;">
+    <a href="AutopilotReview.dc.html" style="display: flex; justify-content: center; padding: 18px; border-radius: 18px; background: {{c.sf}}; border: 1px solid {{c.ln}}; font-weight: 600;">Skip to results (prototype)</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["01 · Cream / Blue / Orange","02 · June Bud / Orange / Dark Blue","03 · Tangerine / Pistachio / Retro Green","04 · Altitude","05 · Electric Blue / Orange / Charcoal","06 · Fold / Bone White / Blue"],"default":"01 · Cream / Blue / Orange","section":"Theme"},"mode":{"editor":"enum","options":["Light Workspace","Dark Studio"],"default":"Light Workspace","section":"Theme"},"type":{"editor":"enum","options":["A · Space Grotesk + Inter","B · Sora + DM Sans","C · Manrope"],"default":"A · Space Grotesk + Inter","section":"Theme"},"$preview":{"width":390,"height":844}}'>
+const P={
+'01':{L:{bg:'#F6EFE7',sf:'#FFFFFF',sf2:'#EFE4D8',ink:'#1E2533',mu:'#5A6275',ln:'#E2D6C9',ac:'#F4721E',on:'#1E2533',ac2:'#4D6080',on2:'#FFFFFF',tint:'#E9D9CA'},D:{bg:'#12151C',sf:'#1B202B',sf2:'#252B38',ink:'#F3ECE4',mu:'#A5ADBD',ln:'#2E3546',ac:'#F4721E',on:'#1E2533',ac2:'#8FA3C6',on2:'#12151C',tint:'#E9D9CA'}},
+'02':{L:{bg:'#F7F3E9',sf:'#FFFFFF',sf2:'#EFE7D4',ink:'#12063F',mu:'#574F70',ln:'#E5DCC6',ac:'#1A0088',on:'#FFFFFF',ac2:'#FF5832',on2:'#12063F',tint:'#B4D34F'},D:{bg:'#0D0726',sf:'#170E3A',sf2:'#22184D',ink:'#F4EFE2',mu:'#ABA4C4',ln:'#2E2459',ac:'#B4D34F',on:'#12063F',ac2:'#FF5832',on2:'#0D0726',tint:'#B4D34F'}},
+'03':{L:{bg:'#F4F3E4',sf:'#FFFFFF',sf2:'#E9E8CA',ink:'#0F2A1B',mu:'#4F5E54',ln:'#DEDDBF',ac:'#006732',on:'#FFFFFF',ac2:'#FE7A25',on2:'#0F2A1B',tint:'#E9E8CA'},D:{bg:'#0B140F',sf:'#121F18',sf2:'#1A2B21',ink:'#EEEDD6',mu:'#A3AE9F',ln:'#24382C',ac:'#FE7A25',on:'#0B140F',ac2:'#3FA36B',on2:'#0B140F',tint:'#E9E8CA'}},
+'04':{L:{bg:'#F8F1F5',sf:'#FFFFFF',sf2:'#F2E6EE',ink:'#0B0838',mu:'#57546F',ln:'#E6D8E1',ac:'#0033FF',on:'#FFFFFF',ac2:'#977DFF',on2:'#0B0838',tint:'#F2E6EE'},D:{bg:'#08072B',sf:'#100E3D',sf2:'#1A1752',ink:'#F2E6EE',mu:'#ACA6CC',ln:'#26236A',ac:'#977DFF',on:'#08072B',ac2:'#5C7BFF',on2:'#08072B',tint:'#F2E6EE'}},
+'05':{L:{bg:'#FFF6EF',sf:'#FFFFFF',sf2:'#FFE4D0',ink:'#191919',mu:'#5C5C5C',ln:'#F0DCCB',ac:'#2636F5',on:'#FFFFFF',ac2:'#FF5A00',on2:'#191919',tint:'#FFE4D0'},D:{bg:'#191919',sf:'#222222',sf2:'#2C2C2C',ink:'#F5F0EC',mu:'#A8A8A8',ln:'#363636',ac:'#FF5A00',on:'#191919',ac2:'#087BFF',on2:'#0B0B0B',tint:'#FFE4D0'}},
+'06':{L:{bg:'#F5F5F5',sf:'#FFFFFF',sf2:'#ECECEC',ink:'#141414',mu:'#5E5E5E',ln:'#E3E3E3',ac:'#2860FF',on:'#FFFFFF',ac2:'#FF6500',on2:'#141414',tint:'#F7B34B'},D:{bg:'#101114',sf:'#18191D',sf2:'#222328',ink:'#F5F5F5',mu:'#A3A3A8',ln:'#2E2F35',ac:'#F7B34B',on:'#141414',ac2:'#5A85FF',on2:'#101114',tint:'#F7B34B'}}};
+const T={A:{h:"'Space Grotesk', sans-serif",b:"'Inter', sans-serif"},B:{h:"'Sora', sans-serif",b:"'DM Sans', sans-serif"},C:{h:"'Manrope', sans-serif",b:"'Manrope', sans-serif"}};
+const MONO="'Geist Mono', ui-monospace, monospace";
+class Component extends DCLogic {
+  renderVals() {
+    const pal = P[String(this.props.palette ?? '01').slice(0, 2)] || P['01'];
+    const c = (this.props.mode ?? 'Light Workspace') === 'Dark Studio' ? pal.D : pal.L;
+    const t = T[String(this.props.type ?? 'A')[0]] || T.A;
+    const done = { bg: 'transparent', dotBg: c.ink, dotFg: c.bg, dotBorder: '0', icon: '✓', fw: '400', fg: c.ink };
+    const now = { bg: c.sf, dotBg: c.ac, dotFg: c.on, dotBorder: '0', icon: '•', fw: '600', fg: c.ink };
+    const next = { bg: 'transparent', dotBg: 'transparent', dotFg: c.mu, dotBorder: '1.5px solid ' + c.ln, icon: '', fw: '400', fg: c.mu };
+    return {
+      c, t, mono: MONO,
+      steps: [
+        { ...done, l: 'Analysed 23 clips', m: '4.2 GB' },
+        { ...done, l: 'Found 9 best moments', m: '00:47' },
+        { ...now, l: 'Applying Lakeside Lodge style', m: 'now' },
+        { ...next, l: 'Cutting 3 options', m: '—' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

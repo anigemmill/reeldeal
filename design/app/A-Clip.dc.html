@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clip — AI analysis</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #F5F8FF; color: #1A1A1A; min-height: 1000px; display: flex; flex-wrap: wrap; font-size: 14px;">
+  <div style="flex: none;"><dc-import name="AppNav" active="Library" hint-size="248px,1000px"></dc-import></div>
+  <main style="flex: 999 1 640px; min-width: 0; padding: 24px 28px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px;">
+    <nav aria-label="Breadcrumb" style="display: flex; gap: 8px; color: #4B5563;"><a href="A-Library.dc.html" style="color: #2038E2; font-weight: 500;">Library</a><span aria-hidden="true">/</span><span style="color: #1A1A1A; font-weight: 600;">jetty_dusk_03.mov</span></nav>
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start;">
+      <section aria-label="Clip preview" style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <div style="position: relative; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden; background: #1A1A1A;">
+          <dc-import name="Scene" variant="coast" hint-size="100%,100%"></dc-import>
+          <span style="position: absolute; left: {{box.x}}; top: {{box.y}}; width: {{box.w}}; height: {{box.h}}; border: 2px solid #FF5A00; border-radius: 10px;"></span>
+          <span style="position: absolute; left: {{box.x}}; top: {{box.ly}}; padding: 4px 8px; border-radius: 6px; background: #FF5A00; color: #1A1A1A; font-family: 'Geist Mono', monospace; font-size: 11px;">{{cur.label}}</span>
+          <div style="position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgba(26,26,26,0.7); color: #FFFFFF;">
+            <span style="width: 32px; height: 32px; border-radius: 50%; background: #FFFFFF; color: #1A1A1A; display: flex; align-items: center; justify-content: center;" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg></span>
+            <span style="font-family: 'Geist Mono', monospace; font-size: 12px;">{{cur.t}} / 00:18.00</span>
+            <span style="flex: 1;"></span>
+            <span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.85;">4K · 24 FPS · 1.2 GB</span>
+          </div>
+        </div>
+        <div style="border-radius: 18px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 10px; color: #4B5563;"><span>00:00</span><span>00:06</span><span>00:12</span><span>00:18</span></div>
+          <div style="position: relative; display: flex; gap: 3px; height: 34px;">
+            <sc-for list="{{segs}}" as="sg"><span style="flex: {{sg.f}}; border-radius: 6px; background: {{sg.c}}; color: {{sg.fg}}; font-size: 10px; display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden;">{{sg.l}}</span></sc-for>
+            <span style="position: absolute; top: -4px; bottom: -4px; left: {{cur.pos}}; width: 2px; background: #FF5A00;" aria-hidden="true"></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 2px; height: 26px;" aria-hidden="true">
+            <sc-for list="{{wave}}" as="w"><span style="flex: 1; height: {{w.h}}; border-radius: 2px; background: #8FC2FF;"></span></sc-for>
+          </div>
+        </div>
+        <div style="border-radius: 18px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 6px 8px;">
+          <div style="padding: 10px 10px 6px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #4B5563;">DETECTED MOMENTS · CLICK TO JUMP</div>
+          <sc-for list="{{moments}}" as="m" hint-placeholder-count="5">
+            <button type="button" onClick="{{m.pick}}" aria-pressed="{{m.sel}}" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 10px; border: 0; border-radius: 12px; background: {{m.bg}}; color: #1A1A1A; text-align: left;">
+              <span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #4B5563; width: 64px;">{{m.t}}</span>
+              <span style="flex: 1;">{{m.d}}</span>
+              <sc-if value="{{m.best}}" hint-placeholder-val="{{false}}"><span style="padding: 3px 8px; border-radius: 999px; background: #FF5A00; font-family: 'Geist Mono', monospace; font-size: 10px;">BEST MOMENT</span></sc-if>
+              <span style="font-family: 'Geist Mono', monospace; font-size: 12px;">{{m.s}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <aside aria-label="AI analysis" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+        <div style="border-radius: 20px; background: #1A1A1A; color: #F5F8FF; padding: 22px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #B8C2D9;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #FF5A00;"></span>AI SCORE</div>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin: 10px 0 18px;"><span style="font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 600; letter-spacing: -0.04em; color: #FF5A00;">9.4</span><span style="color: #B8C2D9;">/ 10 · top 3% of your library</span></div>
+          <sc-for list="{{meters}}" as="mt">
+            <div style="margin-bottom: 11px;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;"><span>{{mt.l}}</span><span style="font-family: 'Geist Mono', monospace;">{{mt.v}}</span></div>
+              <div style="height: 5px; border-radius: 999px; background: #33394A;"><div style="height: 5px; width: {{mt.w}}; border-radius: 999px; background: linear-gradient(90deg, #8FC2FF, #007BFF, #2038E2);"></div></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 18px; display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #4B5563; margin-bottom: 8px;">WHAT’S IN THE SHOT</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{tags}}" as="t"><span style="padding: 5px 10px; border-radius: 999px; background: #EEF5FF; font-size: 12px;">{{t.l}}</span></sc-for></div>
+          </div>
+          <div>
+            <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #4B5563; margin-bottom: 8px;">GOOD FOR</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;"><span style="padding: 5px 10px; border-radius: 999px; border: 1px solid #2038E2; color: #2038E2; font-size: 12px;">Reel opener</span><span style="padding: 5px 10px; border-radius: 999px; border: 1px solid #2038E2; color: #2038E2; font-size: 12px;">Website hero</span><span style="padding: 5px 10px; border-radius: 999px; border: 1px solid #2038E2; color: #2038E2; font-size: 12px;">Ad hook</span></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-size: 12px;">
+            <div style="padding: 10px; border-radius: 12px; background: #F5F8FF;"><div style="color: #4B5563;">Audio</div><div style="font-weight: 600; margin-top: 2px;">Ambient, no speech</div></div>
+            <div style="padding: 10px; border-radius: 12px; background: #F5F8FF;"><div style="color: #4B5563;">Used in</div><div style="font-weight: 600; margin-top: 2px;">2 videos</div></div>
+            <div style="padding: 10px; border-radius: 12px; background: #F5F8FF;"><div style="color: #4B5563;">Shot</div><div style="font-weight: 600; margin-top: 2px;">12 Nov, 7:42pm</div></div>
+            <div style="padding: 10px; border-radius: 12px; background: #F5F8FF;"><div style="color: #4B5563;">Uploaded by</div><div style="font-weight: 600; margin-top: 2px;">[Team member]</div></div>
+          </div>
+        </div>
+        <a href="A-Generate.dc.html" style="padding: 15px; border-radius: 14px; background: #FF5A00; color: #1A1A1A; font-weight: 600; text-align: center;">Make a video from this clip</a>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #DCE6F5; background: #FFFFFF; color: #1A1A1A;">Add to project</button>
+          <button type="button" style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #DCE6F5; background: #FFFFFF; color: #1A1A1A;">Hide from AI</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const M = [
+  { t: '00:00.00', d: 'Wide of the jetty, warm light', s: '8.1', pos: '0%', box: ['10%', '20%', '80%', '60%'], label: 'WIDE · ESTABLISHING' },
+  { t: '00:04.12', d: 'Guests walk onto the jetty', s: '8.7', pos: '23%', box: ['30%', '35%', '36%', '45%'], label: 'GUESTS ×4' },
+  { t: '00:09.20', d: 'Group laughing, faces visible', s: '9.2', pos: '51%', box: ['26%', '30%', '42%', '50%'], label: 'SMILES · FACES ×4' },
+  { t: '00:12.04', d: 'Silhouettes against the sunset', s: '9.6', pos: '67%', box: ['52%', '22%', '34%', '58%'], label: 'BEST MOMENT 00:12.04', best: true },
+  { t: '00:16.10', d: 'Slight camera shake, then fade', s: '6.2', pos: '90%', box: ['5%', '10%', '90%', '80%'], label: 'SHAKE DETECTED' }
+];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { m: 3 }; }
+  renderVals() {
+    const cur = M[this.state.m];
+    const wave = []; for (let i = 0; i < 90; i++) wave.push({ h: (20 + Math.round(70 * Math.abs(Math.sin(i * 0.5) * Math.cos(i * 0.13)))) + '%' });
+    return {
+      cur: { ...cur },
+      box: { x: cur.box[0], y: cur.box[1], w: cur.box[2], h: cur.box[3], ly: 'calc(' + cur.box[1] + ' - 28px)' },
+      segs: [
+        { f: 4, l: 'Wide', c: '#DCE6F5', fg: '#1A1A1A' }, { f: 5, l: 'Guests arrive', c: '#8FC2FF', fg: '#1A1A1A' },
+        { f: 3, l: 'Laughing', c: '#007BFF', fg: '#1A1A1A' }, { f: 4, l: 'Sunset', c: '#2038E2', fg: '#FFFFFF' }, { f: 2, l: 'Shake', c: '#E5E7EB', fg: '#1A1A1A' }
+      ],
+      wave,
+      moments: M.map((m, i) => ({ ...m, best: !!m.best, sel: String(i === this.state.m), bg: i === this.state.m ? '#EEF5FF' : 'transparent', pick: () => this.setState({ m: i }) })),
+      meters: [ { l: 'Image quality', v: '96', w: '96%' }, { l: 'Steadiness', v: '88', w: '88%' }, { l: 'Light', v: '97', w: '97%' }, { l: 'People and emotion', v: '93', w: '93%' }, { l: 'Brand fit', v: '91', w: '91%' } ],
+      tags: ['Sunset', 'Jetty', 'Guests ×4', 'Laughing', 'Silhouette', 'Water', 'Golden hour', 'Wide shot'].map((l) => ({ l }))
+    };
+  }
+}
+</script>
+</body>
+</html>

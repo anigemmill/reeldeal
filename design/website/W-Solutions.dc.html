@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeldeal — Tourism and hospitality</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <dc-import name="Nav" tone="light" active="Solutions" hint-size="100%,88px"></dc-import>
+
+  <!-- HERO split -->
+  <section style="max-width: 1360px; margin: 0 auto; padding: 32px clamp(20px, 4vw, 40px) 0; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 16px;">
+    <div style="flex: 1 1 460px; min-width: 0; border-radius: 28px; background: #EEF5FF; padding: clamp(28px, 4vw, 56px); box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; min-height: 620px;">
+      <p style="margin: 0; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #36415A;">SOLUTIONS · TOURISM AND HOSPITALITY</p>
+      <div>
+        <h1 style="margin: 0 0 22px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(44px, 5.4vw, 80px); line-height: 0.95; letter-spacing: -0.045em; font-weight: 600;">Tourism runs on video. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Now you can keep up.</span></h1>
+        <p style="margin: 0 0 30px; max-width: 460px; font-size: 18px; line-height: 1.55; color: #36415A;">Your guides, staff and guests already film the best bits. Turn that footage into a steady stream of on-brand reels, ads and website videos.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <a href="W-Auth.dc.html" style="padding: 15px 24px; border-radius: 999px; background: #2038E2; color: #FFFFFF; font-weight: 600;">Start free</a>
+          <a href="W-Demo.dc.html" style="padding: 15px 24px; border-radius: 999px; background: #1A1A1A; color: #F5F8FF; font-weight: 500;">Book a demo</a>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px; color: #36415A;">
+        <span>✓ Works from a phone</span><span>✓ Your footage stays yours</span><span>✓ Built for small teams</span>
+      </div>
+    </div>
+    <div style="flex: 1.2 1 520px; min-width: 0; position: relative; min-height: 620px; border-radius: 28px; overflow: hidden;">
+      <dc-import name="Scene" variant="dawn" hint-size="100%,100%"></dc-import>
+      <div style="position: absolute; left: 24px; bottom: 24px; display: flex; gap: 8px;" aria-hidden="true">
+        <div style="position: relative; width: 84px; height: 112px; border-radius: 12px; overflow: hidden; border: 2px solid #FFFFFF;"><dc-import name="Scene" variant="lake" hint-size="100%,100%"></dc-import></div>
+        <div style="position: relative; width: 84px; height: 112px; border-radius: 12px; overflow: hidden; border: 2px solid #FFFFFF;"><dc-import name="Scene" variant="forest" hint-size="100%,100%"></dc-import></div>
+        <div style="position: relative; width: 84px; height: 112px; border-radius: 12px; overflow: hidden; border: 2px solid #FFFFFF;"><dc-import name="Scene" variant="geyser" hint-size="100%,100%"></dc-import></div>
+      </div>
+      <div style="position: absolute; right: 24px; top: 24px; width: 270px; padding: 18px; border-radius: 20px; background: #FFFFFF; box-shadow: 0 24px 60px rgba(0,0,0,0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"><span style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px;">Ridge Walks</span><span style="padding: 4px 8px; border-radius: 999px; background: #FF5A00; font-family: 'Geist Mono', monospace; font-size: 10px;">READY</span></div>
+        <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.5; color: #4B5563;">3 options from 46 clips, for “Spring sunrise tours, book now”.</p>
+        <div style="height: 6px; border-radius: 999px; background: linear-gradient(90deg, #DDEBFF, #8FC2FF, #007BFF, #2038E2);"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIND YOUR FIT -->
+  <section style="padding: 112px 0 96px;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <h2 style="margin: 0 0 28px; text-align: center; font-family: 'Space Grotesk', sans-serif; font-size: clamp(48px, 7vw, 108px); line-height: 0.92; letter-spacing: -0.05em; font-weight: 600; color: #BCD3F2;">Find <span style="color: #1A1A1A;">your fit</span></h2>
+      <div role="tablist" aria-label="Business type" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 48px;">
+        <sc-for list="{{segs}}" as="sg" hint-placeholder-count="5">
+          <button type="button" role="tab" aria-selected="{{sg.sel}}" onClick="{{sg.pick}}" style="padding: 12px 20px; border-radius: 999px; border: 1px solid #1A1A1A; background: {{sg.bg}}; color: {{sg.fg}}; font-size: 15px; font-weight: 500;">{{sg.l}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch;">
+        <div style="flex: 1.3 1 520px; min-width: 0; position: relative; min-height: 440px; border-radius: 28px; overflow: hidden; color: #FFFFFF;">
+          <dc-import name="Scene" variant="{{cur.v}}" hint-size="100%,100%"></dc-import>
+          <div style="position: absolute; left: 28px; right: 28px; bottom: 28px; text-shadow: 0 2px 16px rgba(0,0,0,0.45);">
+            <h3 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 40px; letter-spacing: -0.03em; font-weight: 600;">{{cur.l}}</h3>
+            <p style="margin: 0; max-width: 460px; font-size: 16px; line-height: 1.5;">{{cur.d}}</p>
+          </div>
+        </div>
+        <div style="flex: 1 1 380px; min-width: 0; border-radius: 28px; background: #1A1A1A; color: #F5F8FF; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #B8C2D9;">VIDEOS THEY MAKE MOST</span>
+          <sc-for list="{{cur.vids}}" as="vd">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A;">
+              <span style="flex: 1; font-size: 15px;">{{vd.p}}</span>
+              <span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563;">{{vd.f}}</span>
+              <span style="width: 32px; height: 32px; border-radius: 50%; background: #FF5A00; flex: none;" aria-hidden="true"></span>
+            </div>
+          </sc-for>
+          <a href="W-Showcase.dc.html" style="margin-top: auto; font-weight: 600;">See examples in the showcase →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEASONS -->
+  <section style="background: #1A1A1A; color: #F5F8FF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 48px;">
+        <h2 style="margin: 0; max-width: 760px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.8vw, 68px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Content for every season, <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">from one shoot.</span></h2>
+        <p style="margin: 0; max-width: 360px; font-size: 17px; line-height: 1.55; color: #B8C2D9;">Re-cut the same library for each campaign instead of reshooting.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+        <sc-for list="{{seasons}}" as="se" hint-placeholder-count="4">
+          <div style="border-radius: 24px; background: {{se.bg}}; color: {{se.fg}}; padding: 12px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="position: relative; height: 220px; border-radius: 16px; overflow: hidden;"><dc-import name="Scene" variant="{{se.v}}" hint-size="100%,100%"></dc-import></div>
+            <div style="padding: 4px 10px 12px;">
+              <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; opacity: 0.8; margin-bottom: 6px;">{{se.when}}</div>
+              <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; margin-bottom: 12px;">{{se.t}}</div>
+              <div style="padding: 9px 12px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-size: 13px;">“{{se.p}}”</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY OPERATORS -->
+  <section style="padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+      <h2 style="margin: 0 0 48px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.8vw, 68px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">Made for how operators <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">actually work.</span></h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px;">
+        <sc-for list="{{why}}" as="w" hint-placeholder-count="4">
+          <div style="border-top: 2px solid #1A1A1A; padding-top: 20px;">
+            <div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #2038E2; margin-bottom: 14px;">{{w.n}}</div>
+            <h3 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">{{w.t}}</h3>
+            <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4B5563;">{{w.d}}</p>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top: 72px; border-radius: 28px; background: #2038E2; color: #FFFFFF; padding: clamp(28px, 4vw, 48px); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 24px;">
+        <div style="max-width: 640px;">
+          <h3 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 600;">Running content for several operators?</h3>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #E4E8FF;">RTOs, agencies and multi-site groups get one workspace per client, approvals and shared templates.</p>
+        </div>
+        <a href="W-Demo.dc.html" style="padding: 15px 24px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-weight: 600;">Talk to us about Agency</a>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,1200px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4400}}'>
+const SEGS = [
+  { l: 'Tours and activities', v: 'forest', d: 'Every tour is a new shoot. Turn guide footage into reels the same day.', vids: [{ p: 'Today on the trail', f: '9:16 · 20s' }, { p: 'Meet your guides', f: '4:5 · 30s' }, { p: 'Book the morning tour', f: '9:16 · 15s' }] },
+  { l: 'Accommodation', v: 'lake', d: 'Rooms, views and the little touches. Keep your listing and socials fresh.', vids: [{ p: 'Wake up to this', f: '9:16 · 15s' }, { p: 'Room tour', f: '16:9 · 45s' }, { p: 'Midweek escape offer', f: '1:1 · 20s' }] },
+  { l: 'Attractions', v: 'geyser', d: 'Big moments that sell themselves, cut for every channel and season.', vids: [{ p: 'What to expect on your visit', f: '16:9 · 60s' }, { p: 'School holiday programme', f: '9:16 · 20s' }, { p: 'Night experience teaser', f: '9:16 · 15s' }] },
+  { l: 'Hospitality', v: 'night', d: 'Menus, events and atmosphere, posted while it is still this week’s news.', vids: [{ p: 'New season menu', f: '4:5 · 20s' }, { p: 'Friday night set', f: '9:16 · 15s' }, { p: 'Private dining', f: '16:9 · 30s' }] },
+  { l: 'Destinations', v: 'coast', d: 'Many operators, one story. Pool partner footage into campaign-ready edits.', vids: [{ p: 'Summer in the region', f: '16:9 · 60s' }, { p: '48 hours itinerary', f: '9:16 · 30s' }, { p: 'Partner spotlight', f: '1:1 · 20s' }] }
+];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { seg: 0 }; }
+  renderVals() {
+    const sel = this.state.seg;
+    return {
+      cur: SEGS[sel],
+      segs: SEGS.map((s, i) => ({ l: s.l, sel: String(i === sel), bg: i === sel ? '#1A1A1A' : 'transparent', fg: i === sel ? '#F5F8FF' : '#1A1A1A', pick: () => this.setState({ seg: i }) })),
+      seasons: [
+        { when: 'PEAK SEASON', t: 'Launch and fill', v: 'coast', p: 'Summer is here, book your spot', bg: '#8FC2FF', fg: '#1A1A1A' },
+        { when: 'SHOULDER', t: 'Deals and quieter days', v: 'dawn', p: 'Midweek special, 20% off', bg: '#EEF5FF', fg: '#1A1A1A' },
+        { when: 'WINTER', t: 'Cosy escapes', v: 'geyser', p: 'Hot pools on a cold night', bg: '#2038E2', fg: '#FFFFFF' },
+        { when: 'EVENTS', t: 'Holidays and one-offs', v: 'night', p: 'New Year’s Eve at the lodge', bg: '#2D2D2D', fg: '#F5F8FF' }
+      ],
+      why: [
+        { n: '01', t: 'Phone first', d: 'Autopilot runs on a phone, between guests, with no editing knowledge.' },
+        { n: '02', t: 'Your footage stays yours', d: 'Clips and exports belong to you. Nothing is shared without your say.' },
+        { n: '03', t: 'On brand, every time', d: 'Set your look once. Staff can make videos without going off brand.' },
+        { n: '04', t: 'Ready for every channel', d: 'Socials, booking sites, your website and screens in reception.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

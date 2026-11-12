@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nav</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; color: {{ink}}; background: {{bg}};">
+  <header style="max-width: 1360px; margin: 0 auto; padding: 20px clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;">
+    <a href="W-Home.dc.html" style="display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 21px; letter-spacing: -0.02em; color: {{ink}}; text-decoration: none;">
+      <span style="position: relative; width: 26px; height: 26px; display: inline-block;" aria-hidden="true">
+        <span style="position: absolute; left: 0; top: 0; width: 18px; height: 18px; border-radius: 6px; background: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);"></span>
+        <span style="position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; border-radius: 6px; border: 2px solid {{ink}}; box-sizing: border-box;"></span>
+      </span>
+      Reeldeal
+    </a>
+    <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 2px; padding: 5px; border-radius: 999px; background: {{pill}}; border: 1px solid {{ln}}; font-size: 14px; font-weight: 500;">
+      <sc-for list="{{links}}" as="l" hint-placeholder-count="5">
+        <a href="{{l.href}}" aria-current="{{l.cur}}" style="padding: 8px 15px; border-radius: 999px; background: {{l.bg}}; color: {{l.fg}}; text-decoration: none;">{{l.t}}</a>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500;">
+      <a href="W-Auth.dc.html" style="padding: 10px 8px; color: {{ink}}; text-decoration: none;">Sign in</a>
+      <a href="W-Demo.dc.html" style="padding: 10px 16px; border-radius: 999px; border: 1px solid {{ln}}; color: {{ink}}; text-decoration: none;">Book a demo</a>
+      <a href="W-Auth.dc.html" style="padding: 11px 18px; border-radius: 999px; background: #2038E2; color: #FFFFFF; font-weight: 600; text-decoration: none;">Start free</a>
+    </div>
+  </header>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tone":{"editor":"enum","options":["light","dark"],"default":"light"},"active":{"editor":"enum","options":["","Product","Solutions","Showcase","Pricing","Company"],"default":""},"$preview":{"width":1440,"height":100}}'>
+const LINKS = [['Product', 'W-Product.dc.html'], ['Solutions', 'W-Solutions.dc.html'], ['Showcase', 'W-Showcase.dc.html'], ['Pricing', 'W-Pricing.dc.html'], ['Company', 'W-About.dc.html']];
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.tone === 'dark';
+    const ink = dark ? '#F5F8FF' : '#1A1A1A';
+    const act = this.props.active ?? '';
+    return {
+      ink, bg: dark ? '#1A1A1A' : 'transparent',
+      pill: dark ? '#232323' : '#FFFFFF', ln: dark ? '#33394A' : '#DCE6F5',
+      links: LINKS.map(([t, href]) => ({ t, href, cur: t === act ? 'page' : 'false', bg: t === act ? ink : 'transparent', fg: t === act ? (dark ? '#1A1A1A' : '#FFFFFF') : ink }))
+    };
+  }
+}
+</script>
+</body>
+</html>

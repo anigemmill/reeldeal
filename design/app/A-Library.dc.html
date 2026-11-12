@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Library — upload and processing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+input{font:inherit}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #F5F8FF; color: #1A1A1A; min-height: 1000px; display: flex; flex-wrap: wrap; font-size: 14px;">
+  <div style="flex: none;"><dc-import name="AppNav" active="Library" hint-size="248px,1000px"></dc-import></div>
+  <main style="flex: 999 1 640px; min-width: 0; padding: 24px 28px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px;">
+      <div style="flex: 1 1 260px;">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.03em; font-weight: 600;">Library</h1>
+        <p style="margin: 4px 0 0; color: #4B5563;">{{total}} clips · 4 hrs 12 min of footage · every clip analysed by AI</p>
+      </div>
+      <label style="flex: 0 1 360px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DCE6F5;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search footage</span>
+        <input type="search" placeholder="Search by what’s in the shot…" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: #1A1A1A;">
+      </label>
+      <button type="button" style="display: flex; align-items: center; gap: 8px; padding: 11px 16px; border-radius: 12px; border: 0; background: #2038E2; color: #FFFFFF; font-weight: 600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><polyline points="6 11 12 5 18 11"></polyline></svg>Upload</button>
+    </header>
+
+    <!-- Processing panel -->
+    <section aria-label="Uploads and analysis" style="display: flex; flex-wrap: wrap; gap: 14px;">
+      <div style="flex: 1 1 260px; border-radius: 20px; border: 2px dashed #8FC2FF; background: #FFFFFF; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 10px; min-height: 230px;">
+        <span style="width: 52px; height: 52px; border-radius: 16px; background: #EEF5FF; color: #2038E2; display: flex; align-items: center; justify-content: center;" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><polyline points="7 9 12 4 17 9"></polyline><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg></span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px;">Drop footage here</span>
+        <span style="color: #4B5563; font-size: 13px; line-height: 1.5;">MP4, MOV, photos. Any length.<br>Or send from your phone with a QR code.</span>
+        <div style="display: flex; gap: 6px; margin-top: 4px;"><span style="padding: 6px 10px; border-radius: 999px; border: 1px solid #DCE6F5; font-size: 12px;">Google Drive</span><span style="padding: 6px 10px; border-radius: 999px; border: 1px solid #DCE6F5; font-size: 12px;">Dropbox</span><span style="padding: 6px 10px; border-radius: 999px; border: 1px solid #DCE6F5; font-size: 12px;">Phone</span></div>
+      </div>
+      <div style="flex: 2.4 1 520px; min-width: 0; border-radius: 20px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 18px 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px;">
+          <div><span style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px;">Summer shoot, 12 Nov</span> <span style="color: #4B5563;">· 6 clips · 4.2 GB</span></div>
+          <span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #4B5563;" role="status">{{summary}}</span>
+        </div>
+        <div style="height: 6px; border-radius: 999px; background: #EEF5FF; overflow: hidden;"><div style="height: 6px; width: {{overall}}; border-radius: 999px; background: linear-gradient(90deg, #8FC2FF, #2038E2);"></div></div>
+        <div style="display: flex; flex-direction: column;">
+          <sc-for list="{{files}}" as="f" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid #EEF5FF;">
+              <div style="position: relative; flex: none; width: 54px; height: 34px; border-radius: 7px; overflow: hidden;"><dc-import name="Scene" variant="{{f.v}}" hint-size="100%,100%"></dc-import></div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; gap: 8px;"><span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{f.name}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563; white-space: nowrap;">{{f.detail}}</span></div>
+                <div style="margin-top: 6px; height: 4px; border-radius: 999px; background: #EEF5FF; overflow: hidden;"><div style="height: 4px; width: {{f.pct}}; border-radius: 999px; background: {{f.bar}};"></div></div>
+              </div>
+              <span style="flex: none; min-width: 92px; text-align: center; padding: 5px 9px; border-radius: 999px; background: {{f.sbg}}; color: {{f.sfg}}; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: 0.04em;">{{f.status}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex: 1 1 240px; border-radius: 20px; background: #1A1A1A; color: #F5F8FF; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #B8C2D9;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #FF5A00;"></span>AI ANALYSIS</div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; line-height: 1.2;">{{aiHead}}</div>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #B8C2D9;">
+          <li>Scenes and shot types</li><li>People, faces and smiles</li><li>Light, focus and steadiness</li><li>Best moments, with timestamps</li><li>Fit with Lakeside Lodge brand</li>
+        </ul>
+        <div style="margin-top: auto; font-size: 12px; color: #B8C2D9; line-height: 1.5;">Uses media analysis time: about 14 min of your 3.5 hrs left this month.</div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+      <div role="tablist" aria-label="Filter clips" style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <sc-for list="{{filters}}" as="fl" hint-placeholder-count="6">
+          <button type="button" role="tab" aria-selected="{{fl.sel}}" onClick="{{fl.pick}}" style="padding: 8px 13px; border-radius: 999px; border: 1px solid {{fl.bd}}; background: {{fl.bg}}; color: {{fl.fg}}; font-size: 13px; font-weight: 500;">{{fl.l}}</button>
+        </sc-for>
+      </div>
+      <span style="color: #4B5563; font-size: 13px;">Sorted by AI score ⌄</span>
+    </div>
+
+    <!-- Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 14px;">
+      <sc-for list="{{clips}}" as="c" hint-placeholder-count="12">
+        <a href="A-Clip.dc.html" style="display: block; border-radius: 16px; background: #FFFFFF; border: 1px solid #DCE6F5; padding: 8px;">
+          <div style="position: relative; aspect-ratio: 16 / 10; border-radius: 11px; overflow: hidden;">
+            <dc-import name="Scene" variant="{{c.v}}" hint-size="100%,100%"></dc-import>
+            <span style="position: absolute; left: 8px; top: 8px; padding: 3px 8px; border-radius: 999px; background: {{c.sbg}}; color: {{c.sfg}}; font-family: 'Geist Mono', monospace; font-size: 10px;">{{c.score}}</span>
+            <span style="position: absolute; right: 8px; bottom: 8px; padding: 2px 6px; border-radius: 5px; background: rgba(0,0,0,0.6); color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 10px;">{{c.dur}}</span>
+            <sc-if value="{{c.busy}}" hint-placeholder-val="{{false}}">
+              <div style="position: absolute; inset: 0; background: rgba(26,26,26,0.55); display: flex; flex-direction: column; justify-content: flex-end; padding: 10px; box-sizing: border-box; color: #FFFFFF; font-size: 12px; gap: 6px;">
+                <span>Analysing…</span>
+                <div style="position: relative; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.3); overflow: hidden;"><div class="mv" style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, #FF5A00, transparent); animation: shimmer 1.6s linear infinite;"></div></div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="padding: 9px 4px 2px; font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.name}}</div>
+          <div style="padding: 4px 4px 2px; display: flex; flex-wrap: wrap; gap: 4px;"><sc-for list="{{c.tags}}" as="t"><span style="padding: 3px 7px; border-radius: 999px; background: #EEF5FF; font-size: 11px;">{{t.l}}</span></sc-for></div>
+        </a>
+      </sc-for>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const FILES = [
+  { name: 'kayak_dawn_01.mov', v: 'lake', gb: 1.2, p0: 100, a0: 60 },
+  { name: 'deck_breakfast.mov', v: 'coast', gb: 0.6, p0: 100, a0: 10 },
+  { name: 'guided_walk_04.mov', v: 'forest', gb: 0.9, p0: 82, a0: 0 },
+  { name: 'drone_lake_wide.mov', v: 'dawn', gb: 0.8, p0: 46, a0: 0 },
+  { name: 'hot_pool_steam.mov', v: 'geyser', gb: 0.4, p0: 18, a0: 0 },
+  { name: 'firepit_evening.mov', v: 'night', gb: 0.3, p0: 0, a0: 0 }
+];
+const CLIPS = [
+  { v: 'coast', name: 'jetty_dusk_03.mov', dur: '00:18', s: 9.4, tags: ['Sunset', 'Guests ×4'], cat: ['People', 'Golden hour'] },
+  { v: 'lake', name: 'kayak_02.mov', dur: '00:41', s: 9.1, tags: ['Golden hour', 'Water'], cat: ['Golden hour', 'Landscape'] },
+  { v: 'dawn', name: 'ridge_sunrise_04.mov', dur: '00:22', s: 8.9, tags: ['Sunrise', 'Wide'], cat: ['Landscape', 'Golden hour'] },
+  { v: 'forest', name: 'trail_walk_01.mov', dur: '01:05', s: 8.6, tags: ['Guide', 'Trail'], cat: ['People'] },
+  { v: 'night', name: 'deck_firepit.mov', dur: '00:27', s: 8.4, tags: ['Evening', 'Guests ×2'], cat: ['People'] },
+  { v: 'geyser', name: 'steam_valley.mov', dur: '00:33', s: 8.1, tags: ['Steam', 'Landscape'], cat: ['Landscape'] },
+  { v: 'lake', name: 'room_view.mov', dur: '00:12', s: 7.8, tags: ['Interior', 'View'], cat: ['Unused'] },
+  { v: 'forest', name: 'drone_canopy.mov', dur: '00:46', s: 7.6, tags: ['Drone', 'Forest'], cat: ['Landscape'] },
+  { v: 'coast', name: 'boat_ramp.mov', dur: '00:15', s: 6.9, tags: ['Water'], cat: ['Unused'] },
+  { v: 'dawn', name: 'lodge_exterior.mov', dur: '00:20', s: 6.4, tags: ['Building'], cat: ['Unused'] }
+];
+const FILTERS = ['All', 'AI picks', 'People', 'Landscape', 'Golden hour', 'Unused'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { t: 0, f: 'All' }; }
+  componentDidMount(){
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (reduce) { this.setState({ t: 40 }); return; }
+    this.timer = setInterval(() => this.setState({ t: (this.state.t + 1) % 260 }), 120);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  renderVals() {
+    const t = this.state.t;
+    let done = 0, up = 0, an = 0, totalPct = 0;
+    const files = FILES.map((f) => {
+      const p = Math.min(100, f.p0 + t * 1.2);
+      const a = p < 100 ? 0 : Math.min(100, f.a0 + Math.max(0, t * 1.2 - (100 - f.p0)) * 1.4);
+      totalPct += (p + a) / 2;
+      let status, sbg, sfg, bar, pct, detail;
+      if (p < 100) { up++; status = 'UPLOADING'; sbg = '#EEF5FF'; sfg = '#2038E2'; bar = '#2038E2'; pct = p.toFixed(0) + '%'; detail = (f.gb * p / 100).toFixed(1) + ' / ' + f.gb + ' GB'; }
+      else if (a < 100) { an++; status = 'ANALYSING'; sbg = '#FF5A00'; sfg = '#1A1A1A'; bar = '#FF5A00'; pct = a.toFixed(0) + '%'; detail = 'finding best moments'; }
+      else { done++; status = '✓ READY'; sbg = '#1A1A1A'; sfg = '#FFFFFF'; bar = '#8FC2FF'; pct = '100%'; detail = 'indexed'; }
+      return { ...f, status, sbg, sfg, bar, pct, detail };
+    });
+    const f = this.state.f;
+    const list = CLIPS.filter((c) => f === 'All' || (f === 'AI picks' ? c.s >= 8.4 : c.cat.indexOf(f) >= 0));
+    const busy = files.filter((x) => x.status !== '✓ READY').slice(0, 2).map((x) => ({ v: x.v, name: x.name, dur: '—', score: '…', sbg: '#FFFFFF', sfg: '#1A1A1A', busy: true, tags: [{ l: 'Processing' }] }));
+    return {
+      total: 306 + done,
+      files,
+      overall: (totalPct / FILES.length).toFixed(0) + '%',
+      summary: up ? up + ' uploading · ' + an + ' analysing · ' + done + ' ready' : (an ? an + ' analysing · ' + done + ' ready' : 'All 6 clips ready'),
+      aiHead: an || up ? 'Watching ' + (an + up) + ' new clips so you don’t have to.' : 'All caught up. 6 new clips indexed.',
+      filters: FILTERS.map((l) => ({ l, sel: String(l === f), bg: l === f ? '#1A1A1A' : '#FFFFFF', fg: l === f ? '#FFFFFF' : '#1A1A1A', bd: l === f ? '#1A1A1A' : '#DCE6F5', pick: () => this.setState({ f: l }) })),
+      clips: (f === 'All' ? busy : []).concat(list.map((c) => ({ ...c, busy: false, score: c.s.toFixed(1), sbg: c.s >= 8.4 ? '#FF5A00' : '#FFFFFF', sfg: '#1A1A1A', tags: c.tags.map((l) => ({ l })) })))
+    };
+  }
+}
+</script>
+</body>
+</html>

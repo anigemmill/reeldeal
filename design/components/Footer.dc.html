@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Footer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<footer style="font-family: 'Inter', sans-serif; background: #1A1A1A; color: #F5F8FF; padding: 40px 0 0; overflow: hidden;">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box;">
+    <div style="border-radius: 28px; background: linear-gradient(90deg, #8FC2FF 0%, #007BFF 30%, #2038E2 62%, #FF5A00 88%, #C24400 100%); padding: clamp(28px, 4vw, 56px); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 28px;">
+      <h2 style="margin: 0; max-width: 620px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(34px, 4vw, 56px); line-height: 0.98; letter-spacing: -0.035em; font-weight: 600; color: #1A1A1A;">Bring a folder of clips. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Leave with a week of content.</span></h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        <a href="W-Auth.dc.html" style="padding: 16px 26px; border-radius: 999px; background: #1A1A1A; color: #FFFFFF; font-weight: 600; text-decoration: none;">Start free</a>
+        <a href="W-Demo.dc.html" style="padding: 16px 26px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-weight: 500; text-decoration: none;">Book a demo</a>
+      </div>
+    </div>
+
+    <div style="margin-top: 72px; display: flex; flex-wrap: wrap; gap: 48px; justify-content: space-between;">
+      <div style="flex: 1 1 280px; max-width: 360px;">
+        <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #B8C2D9;">AI video production for businesses. Upload your footage, describe the video, publish everywhere.</p>
+        <form style="display: flex; gap: 6px; padding: 5px 5px 5px 16px; border-radius: 999px; border: 1px solid #33394A;">
+          <label style="flex: 1; min-width: 0; display: flex; align-items: center;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Email for product updates</span><input type="email" placeholder="Email for product updates" style="width: 100%; border: 0; outline: none; background: transparent; color: #F5F8FF; font: inherit; font-size: 14px;"></label>
+          <button type="button" style="padding: 10px 16px; border-radius: 999px; border: 0; background: #2038E2; color: #FFFFFF; font-weight: 600; font-size: 14px;">Subscribe</button>
+        </form>
+      </div>
+      <div style="flex: 2 1 560px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 28px; font-size: 14px;">
+        <sc-for list="{{cols}}" as="col" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; gap: 11px;">
+            <span style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #B8C2D9;">{{col.h}}</span>
+            <sc-for list="{{col.links}}" as="lk"><a href="{{lk.href}}" style="color: #F5F8FF; text-decoration: none;">{{lk.l}}</a></sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="margin-top: 56px; padding-top: 20px; border-top: 1px solid #33394A; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: #B8C2D9;">
+      <span>© Reeldeal</span>
+      <span style="display: flex; gap: 18px;"><a href="#" style="color: #B8C2D9; text-decoration: none;">Privacy</a><a href="#" style="color: #B8C2D9; text-decoration: none;">Terms</a><a href="#" style="color: #B8C2D9; text-decoration: none;">Instagram</a><a href="#" style="color: #B8C2D9; text-decoration: none;">LinkedIn</a></span>
+    </div>
+  </div>
+  <div style="margin-top: 32px; text-align: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 23vw; line-height: 0.78; letter-spacing: -0.07em; color: transparent; background: linear-gradient(90deg, #007BFF 0%, #8FC2FF 12%, #FFE6D0 26%, #FF5A00 46%, #C8402E 58%, #6A3AA8 70%, #2038E2 82%, #1A1A1A 100%); -webkit-background-clip: text; background-clip: text; white-space: nowrap; transform: translateY(8%);" aria-hidden="true">Reeldeal</div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const l = (t, href) => ({ l: t, href: href || '#' });
+    return {
+      cols: [
+        { h: 'PRODUCT', links: [l('Overview', 'W-Product.dc.html'), l('Autopilot', 'W-Product.dc.html'), l('Studio', 'W-Product.dc.html'), l('Brand intelligence', 'W-Product.dc.html')] },
+        { h: 'SOLUTIONS', links: [l('Tourism and hospitality', 'W-Solutions.dc.html'), l('Agencies'), l('All industries')] },
+        { h: 'COMPANY', links: [l('About', 'W-About.dc.html'), l('Showcase', 'W-Showcase.dc.html'), l('Book a demo', 'W-Demo.dc.html')] },
+        { h: 'ACCOUNT', links: [l('Pricing', 'W-Pricing.dc.html'), l('Sign in', 'W-Auth.dc.html'), l('Start free', 'W-Auth.dc.html')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

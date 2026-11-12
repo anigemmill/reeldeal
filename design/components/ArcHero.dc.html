@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Arc hero</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes caret{50%{opacity:0}}
+@keyframes grow{from{width:0}to{width:100%}}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.08);opacity:.95}}
+@media (prefers-reduced-motion: reduce){.mv{animation:none !important}}
+</style>
+</helmet>
+<section style="position: relative; z-index: 0; font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; padding: 40px 0 80px; text-align: center; overflow: hidden;">
+  <div class="mv" style="position: absolute; z-index: -1; left: 50%; top: 260px; width: 1500px; height: 620px; margin-left: -750px; border-radius: 50%; background: radial-gradient(closest-side, #8FC2FF 0%, #BFDBFF 35%, #EEF5FF 65%, rgba(255,255,255,0) 100%); animation: breathe 9s ease-in-out infinite;" aria-hidden="true"></div>
+  <p style="margin: 0 0 18px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>AI VIDEO PRODUCTION FOR BUSINESS</p>
+  <h1 style="margin: 0 auto; max-width: 1040px; padding: 0 20px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: clamp(40px, 5.4vw, 78px); line-height: 1.04; letter-spacing: -0.04em;">
+    Your footage, <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; letter-spacing: -0.02em; text-decoration: underline; text-decoration-color: #FF5A00; text-decoration-thickness: 0.07em; text-underline-offset: 0.14em;">finished</span> for
+    <span style="display: inline-block; padding: 0 0.28em; border-radius: 0.24em; background: #2038E2; color: #FFFFFF; transform: rotate(-2deg);">Reels</span>
+    <span style="display: inline-block; padding: 0 0.28em; border-radius: 0.24em; background: #8FC2FF; color: #1A1A1A; transform: rotate(1.5deg);">Ads</span>
+    <span style="display: inline-block; padding: 0 0.28em; border-radius: 0.24em; border: 2px solid #1A1A1A; background: #FFFFFF; color: #1A1A1A;">Websites</span>
+  </h1>
+
+  <div style="position: relative; height: 470px; margin-top: 44px; overflow: hidden; perspective: 2200px; perspective-origin: 50% 45%;" aria-label="Videos made on the platform">
+    <div style="position: absolute; left: 50%; top: 50px; width: 0; height: 0; transform-style: preserve-3d;">
+      <sc-for list="{{arc}}" as="a" hint-placeholder-count="12">
+        <figure style="position: absolute; left: 0; top: 0; margin: 0; width: 256px; height: 340px; transform: {{a.tf}}; opacity: {{a.op}}; backface-visibility: hidden;">
+          <div style="position: relative; width: 100%; height: 100%; border-radius: 10px; overflow: hidden; background: #232323;">
+            <dc-import name="Scene" variant="{{a.v}}" hint-size="100%,100%"></dc-import>
+            <sc-if value="{{a.live}}" hint-placeholder-val="{{false}}">
+              <span style="position: absolute; top: 12px; left: 12px; display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; background: rgba(0,0,0,0.6); color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 10px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #FF5A00;"></span>PLAYING</span>
+              <div style="position: absolute; left: 12px; right: 12px; bottom: 12px; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.35); overflow: hidden;"><div class="mv" style="height: 3px; background: linear-gradient(90deg, #FFB088, #FF5A00); animation: grow 6s linear infinite; animation-play-state: {{play}};"></div></div>
+            </sc-if>
+            <figcaption style="position: absolute; left: 12px; right: 12px; bottom: 24px; color: #FFFFFF; text-align: left; text-shadow: 0 1px 10px rgba(0,0,0,0.5);">
+              <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 17px;">{{a.title}}</div>
+              <div style="font-family: 'Geist Mono', monospace; font-size: 10px; margin-top: 3px;">{{a.meta}}</div>
+            </figcaption>
+          </div>
+        </figure>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="max-width: 600px; margin: 0 auto; padding: 0 20px; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 22px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE6F5; box-shadow: 0 18px 50px rgba(32,56,226,0.14); text-align: left;">
+      <span style="flex: 1; min-width: 0; font-size: 18px; white-space: nowrap; overflow: hidden;">{{typed}}<span class="mv" style="display: inline-block; width: 2px; height: 20px; margin-left: 2px; vertical-align: -3px; background: #FF5A00; animation: caret 1s steps(1) infinite;"></span></span>
+      <a href="W-Auth.dc.html" aria-label="Create this video" style="flex: none; width: 46px; height: 46px; border-radius: 50%; background: #FF5A00; color: #1A1A1A; display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><polyline points="6 11 12 5 18 11"></polyline></svg></a>
+    </div>
+    <div style="margin-top: 18px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; font-size: 14px; color: #4B5563;">
+      <span>Describe it. Get three edits made from your own footage.</span>
+      <button type="button" onClick="{{toggle}}" aria-pressed="{{pausedStr}}" style="padding: 7px 12px; border-radius: 999px; border: 1px solid #DCE6F5; background: #FFFFFF; color: #1A1A1A; font-size: 12px; font-family: 'Geist Mono', monospace;">{{toggleLabel}}</button>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const TILES=[
+  { v: 'lake', title: 'Lakeside Lodge', meta: 'REEL · 0:24 · AUTOPILOT' },
+  { v: 'geyser', title: 'Valley Geothermal', meta: 'STORY · 0:15 · AUTOPILOT' },
+  { v: 'forest', title: 'Redwoods Trail Co.', meta: 'TIKTOK · 0:18 · STUDIO' },
+  { v: 'coast', title: 'Bay Sail Charters', meta: 'FEED · 0:30 · AUTOPILOT' },
+  { v: 'night', title: 'Night Market', meta: 'REEL · 0:20 · STUDIO' },
+  { v: 'dawn', title: 'Ridge Walks', meta: 'WEBSITE · 0:45 · STUDIO' },
+  { v: 'lake', title: 'Kayak Hire', meta: 'REEL · 0:12 · AUTOPILOT' },
+  { v: 'forest', title: 'Canopy Tours', meta: 'AD · 0:15 · AUTOPILOT' },
+  { v: 'coast', title: 'Harbour Café', meta: 'STORY · 0:10 · AUTOPILOT' },
+  { v: 'geyser', title: 'Hot Pools Spa', meta: 'REEL · 0:30 · STUDIO' },
+  { v: 'night', title: 'Rooftop Bar', meta: 'TIKTOK · 0:14 · AUTOPILOT' },
+  { v: 'dawn', title: 'Alpine Retreat', meta: 'FEED · 0:30 · STUDIO' }
+];
+const PHRASES=['30s reel for summer bookings','Kayak tour highlights, 15 seconds','Christmas offer for the café','Sunrise walk for our website','Behind the scenes at the hot pools'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { off: 0, pi: 0, ci: 0, hold: 0, paused: false }; }
+  componentDidMount(){
+    let reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (reduce) { this.setState({ paused: true, ci: 99 }); return; }
+    this.timer = setInterval(() => this.tick(), 60);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  tick(){
+    const s = this.state; if (s.paused) return;
+    let { pi, ci, hold } = s; const len = PHRASES[pi].length;
+    if (ci < len) ci += 1; else if (hold < 45) hold += 1; else { pi = (pi + 1) % PHRASES.length; ci = 0; hold = 0; }
+    this.setState({ off: s.off + 0.012, pi, ci, hold });
+  }
+  renderVals() {
+    const s = this.state, N = TILES.length;
+    const arc = TILES.map((t, i) => {
+      let p = i - s.off; p = ((p % N) + N) % N; if (p > N / 2) p -= N;
+      return { ...t, tf: 'translateX(-50%) translateZ(1800px) rotateY(' + (-p * 9).toFixed(3) + 'deg) translateZ(-1800px)', op: Math.abs(p) > 5.2 ? 0 : 1, live: Math.abs(p) < 0.5 };
+    });
+    return {
+      arc, typed: PHRASES[s.pi].slice(0, s.ci),
+      play: s.paused ? 'paused' : 'running', pausedStr: String(s.paused),
+      toggleLabel: s.paused ? '▶ Play motion' : '❚❚ Pause motion',
+      toggle: () => this.setState({ paused: !s.paused })
+    };
+  }
+}
+</script>
+</body>
+</html>

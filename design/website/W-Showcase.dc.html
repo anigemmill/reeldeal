@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeldeal — Showcase</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <dc-import name="Nav" tone="light" active="Showcase" hint-size="100%,88px"></dc-import>
+
+  <section style="max-width: 1360px; margin: 0 auto; padding: 64px clamp(20px, 4vw, 40px) 0; box-sizing: border-box;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px;">
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: clamp(56px, 9vw, 148px); line-height: 0.86; letter-spacing: -0.055em; font-weight: 600;">Made on<br><span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; letter-spacing: -0.03em; color: transparent; background: linear-gradient(90deg, #8FC2FF 0%, #007BFF 45%, #2038E2 100%); -webkit-background-clip: text; background-clip: text;">Reeldeal.</span></h1>
+      <p style="margin: 0; max-width: 380px; font-size: 17px; line-height: 1.55; color: #4B5563;">Real videos from real businesses, made from their own footage. Every one shows how it was made.</p>
+    </div>
+    <div style="margin-top: 48px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+      <div style="flex: 1 1 360px; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 20px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE6F5;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <label style="flex: 1; min-width: 0;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search videos</span><input type="search" placeholder="Search “kayak”, “menu”, “wedding”…" style="width: 100%; border: 0; outline: none; background: transparent; font: inherit; font-size: 16px; color: #1A1A1A;"></label>
+      </div>
+      <div role="tablist" aria-label="Filter" style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <sc-for list="{{filters}}" as="f" hint-placeholder-count="6">
+          <button type="button" role="tab" aria-selected="{{f.sel}}" onClick="{{f.pick}}" style="padding: 11px 16px; border-radius: 999px; border: 1px solid {{f.bd}}; background: {{f.bg}}; color: {{f.fg}}; font-size: 14px; font-weight: 500;">{{f.l}}</button>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width: 1360px; margin: 0 auto; padding: 40px clamp(20px, 4vw, 40px) 112px; box-sizing: border-box;">
+    <div style="columns: 4 260px; column-gap: 16px;">
+      <sc-for list="{{items}}" as="it" hint-placeholder-count="12">
+        <a href="#" style="display: block; break-inside: avoid; margin-bottom: 16px;">
+          <div style="position: relative; height: {{it.h}}; border-radius: 18px; overflow: hidden;">
+            <dc-import name="Scene" variant="{{it.v}}" hint-size="100%,100%"></dc-import>
+            <span style="position: absolute; left: 12px; top: 12px; padding: 5px 9px; border-radius: 999px; background: rgba(0,0,0,0.55); color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 10px;">{{it.fmt}}</span>
+            <span style="position: absolute; right: 12px; top: 12px; width: 34px; height: 34px; border-radius: 50%; background: #FF5A00; display: flex; align-items: center; justify-content: center;" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="#1A1A1A"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg></span>
+          </div>
+          <div style="padding: 12px 4px 0; display: flex; justify-content: space-between; gap: 8px;">
+            <span style="font-weight: 600; font-size: 15px;">{{it.t}}</span>
+            <span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563; white-space: nowrap;">{{it.mode}}</span>
+          </div>
+          <div style="padding: 4px 4px 0; font-size: 13px; color: #4B5563;">{{it.biz}}</div>
+        </a>
+      </sc-for>
+    </div>
+    <div style="text-align: center; margin-top: 24px;"><button type="button" style="padding: 14px 24px; border-radius: 999px; border: 1px solid #1A1A1A; background: transparent; color: #1A1A1A; font-weight: 600;">Load more</button></div>
+  </section>
+
+  <!-- FEATURED STORY -->
+  <section style="background: #1A1A1A; color: #F5F8FF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 48px; align-items: center;">
+      <div style="flex: 1.2 1 520px; min-width: 0; position: relative; height: 520px; border-radius: 28px; overflow: hidden;">
+        <dc-import name="Scene" variant="coast" hint-size="100%,100%"></dc-import>
+        <span style="position: absolute; left: 20px; top: 20px; padding: 6px 12px; border-radius: 999px; background: #2038E2; color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 11px;">FEATURED STORY</span>
+      </div>
+      <div style="flex: 1 1 400px; min-width: 0;">
+        <h2 style="margin: 0 0 18px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 4.4vw, 62px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600;">[Customer] made a summer <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">campaign from one afternoon.</span></h2>
+        <p style="margin: 0 0 32px; font-size: 17px; line-height: 1.55; color: #B8C2D9;">[Short story of a pilot customer: what they shot, what they asked for, and what happened next.]</p>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 32px;">
+          <div style="padding: 16px; border-radius: 16px; background: #232323;"><div style="font-family: 'Geist Mono', monospace; font-size: 24px;">[N]</div><div style="font-size: 12px; color: #B8C2D9; margin-top: 4px;">raw clips in</div></div>
+          <div style="padding: 16px; border-radius: 16px; background: #232323;"><div style="font-family: 'Geist Mono', monospace; font-size: 24px;">[N]</div><div style="font-size: 12px; color: #B8C2D9; margin-top: 4px;">videos out</div></div>
+          <div style="padding: 16px; border-radius: 16px; background: #232323;"><div style="font-family: 'Geist Mono', monospace; font-size: 24px;">[T]</div><div style="font-size: 12px; color: #B8C2D9; margin-top: 4px;">total time</div></div>
+        </div>
+        <a href="#" style="display: inline-block; padding: 15px 24px; border-radius: 999px; background: #2038E2; color: #FFFFFF; font-weight: 600;">Read the story</a>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,1200px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3800}}'>
+const ALL = [
+  { v: 'lake', t: 'Wake up to this', biz: 'Lakeside Lodge · Accommodation', fmt: 'REEL · 0:15', mode: 'AUTOPILOT', h: '420px', tags: ['Reels', 'Tourism', 'Autopilot'] },
+  { v: 'night', t: 'Friday night set', biz: 'Rooftop Bar · Hospitality', fmt: 'FEED · 0:20', mode: 'STUDIO', h: '300px', tags: ['Ads', 'Hospitality', 'Studio'] },
+  { v: 'forest', t: 'Today on the trail', biz: 'Redwoods Trail Co. · Tours', fmt: 'TIKTOK · 0:18', mode: 'AUTOPILOT', h: '460px', tags: ['Reels', 'Tourism', 'Autopilot'] },
+  { v: 'geyser', t: 'What to expect', biz: 'Valley Geothermal · Attraction', fmt: 'WEB · 1:00', mode: 'STUDIO', h: '240px', tags: ['Website', 'Tourism', 'Studio'] },
+  { v: 'coast', t: 'Sunset sailing', biz: 'Bay Sail Charters · Tours', fmt: 'AD · 0:15', mode: 'AUTOPILOT', h: '340px', tags: ['Ads', 'Tourism', 'Autopilot'] },
+  { v: 'dawn', t: 'Spring sunrise tours', biz: 'Ridge Walks · Tours', fmt: 'REEL · 0:20', mode: 'AUTOPILOT', h: '420px', tags: ['Reels', 'Tourism', 'Autopilot'] },
+  { v: 'night', t: 'New season menu', biz: 'Harbour Café · Hospitality', fmt: 'FEED · 0:20', mode: 'AUTOPILOT', h: '300px', tags: ['Reels', 'Hospitality', 'Autopilot'] },
+  { v: 'lake', t: 'Room tour', biz: 'Alpine Retreat · Accommodation', fmt: 'WEB · 0:45', mode: 'STUDIO', h: '250px', tags: ['Website', 'Tourism', 'Studio'] },
+  { v: 'geyser', t: 'Hot pools at night', biz: 'Hot Pools Spa · Attraction', fmt: 'STORY · 0:10', mode: 'AUTOPILOT', h: '440px', tags: ['Reels', 'Tourism', 'Autopilot'] },
+  { v: 'forest', t: 'Meet your guides', biz: 'Canopy Tours · Tours', fmt: 'FEED · 0:30', mode: 'STUDIO', h: '320px', tags: ['Reels', 'Tourism', 'Studio'] },
+  { v: 'coast', t: 'Summer in the region', biz: 'Coastal Region · Destination', fmt: 'WEB · 1:00', mode: 'STUDIO', h: '260px', tags: ['Website', 'Tourism', 'Studio'] },
+  { v: 'dawn', t: 'Wedding venue tour', biz: 'Alpine Retreat · Events', fmt: 'REEL · 0:45', mode: 'AUTOPILOT', h: '380px', tags: ['Reels', 'Hospitality', 'Autopilot'] }
+];
+const FILTERS = ['All', 'Reels', 'Ads', 'Website', 'Tourism', 'Hospitality', 'Autopilot', 'Studio'];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { f: 'All' }; }
+  renderVals() {
+    const f = this.state.f;
+    return {
+      filters: FILTERS.map((l) => ({ l, sel: String(l === f), bg: l === f ? '#1A1A1A' : '#FFFFFF', fg: l === f ? '#F5F8FF' : '#1A1A1A', bd: l === f ? '#1A1A1A' : '#DCE6F5', pick: () => this.setState({ f: l }) })),
+      items: f === 'All' ? ALL : ALL.filter((x) => x.tags.indexOf(f) >= 0)
+    };
+  }
+}
+</script>
+</body>
+</html>

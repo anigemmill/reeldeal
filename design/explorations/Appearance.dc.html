@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings — Appearance</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Sora:wght@400;600;700&amp;family=DM+Sans:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.82}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: {{ta.b}}; background: {{a.bg}}; color: {{a.ink}}; min-height: 960px; display: flex; flex-wrap: wrap; font-size: 14px;">
+
+  <!-- Settings nav -->
+  <nav aria-label="Settings" style="flex: 1 1 240px; max-width: 280px; padding: 28px 20px; box-sizing: border-box; border-right: 1px solid {{a.ln}}; display: flex; flex-direction: column; gap: 4px;">
+    <a href="#" style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px; color: {{a.mu}};">← Back to dashboard</a>
+    <span style="font-family: {{mono}}; font-size: 11px; letter-spacing: 0.08em; color: {{a.mu}}; padding: 0 12px 8px;">SETTINGS</span>
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="7">
+      <a href="#" style="padding: 10px 12px; border-radius: 10px; background: {{n.bg}}; color: {{n.fg}}; font-weight: {{n.fw}};">{{n.l}}</a>
+    </sc-for>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 40px clamp(20px, 4vw, 48px) 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 32px;">
+    <div>
+      <h1 style="margin: 0 0 8px; font-family: {{ta.h}}; font-size: 40px; letter-spacing: -0.03em; font-weight: 600;">Appearance</h1>
+      <p style="margin: 0; color: {{a.mu}}; font-size: 16px;">Choose a palette, a mode and a type style. Preview first, then apply. Your choice is saved to your account.</p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+      <div style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 32px;">
+
+        <section aria-labelledby="h-pal">
+          <h2 id="h-pal" style="margin: 0 0 14px; font-size: 15px; font-weight: 600;">Palette</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <sc-for list="{{pals}}" as="p" hint-placeholder-count="6">
+              <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.pressed}}" style="text-align: left; padding: 0; border-radius: 16px; overflow: hidden; background: {{a.sf}}; color: {{a.ink}}; border: {{p.border}}; box-shadow: {{p.ring}};">
+                <span style="display: flex; height: 64px;">
+                  <sc-for list="{{p.sw}}" as="s"><span style="flex: 1; background: {{s.c}};"></span></sc-for>
+                </span>
+                <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px;">
+                  <span style="font-weight: 600; font-size: 13px;">{{p.n}}</span>
+                  <span style="font-family: {{mono}}; font-size: 11px; color: {{a.mu}};">{{p.k}}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+
+        <section aria-labelledby="h-mode">
+          <h2 id="h-mode" style="margin: 0 0 14px; font-size: 15px; font-weight: 600;">Mode</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <sc-for list="{{modes}}" as="m" hint-placeholder-count="2">
+              <button type="button" onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" style="text-align: left; padding: 14px; border-radius: 16px; background: {{a.sf}}; color: {{a.ink}}; border: {{m.border}}; box-shadow: {{m.ring}}; display: flex; gap: 14px; align-items: center;">
+                <span style="flex: none; width: 72px; height: 48px; border-radius: 10px; background: {{m.bg}}; border: 1px solid {{m.ln}}; display: flex; flex-direction: column; gap: 4px; padding: 7px; box-sizing: border-box;">
+                  <span style="height: 6px; width: 60%; border-radius: 3px; background: {{m.ink}};"></span>
+                  <span style="height: 6px; width: 40%; border-radius: 3px; background: {{m.ac}};"></span>
+                </span>
+                <span style="display: flex; flex-direction: column; gap: 3px;">
+                  <span style="font-weight: 600;">{{m.l}}</span>
+                  <span style="font-size: 12px; color: {{a.mu}};">{{m.d}}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+
+        <section aria-labelledby="h-type">
+          <h2 id="h-type" style="margin: 0 0 14px; font-size: 15px; font-weight: 600;">Typography</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+            <sc-for list="{{types}}" as="ty" hint-placeholder-count="3">
+              <button type="button" onClick="{{ty.pick}}" aria-pressed="{{ty.pressed}}" style="text-align: left; padding: 16px; border-radius: 16px; background: {{a.sf}}; color: {{a.ink}}; border: {{ty.border}}; box-shadow: {{ty.ring}}; display: flex; flex-direction: column; gap: 10px;">
+                <span style="font-family: {{ty.h}}; font-size: 36px; font-weight: 600; letter-spacing: -0.03em; line-height: 1;">Aa</span>
+                <span style="font-weight: 600; font-size: 13px;">{{ty.l}}</span>
+                <span style="font-size: 12px; color: {{a.mu}};">{{ty.d}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <!-- Live preview -->
+      <aside aria-label="Theme preview" style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 10px;">
+        <span style="font-family: {{mono}}; font-size: 11px; letter-spacing: 0.08em; color: {{a.mu}};">PREVIEW</span>
+        <div style="font-family: {{tp.b}}; border-radius: 20px; overflow: hidden; background: {{v.bg}}; color: {{v.ink}}; border: 1px solid {{v.ln}};">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid {{v.ln}}; font-size: 12px;">
+            <span style="font-weight: 600;">Lakefront stay · 30s</span>
+            <span style="padding: 6px 12px; border-radius: 8px; background: {{v.ac}}; color: {{v.on}}; font-weight: 600;">Export</span>
+          </div>
+          <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;">
+              <dc-import name="Scene" variant="coast" hint-size="100%,100%"></dc-import>
+              <span style="position: absolute; left: 12px; bottom: 12px; font-family: {{tp.h}}; font-weight: 700; font-size: 22px; color: #FFFFFF; letter-spacing: -0.02em;">Golden hour, every day.</span>
+            </div>
+            <div style="padding: 12px; border-radius: 12px; background: {{v.sf}}; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; gap: 4px; height: 18px;"><span style="flex: 3; border-radius: 5px; background: {{v.ac2}};"></span><span style="flex: 2; border-radius: 5px; background: {{v.ac2}};"></span><span style="flex: 4; border-radius: 5px; background: {{v.ac2}};"></span><span style="flex: 2; border-radius: 5px; background: {{v.ac2}};"></span></div>
+              <div style="display: flex; gap: 4px; height: 12px;"><span style="flex: 1;"></span><span style="flex: 3; border-radius: 4px; background: {{v.tint}};"></span><span style="flex: 6;"></span></div>
+              <div style="display: flex; justify-content: space-between; font-family: {{mono}}; font-size: 10px; color: {{v.mu}};"><span>00:00</span><span>00:15</span><span>00:30</span></div>
+            </div>
+            <div style="padding: 12px; border-radius: 12px; background: {{v.sf}}; font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+              <span style="color: {{v.mu}}; font-family: {{mono}}; font-size: 10px;">ASSISTANT</span>
+              <span style="align-self: flex-end; padding: 8px 10px; border-radius: 10px; background: {{v.ac2}}; color: {{v.on2}};">Make it warmer</span>
+              <span style="padding: 8px 10px; border-radius: 10px; background: {{v.sf2}};">Colour grade applied to 6 clips.</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Apply bar -->
+    <div style="margin-top: auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: {{a.sf}}; border: 1px solid {{a.ln}};">
+      <span style="display: flex; align-items: center; gap: 10px;" role="status">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: {{dot}};"></span>
+        {{status}}
+      </span>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" onClick="{{reset}}" style="padding: 11px 18px; border-radius: 12px; border: 1px solid {{a.ln}}; background: transparent; color: {{a.ink}};">Reset</button>
+        <button type="button" onClick="{{apply}}" style="padding: 11px 18px; border-radius: 12px; border: 0; background: {{a.ac}}; color: {{a.on}}; font-weight: 600;">Apply theme</button>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["01 · Cream / Blue / Orange","02 · June Bud / Orange / Dark Blue","03 · Tangerine / Pistachio / Retro Green","04 · Altitude","05 · Electric Blue / Orange / Charcoal","06 · Fold / Bone White / Blue"],"default":"06 · Fold / Bone White / Blue","section":"Theme"},"mode":{"editor":"enum","options":["Light Workspace","Dark Studio"],"default":"Light Workspace","section":"Theme"},"$preview":{"width":1440,"height":960}}'>
+const P={
+'01':{n:'Cream / Blue / Orange',sw:[{c:'#E9D9CA'},{c:'#4D6080'},{c:'#F4721E'}],L:{bg:'#F6EFE7',sf:'#FFFFFF',sf2:'#EFE4D8',ink:'#1E2533',mu:'#5A6275',ln:'#E2D6C9',ac:'#F4721E',on:'#1E2533',ac2:'#4D6080',on2:'#FFFFFF',tint:'#E9D9CA'},D:{bg:'#12151C',sf:'#1B202B',sf2:'#252B38',ink:'#F3ECE4',mu:'#A5ADBD',ln:'#2E3546',ac:'#F4721E',on:'#1E2533',ac2:'#8FA3C6',on2:'#12151C',tint:'#E9D9CA'}},
+'02':{n:'June Bud / Orange / Dark Blue',sw:[{c:'#B4D34F'},{c:'#FF5832'},{c:'#EFE7D4'},{c:'#1A0088'}],L:{bg:'#F7F3E9',sf:'#FFFFFF',sf2:'#EFE7D4',ink:'#12063F',mu:'#574F70',ln:'#E5DCC6',ac:'#1A0088',on:'#FFFFFF',ac2:'#FF5832',on2:'#12063F',tint:'#B4D34F'},D:{bg:'#0D0726',sf:'#170E3A',sf2:'#22184D',ink:'#F4EFE2',mu:'#ABA4C4',ln:'#2E2459',ac:'#B4D34F',on:'#12063F',ac2:'#FF5832',on2:'#0D0726',tint:'#B4D34F'}},
+'03':{n:'Tangerine / Pistachio / Retro Green',sw:[{c:'#FE7A25'},{c:'#E9E8CA'},{c:'#006732'}],L:{bg:'#F4F3E4',sf:'#FFFFFF',sf2:'#E9E8CA',ink:'#0F2A1B',mu:'#4F5E54',ln:'#DEDDBF',ac:'#006732',on:'#FFFFFF',ac2:'#FE7A25',on2:'#0F2A1B',tint:'#E9E8CA'},D:{bg:'#0B140F',sf:'#121F18',sf2:'#1A2B21',ink:'#EEEDD6',mu:'#A3AE9F',ln:'#24382C',ac:'#FE7A25',on:'#0B140F',ac2:'#3FA36B',on2:'#0B140F',tint:'#E9E8CA'}},
+'04':{n:'Altitude',sw:[{c:'#F2E6EE'},{c:'#977DFF'},{c:'#0033FF'},{c:'#0600AB'}],L:{bg:'#F8F1F5',sf:'#FFFFFF',sf2:'#F2E6EE',ink:'#0B0838',mu:'#57546F',ln:'#E6D8E1',ac:'#0033FF',on:'#FFFFFF',ac2:'#977DFF',on2:'#0B0838',tint:'#F2E6EE'},D:{bg:'#08072B',sf:'#100E3D',sf2:'#1A1752',ink:'#F2E6EE',mu:'#ACA6CC',ln:'#26236A',ac:'#977DFF',on:'#08072B',ac2:'#5C7BFF',on2:'#08072B',tint:'#F2E6EE'}},
+'05':{n:'Electric Blue / Orange / Charcoal',sw:[{c:'#2636F5'},{c:'#087BFF'},{c:'#FF5A00'},{c:'#FFE4D0'},{c:'#191919'}],L:{bg:'#FFF6EF',sf:'#FFFFFF',sf2:'#FFE4D0',ink:'#191919',mu:'#5C5C5C',ln:'#F0DCCB',ac:'#2636F5',on:'#FFFFFF',ac2:'#FF5A00',on2:'#191919',tint:'#FFE4D0'},D:{bg:'#191919',sf:'#222222',sf2:'#2C2C2C',ink:'#F5F0EC',mu:'#A8A8A8',ln:'#363636',ac:'#FF5A00',on:'#191919',ac2:'#087BFF',on2:'#0B0B0B',tint:'#FFE4D0'}},
+'06':{n:'Fold / Bone White / Blue',sw:[{c:'#F5F5F5'},{c:'#F7B34B'},{c:'#FF6500'},{c:'#2860FF'}],L:{bg:'#F5F5F5',sf:'#FFFFFF',sf2:'#ECECEC',ink:'#141414',mu:'#5E5E5E',ln:'#E3E3E3',ac:'#2860FF',on:'#FFFFFF',ac2:'#FF6500',on2:'#141414',tint:'#F7B34B'},D:{bg:'#101114',sf:'#18191D',sf2:'#222328',ink:'#F5F5F5',mu:'#A3A3A8',ln:'#2E2F35',ac:'#F7B34B',on:'#141414',ac2:'#5A85FF',on2:'#101114',tint:'#F7B34B'}}};
+const T={A:{h:"'Space Grotesk', sans-serif",b:"'Inter', sans-serif",l:'Option A',d:'Space Grotesk + Inter'},B:{h:"'Sora', sans-serif",b:"'DM Sans', sans-serif",l:'Option B',d:'Sora + DM Sans'},C:{h:"'Manrope', sans-serif",b:"'Manrope', sans-serif",l:'Option C',d:'Manrope throughout'}};
+const MONO="'Geist Mono', ui-monospace, monospace";
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    const k = P[String(p.palette ?? '06').slice(0, 2)] ? String(p.palette ?? '06').slice(0, 2) : '06';
+    const m = (p.mode ?? 'Light Workspace') === 'Dark Studio' ? 'D' : 'L';
+    this.state = { pk: k, pm: m, pt: 'A', ak: k, am: m, at: 'A' };
+  }
+  renderVals() {
+    const s = this.state;
+    const a = P[s.ak][s.am], v = P[s.pk][s.pm];
+    const ta = T[s.at], tp = T[s.pt];
+    const on = (yes) => ({ border: yes ? '1.5px solid ' + a.ink : '1px solid ' + a.ln, ring: yes ? '0 0 0 3px ' + a.sf2 : 'none', pressed: String(yes) });
+    const dirty = s.pk !== s.ak || s.pm !== s.am || s.pt !== s.at;
+    return {
+      a, v, ta, tp, mono: MONO,
+      nav: ['Profile', 'Workspace', 'Brand profiles', 'Team', 'Billing', 'Appearance', 'Notifications'].map((l) => ({ l, bg: l === 'Appearance' ? a.sf2 : 'transparent', fg: l === 'Appearance' ? a.ink : a.mu, fw: l === 'Appearance' ? '600' : '400' })),
+      pals: Object.keys(P).map((k) => ({ k, n: P[k].n, sw: P[k].sw, ...on(s.pk === k), pick: () => this.setState({ pk: k }) })),
+      modes: [
+        { key: 'L', l: 'Light Workspace', d: 'Bright, for planning and review' },
+        { key: 'D', l: 'Dark Studio', d: 'Low glare, for editing' }
+      ].map((m) => ({ ...m, bg: P[s.pk][m.key].bg, ln: P[s.pk][m.key].ln, ink: P[s.pk][m.key].ink, ac: P[s.pk][m.key].ac, ...on(s.pm === m.key), pick: () => this.setState({ pm: m.key }) })),
+      types: Object.keys(T).map((k) => ({ l: T[k].l, d: T[k].d, h: T[k].h, ...on(s.pt === k), pick: () => this.setState({ pt: k }) })),
+      status: dirty ? 'Previewing ' + P[s.pk].n + ' · ' + (s.pm === 'L' ? 'Light Workspace' : 'Dark Studio') + '. Not applied yet.' : 'This is your current theme.',
+      dot: dirty ? a.ac : a.mu,
+      apply: () => this.setState({ ak: s.pk, am: s.pm, at: s.pt }),
+      reset: () => this.setState({ pk: s.ak, pm: s.am, pt: s.at })
+    };
+  }
+}
+</script>
+</body>
+</html>

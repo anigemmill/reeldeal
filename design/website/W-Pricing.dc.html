@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reeldeal — Pricing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}a:hover{opacity:.85}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="font-family: 'Inter', sans-serif; background: #FFFFFF; color: #1A1A1A; overflow-x: hidden;">
+  <dc-import name="Nav" tone="light" active="Pricing" hint-size="100%,88px"></dc-import>
+
+  <!-- HERO -->
+  <section style="position: relative; z-index: 0; padding: 72px 0 0; text-align: center; overflow: hidden;">
+    <div style="position: absolute; z-index: -1; left: 15%; right: 15%; top: -180px; height: 300px; background: linear-gradient(90deg, #DDEBFF, #8FC2FF, #007BFF, #2038E2); filter: blur(90px); opacity: 0.4;" aria-hidden="true"></div>
+    <p style="margin: 0 0 16px; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #4B5563;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #FF5A00; margin-right: 10px; vertical-align: 1px;" aria-hidden="true"></span>PRICING · NZD</p>
+    <h1 style="margin: 0 auto; max-width: 900px; padding: 0 20px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(44px, 6vw, 88px); line-height: 0.96; letter-spacing: -0.045em; font-weight: 600;">Simple plans. <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; text-decoration: underline; text-decoration-color: #FF5A00; text-decoration-thickness: 0.07em; text-underline-offset: 0.14em;">Serious output.</span></h1>
+    <p style="margin: 22px auto 0; max-width: 560px; padding: 0 20px; font-size: 18px; line-height: 1.55; color: #4B5563;">Every plan is built around finished videos a month. Start free with two videos, upgrade when you’re posting every week.</p>
+    <div role="group" aria-label="Billing period" style="margin-top: 32px; display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE6F5;">
+      <button type="button" onClick="{{setMonthly}}" aria-pressed="{{mPressed}}" style="border: 0; padding: 10px 18px; border-radius: 999px; background: {{mBg}}; color: {{mFg}}; font-weight: 500;">Monthly</button>
+      <button type="button" onClick="{{setAnnual}}" aria-pressed="{{aPressed}}" style="border: 0; padding: 10px 18px; border-radius: 999px; background: {{aBg}}; color: {{aFg}}; font-weight: 500;">Annual <span style="font-family: 'Geist Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 999px; background: #FF5A00; color: #1A1A1A; margin-left: 4px;">2 MONTHS FREE</span></button>
+    </div>
+  </section>
+
+  <!-- PLANS -->
+  <section style="max-width: 1400px; margin: 0 auto; padding: 56px clamp(20px, 3vw, 40px) 0; box-sizing: border-box;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(236px, 1fr)); gap: 12px; align-items: stretch;">
+      <sc-for list="{{plans}}" as="p" hint-placeholder-count="5">
+        <div style="border-radius: 26px; padding: 2px; background: {{p.frame}};">
+          <div style="height: 100%; box-sizing: border-box; border-radius: 24px; padding: 24px; background: {{p.bg}}; color: {{p.ink}}; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 26px;">
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600;">{{p.name}}</span>
+              <sc-if value="{{p.hot}}" hint-placeholder-val="{{false}}"><span style="padding: 5px 9px; border-radius: 999px; background: #FF5A00; color: #1A1A1A; font-family: 'Geist Mono', monospace; font-size: 10px;">RECOMMENDED</span></sc-if>
+            </div>
+            <p style="margin: 0; min-height: 40px; font-size: 14px; line-height: 1.45; color: {{p.mu}};">{{p.who}}</p>
+            <div>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 44px; letter-spacing: -0.04em; font-weight: 600;">{{p.price}}</span><span style="font-size: 14px; color: {{p.mu}};"> / month</span>
+              <div style="min-height: 18px; margin-top: 4px; font-size: 13px; color: {{p.mu}};">{{p.billed}}</div>
+            </div>
+            <div style="padding: 12px 14px; border-radius: 14px; background: {{p.stat}}; display: flex; align-items: baseline; gap: 8px;">
+              <span style="font-family: 'Geist Mono', monospace; font-size: 26px; font-weight: 500;">{{p.videos}}</span>
+              <span style="font-size: 13px;">{{p.videoLabel}}</span>
+            </div>
+            <a href="{{p.href}}" style="padding: 13px; border-radius: 999px; text-align: center; background: {{p.btn}}; color: {{p.btnInk}}; font-weight: 600; font-size: 15px;">{{p.cta}}</a>
+            <ul style="margin: 0; padding: 16px 0 0; border-top: 1px solid {{p.ln}}; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.4;">
+              <sc-for list="{{p.feats}}" as="f"><li style="display: flex; gap: 9px;"><span style="color: {{p.tick}}; flex: none;" aria-hidden="true">✓</span>{{f.l}}</li></sc-for>
+            </ul>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Enterprise -->
+    <div style="margin-top: 12px; border-radius: 26px; background: #1A1A1A; color: #F5F8FF; padding: clamp(24px, 3vw, 36px); display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: space-between;">
+      <div style="flex: 1 1 300px;">
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600;">Enterprise</span>
+        <p style="margin: 8px 0 0; font-size: 15px; color: #B8C2D9;">For large organisations and multi-site businesses. Custom pricing.</p>
+      </div>
+      <ul style="flex: 2 1 520px; margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 20px; font-size: 14px;">
+        <sc-for list="{{ent}}" as="e"><li style="display: flex; gap: 9px;"><span style="color: #8FC2FF;" aria-hidden="true">✓</span>{{e.l}}</li></sc-for>
+      </ul>
+      <a href="W-Demo.dc.html" style="flex: none; padding: 14px 22px; border-radius: 999px; background: #FFFFFF; color: #1A1A1A; font-weight: 600;">Talk to us</a>
+    </div>
+    <p style="margin: 18px 0 0; text-align: center; font-size: 14px; color: #4B5563;">All prices in NZD. [Confirm: excluding or including GST.] Annual plans get their videos monthly, not all upfront.</p>
+  </section>
+
+  <!-- HOW CREDITS WORK -->
+  <section style="max-width: 1360px; margin: 0 auto; padding: 112px clamp(20px, 4vw, 40px) 0; box-sizing: border-box;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 36px;">
+      <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: clamp(36px, 4vw, 56px); letter-spacing: -0.035em; font-weight: 600; line-height: 1;">How video credits <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">work.</span></h2>
+      <p style="margin: 0; max-width: 420px; font-size: 16px; line-height: 1.55; color: #4B5563;">One credit is one finished video up to 60 seconds. Previews, small fixes and our own failed renders never cost you anything.</p>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+      <div style="flex: 1.3 1 480px; min-width: 0; border-radius: 24px; border: 1px solid #DCE6F5; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <thead><tr style="background: #EEF5FF; text-align: left;"><th scope="col" style="padding: 14px 20px; font-weight: 600;">What you make</th><th scope="col" style="padding: 14px 20px; font-weight: 600; text-align: right;">Credits</th></tr></thead>
+          <tbody>
+            <sc-for list="{{costs}}" as="c" hint-placeholder-count="8">
+              <tr style="border-top: 1px solid #DCE6F5;"><td style="padding: 13px 20px;">{{c.l}}</td><td style="padding: 13px 20px; text-align: right;"><span style="font-family: 'Geist Mono', monospace; padding: 4px 10px; border-radius: 999px; background: {{c.bg}}; color: {{c.fg}};">{{c.v}}</span></td></tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <div style="flex: 1 1 340px; min-width: 0; border-radius: 24px; background: #2038E2; color: #FFFFFF; padding: 28px; box-sizing: border-box;">
+        <div style="font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #D6DCFF; margin-bottom: 16px;">EVERY STANDARD VIDEO INCLUDES</div>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 15px;">
+          <sc-for list="{{incl}}" as="i"><li style="display: flex; gap: 10px;"><span style="color: #FF5A00;" aria-hidden="true">●</span>{{i.l}}</li></sc-for>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADD-ONS -->
+  <section style="max-width: 1360px; margin: 0 auto; padding: 96px clamp(20px, 4vw, 40px) 0; box-sizing: border-box;">
+    <h2 style="margin: 0 0 32px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(36px, 4vw, 56px); letter-spacing: -0.035em; font-weight: 600; line-height: 1;">Need more? <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">Top up, don’t upgrade.</span></h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+      <sc-for list="{{addons}}" as="a" hint-placeholder-count="2">
+        <div style="border-radius: 24px; background: #EEF5FF; padding: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px;"><h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600;">{{a.t}}</h3><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4B5563;">{{a.tag}}</span></div>
+          <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: #4B5563;">{{a.d}}</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+            <sc-for list="{{a.items}}" as="it"><div style="padding: 14px; border-radius: 16px; background: #FFFFFF;"><div style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #4B5563;">{{it.q}}</div><div style="margin-top: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600;">{{it.p}}</div></div></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- COMPARE -->
+  <section style="max-width: 1360px; margin: 0 auto; padding: 112px clamp(20px, 4vw, 40px); box-sizing: border-box;">
+    <h2 style="margin: 0 0 32px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(36px, 4vw, 56px); letter-spacing: -0.035em; font-weight: 600;">Compare plans</h2>
+    <div style="overflow-x: auto; border-radius: 22px; border: 1px solid #DCE6F5; background: #FFFFFF;">
+      <table style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 14px;">
+        <thead>
+          <tr style="text-align: left;">
+            <th scope="col" style="padding: 18px 20px; font-weight: 500; color: #4B5563;">Feature</th>
+            <sc-for list="{{heads}}" as="h"><th scope="col" style="padding: 18px 16px; font-family: 'Space Grotesk', sans-serif; font-size: 17px; background: {{h.bg}};">{{h.n}}</th></sc-for>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="21">
+            <tr style="border-top: 1px solid #DCE6F5;">
+              <th scope="row" style="padding: 13px 20px; text-align: left; font-weight: 500;">{{r.f}}</th>
+              <sc-for list="{{r.cells}}" as="c"><td style="padding: 13px 16px; background: {{c.bg}}; color: {{c.fg}};">{{c.v}}</td></sc-for>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="background: #1A1A1A; color: #F5F8FF; padding: 112px 0;">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 56px;">
+      <div style="flex: 1 1 320px;">
+        <h2 style="margin: 0 0 16px; font-family: 'Space Grotesk', sans-serif; font-size: clamp(56px, 7vw, 104px); line-height: 0.88; letter-spacing: -0.05em; font-weight: 600;">The<br><span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;">details.</span></h2>
+        <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.55; color: #B8C2D9;">Credits, rollover and what counts as storage.</p>
+        <a href="W-Demo.dc.html" style="display: inline-block; padding: 13px 20px; border-radius: 999px; border: 1px solid #33394A;">Ask us something else</a>
+      </div>
+      <div style="flex: 2 1 560px; min-width: 0;">
+        <sc-for list="{{faqs}}" as="q" hint-placeholder-count="7">
+          <div style="border-top: 1px solid #33394A;">
+            <button type="button" onClick="{{q.toggle}}" aria-expanded="{{q.exp}}" style="width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 0; border: 0; background: transparent; color: #F5F8FF; text-align: left; font-size: 19px; font-weight: 500;">
+              {{q.q}}
+              <span style="flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid {{q.ring}}; color: {{q.ring}}; display: flex; align-items: center; justify-content: center; font-size: 18px;" aria-hidden="true">{{q.sign}}</span>
+            </button>
+            <sc-if value="{{q.open}}" hint-placeholder-val="{{false}}"><p style="margin: 0 0 22px; max-width: 660px; font-size: 16px; line-height: 1.6; color: #B8C2D9;">{{q.a}}</p></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="Footer" hint-size="100%,1200px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":5600}}'>
+const PLANS = [
+  { name: 'Free', m: 0, y: 0, who: 'For people who want to try the platform.', videos: '2', videoLabel: 'one-time video credits', cta: 'Start free', href: 'W-Auth.dc.html',
+    feats: ['1 brand profile', '5GB storage', '30 min media analysis', 'Basic templates', 'Watermarked exports', '1 user'] },
+  { name: 'Starter', m: 49, y: 490, who: 'For small businesses and independent operators.', videos: '5', videoLabel: 'videos a month', cta: 'Choose Starter', href: 'W-Auth.dc.html',
+    feats: ['1 brand profile', '100GB storage', '2 hrs media analysis', 'Autopilot', 'Basic Studio editing', 'Standard templates', '1080p, no watermark', '1 user'] },
+  { name: 'Creator', m: 119, y: 1190, hot: true, who: 'For businesses regularly producing social content.', videos: '20', videoLabel: 'videos a month', cta: 'Choose Creator', href: 'W-Auth.dc.html',
+    feats: ['3 brand profiles', '500GB storage', '10 hrs media analysis', 'Full Autopilot and Studio', 'Conversational editing', 'Batch video production', 'Custom templates', 'Multilingual captions', '1080p exports', '2 users'] },
+  { name: 'Business', m: 249, y: 2490, who: 'For marketing teams and established businesses.', videos: '60', videoLabel: 'videos a month', cta: 'Choose Business', href: 'W-Auth.dc.html',
+    feats: ['10 brand profiles', '2TB storage', '30 hrs media analysis', 'Advanced brand intelligence', 'Advanced editing and colour', 'Paid ad variations', 'Multilingual voiceovers and captions', 'Team approvals', '4K export allowance', '5 users', 'Priority processing'] },
+  { name: 'Agency', m: 499, y: 4990, who: 'For agencies, multi-brand operators and production teams.', videos: '150', videoLabel: 'videos a month', cta: 'Choose Agency', href: 'W-Auth.dc.html',
+    feats: ['25 brand profiles', '5TB storage', '75 hrs media analysis', 'Client workspaces', 'Shared media libraries', 'Custom branded templates', 'Batch campaign production', 'Advanced approval workflows', '4K export allowance', '10 users', 'Priority support'] }
+];
+const ROWS = [
+  ['Monthly price', '$0', '$49', '$119', '$249', '$499'],
+  ['Video credits', '2 trial', '5', '20', '60', '150'],
+  ['Storage', '5GB', '100GB', '500GB', '2TB', '5TB'],
+  ['Media analysis', '30 min trial', '2 hrs', '10 hrs', '30 hrs', '75 hrs'],
+  ['Brand profiles', '1', '1', '3', '10', '25'],
+  ['Users', '1', '1', '2', '5', '10'],
+  ['Autopilot', 'Trial', 'Yes', 'Yes', 'Yes', 'Yes'],
+  ['Studio', 'Preview', 'Basic', 'Full', 'Advanced', 'Advanced'],
+  ['AI media search', 'Limited', 'Yes', 'Yes', 'Advanced', 'Advanced'],
+  ['Conversational editing', 'Trial', 'Basic', 'Yes', 'Yes', 'Yes'],
+  ['Batch production', 'No', 'Limited', 'Yes', 'Yes', 'Yes'],
+  ['Custom templates', 'No', 'No', '5', 'Yes', 'Yes'],
+  ['Multilingual captions', 'No', 'Basic', 'Yes', 'Yes', 'Yes'],
+  ['AI voiceovers', 'No', 'No', 'Optional credits', 'Yes', 'Yes'],
+  ['Paid ad variations', 'No', 'No', 'Limited', 'Yes', 'Yes'],
+  ['Advanced colour tools', 'No', 'No', 'Basic', 'Yes', 'Yes'],
+  ['4K exports', 'No', 'No', 'No', 'Allowance', 'Allowance'],
+  ['Team approvals', 'No', 'No', 'Basic', 'Yes', 'Advanced'],
+  ['Client workspaces', 'No', 'No', 'No', 'Limited', 'Yes'],
+  ['Priority processing', 'No', 'No', 'No', 'Yes', 'Yes'],
+  ['Priority support', 'No', 'No', 'No', 'No', 'Yes']
+];
+const FAQ = [
+  { q: 'Do unused video credits roll over?', a: 'Yes, for one billing cycle. Unused credits carry into the next month, up to one month’s allowance, and the oldest credits are used first. After that they expire.' },
+  { q: 'Do media analysis hours roll over?', a: 'No. Analysis hours reset each month. They cover analysing and indexing new footage, so your existing library stays searchable either way.' },
+  { q: 'What counts towards my storage?', a: 'Your original footage and finished videos. Temporary processing files, like proxies and in-between renders, never count. You can add more storage without changing plans.' },
+  { q: 'How do annual plans work?', a: 'You pay for ten months and get twelve. Your video credits still arrive monthly rather than all at once.' },
+  { q: 'Do top-up credits expire?', a: 'Purchased top-ups last 90 days. [Confirm before launch.]' },
+  { q: 'What about premium AI features?', a: 'Things like synthetic footage and premium AI generation use separate AI generation credits. You always see the cost before anything runs.' },
+  { q: 'Who owns the footage and the videos?', a: 'You do. Your clips and exports stay yours, and we never share them without your permission. [Confirm wording with legal.]' }
+];
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { annual: false, open: 0 }; }
+  renderVals() {
+    const s = this.state;
+    const money = (n) => (n % 1 === 0 ? '$' + n : '$' + n.toFixed(2));
+    const plans = PLANS.map((p) => {
+      const hot = !!p.hot;
+      return {
+        ...p, hot,
+        price: p.m === 0 ? '$0' : (s.annual ? money(Math.round(p.y / 12 * 100) / 100) : money(p.m)),
+        billed: p.m === 0 ? 'Free forever' : (s.annual ? 'Billed $' + p.y.toLocaleString('en-NZ') + ' a year' : 'Billed monthly'),
+        frame: hot ? '#FF5A00' : '#DCE6F5', bg: hot ? '#1A1A1A' : '#FFFFFF', ink: hot ? '#F5F8FF' : '#1A1A1A', mu: hot ? '#B8C2D9' : '#4B5563',
+        ln: hot ? '#33394A' : '#DCE6F5', stat: hot ? '#2D2D2D' : '#EEF5FF', tick: hot ? '#FF5A00' : '#2038E2',
+        btn: hot ? '#FF5A00' : (p.m === 0 ? '#FFFFFF' : '#2038E2'), btnInk: hot ? '#1A1A1A' : (p.m === 0 ? '#1A1A1A' : '#FFFFFF'),
+        feats: p.feats.map((l) => ({ l }))
+      };
+    });
+    const HOT = 3;
+    const cell = (v, i) => ({ v, bg: i === HOT ? '#EEF5FF' : 'transparent', fg: (v === 'No') ? '#9AA3B5' : '#1A1A1A' });
+    return {
+      plans,
+      mPressed: String(!s.annual), aPressed: String(s.annual),
+      mBg: s.annual ? 'transparent' : '#1A1A1A', mFg: s.annual ? '#1A1A1A' : '#FFFFFF',
+      aBg: s.annual ? '#1A1A1A' : 'transparent', aFg: s.annual ? '#FFFFFF' : '#1A1A1A',
+      setMonthly: () => this.setState({ annual: false }), setAnnual: () => this.setState({ annual: true }),
+      ent: ['Custom video allowances', 'Custom storage and processing', 'Flexible brands and users', 'Advanced permissions and governance', 'API and integrations', 'Dedicated onboarding', 'Custom support arrangements', 'Service-level agreements'].map((l) => ({ l })),
+      costs: [
+        { l: 'Standard video, up to 60 seconds', v: '1' }, { l: 'Video, 61 to 120 seconds', v: '2' }, { l: 'Video, 2 to 5 minutes', v: '3' },
+        { l: 'Extra creative variation', v: '1' }, { l: 'Extra aspect ratio (e.g. 9:16 and 16:9)', v: '1' },
+        { l: 'Minor revision (up to three)', v: 'Included' }, { l: 'Storyboard preview', v: 'Free' }, { l: 'Failed render on our side', v: 'Free' }
+      ].map((c) => ({ ...c, bg: /\d/.test(c.v) ? '#EEF5FF' : '#FF5A00', fg: '#1A1A1A' })),
+      incl: ['1080p resolution', 'One aspect ratio', 'AI footage selection and editing', 'Your brand styling', 'Standard captions', 'Music and audio treatment', 'Up to three minor revisions'].map((l) => ({ l })),
+      addons: [
+        { t: 'Extra video credits', tag: 'LAST 90 DAYS', d: 'Busy month? Add credits on top of your plan.', items: [{ q: '5 credits', p: '$29' }, { q: '15 credits', p: '$69' }, { q: '30 credits', p: '$119' }] },
+        { t: 'Extra storage', tag: 'MONTHLY', d: 'Keep more footage without moving up a plan.', items: [{ q: '100GB', p: '$12' }, { q: '500GB', p: '$45' }, { q: '1TB', p: '$80' }, { q: '5TB', p: 'Custom' }] }
+      ],
+      heads: ['Free', 'Starter', 'Creator', 'Business', 'Agency'].map((n, i) => ({ n, bg: i + 1 === HOT ? '#EEF5FF' : 'transparent' })),
+      rows: ROWS.map((r) => ({ f: r[0], cells: r.slice(1).map((v, i) => cell(v, i + 1)) })),
+      faqs: FAQ.map((f, i) => ({ ...f, open: s.open === i, exp: String(s.open === i), sign: s.open === i ? '−' : '+', ring: s.open === i ? '#FF5A00' : '#33394A', toggle: () => this.setState({ open: s.open === i ? -1 : i }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>
