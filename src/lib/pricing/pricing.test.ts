@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import raw from "../../../config/pricing.json";
-import { getPlan, getPlans, getRecommendedPlan, pricing } from "./index";
+import { creditCost, getPlan, getPlans, getRecommendedPlan, pricing, renderCredits } from "./index";
 import { pricingSchema } from "./schema";
 
 // Deliberately untyped so tests can break the config in ways the types forbid.
@@ -16,6 +16,19 @@ describe("pricing loader", () => {
     expect(getRecommendedPlan().id).toBe(pricing.recommendedPlan);
     expect(getPlan("creator")?.priceMonthly).toBe(119);
     expect(getPlan("nope")).toBeUndefined();
+  });
+});
+
+describe("credit costs", () => {
+  it("looks up credits by id", () => {
+    expect(creditCost("video-60")).toBe(1);
+    expect(creditCost("storyboard-preview")).toBe(0);
+    expect(() => creditCost("nope")).toThrow();
+  });
+  it("charges the length band plus one per extra format", () => {
+    expect(renderCredits({ seconds: 30, formats: 1 })).toBe(1);
+    expect(renderCredits({ seconds: 30, formats: 3 })).toBe(3);
+    expect(renderCredits({ seconds: 90, formats: 2 })).toBe(3);
   });
 });
 

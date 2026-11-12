@@ -49,6 +49,7 @@ export const pricingSchema = z
     }),
     creditCosts: z.array(
       z.strictObject({
+        id: z.string().regex(/^[a-z0-9-]+$/, "lowercase id"),
         activity: z.string().min(1),
         credits: count,
         label: z.string().min(1).optional(),
@@ -117,6 +118,11 @@ export const pricingSchema = z
 
     cfg.creditCosts.forEach((c, i) => {
       if (c.credits === 0 && !c.label) issue(["creditCosts", i, "label"], `"${c.activity}" costs 0 credits and needs a label (e.g. "Free")`);
+    });
+
+    const costIds = cfg.creditCosts.map((c) => c.id);
+    costIds.forEach((id, i) => {
+      if (costIds.indexOf(id) !== i) issue(["creditCosts", i, "id"], `Duplicate credit cost id "${id}"`);
     });
 
     const walletIds = cfg.wallets.map((w) => w.id);

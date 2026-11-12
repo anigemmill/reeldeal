@@ -68,14 +68,14 @@
     ]
   },
   "creditCosts": [
-    { "activity": "Standard video up to 60 seconds", "credits": 1 },
-    { "activity": "Video 61–120 seconds", "credits": 2 },
-    { "activity": "Video 2–5 minutes", "credits": 3 },
-    { "activity": "Additional creative variation", "credits": 1 },
-    { "activity": "Separate aspect-ratio output", "credits": 1 },
-    { "activity": "Minor revision (up to 3)", "credits": 0, "label": "Included" },
-    { "activity": "Storyboard preview", "credits": 0, "label": "Free" },
-    { "activity": "Failed platform render", "credits": 0, "label": "Free" }
+    { "id": "video-60", "activity": "Standard video up to 60 seconds", "credits": 1 },
+    { "id": "video-120", "activity": "Video 61–120 seconds", "credits": 2 },
+    { "id": "video-300", "activity": "Video 2–5 minutes", "credits": 3 },
+    { "id": "variation", "activity": "Additional creative variation", "credits": 1 },
+    { "id": "aspect-ratio", "activity": "Separate aspect-ratio output", "credits": 1 },
+    { "id": "minor-revision", "activity": "Minor revision (up to 3)", "credits": 0, "label": "Included" },
+    { "id": "storyboard-preview", "activity": "Storyboard preview", "credits": 0, "label": "Free" },
+    { "id": "failed-render", "activity": "Failed platform render", "credits": 0, "label": "Free" }
   ],
   "standardVideoIncludes": ["1080p resolution", "One aspect ratio", "AI footage selection and editing", "Brand styling", "Standard captions", "Music and audio treatment", "Initial render", "Up to three minor revisions"],
   "addOns": {

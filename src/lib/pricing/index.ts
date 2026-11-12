@@ -30,3 +30,19 @@ export function getRecommendedPlan(): Plan {
   // Existence is guaranteed by the schema's cross-field checks.
   return getPlan(pricing.recommendedPlan)!;
 }
+
+/** Credits for an activity in config/pricing.json creditCosts, by id (e.g. "video-60"). */
+export function creditCost(id: string): number {
+  const row = pricing.creditCosts.find((c) => c.id === id);
+  if (!row) throw new Error(`Unknown credit cost "${id}"`);
+  return row.credits;
+}
+
+/**
+ * Credits to render one finished video: the base cost for its length, plus one
+ * per extra aspect ratio. Storyboard previews are free (charged at render only).
+ */
+export function renderCredits({ seconds, formats }: { seconds: number; formats: number }): number {
+  const base = seconds <= 60 ? creditCost("video-60") : seconds <= 120 ? creditCost("video-120") : creditCost("video-300");
+  return base + Math.max(0, formats - 1) * creditCost("aspect-ratio");
+}

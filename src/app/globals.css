@@ -100,6 +100,7 @@
 /* Marquee and caret motion (homepage). Disabled for reduced motion. */
 @keyframes rd-marquee-up { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 @keyframes rd-marquee-down { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+@keyframes rd-spin { to { transform: rotate(360deg); } }
 @keyframes rd-caret { 50% { opacity: 0; } }
 @keyframes rd-grow { from { width: 0; } to { width: 100%; } }
 @keyframes rd-breathe { 0%, 100% { transform: scale(1); opacity: 0.75; } 50% { transform: scale(1.08); opacity: 0.95; } }
