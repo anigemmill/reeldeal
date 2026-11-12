@@ -48,3 +48,37 @@ Decisions made on the design canvas after the original brief, newest last.
 - Which social channels support direct posting at launch.
 - Validate margins (storage, analysis, render and AI generation costs) against the $100k operating
   profit target before publishing prices.
+
+---
+
+# Build decisions (Claude Code sessions)
+
+## Phase 0 (approved)
+- Tailwind v4. `tokens/tailwind.preset.ts` converted 1:1 to `@theme inline` in `src/app/globals.css`;
+  `tokens/tokens.css` stays the single source of truth for design values.
+- All six brief palettes implemented as `.palette-01` … `.palette-06`, each with Workspace (light) and
+  Studio (dark) values from `design/explorations/Appearance.dc.html`. Crossroads Blue is the brand default.
+- Pricing validated with Zod in a dedicated `prebuild` step.
+
+## Phase 1 scope and direction (approved by owner)
+- **Palette 05 keeps `#FFE4D0`.** The no-peach rule applies to the Crossroads Blue brand only, not to
+  the six palettes.
+- **Three typography combinations stay selectable** for comparison: A (Space Grotesk + Inter + Geist Mono),
+  B (Sora + DM Sans + Geist Mono), C (Manrope + Geist Mono). Instrument Serif italic is the accent in all
+  three. A is the default only because it matches the current brand rules; no final choice yet.
+- **Semantic tokens only in components.** Fixed brand colours are reserved for the logo mark and the
+  footer wordmark. Enforced by `npm run check:tokens`.
+- **Separate root layouts** for `(marketing)` and `(app)`. The marketing website is fixed to Crossroads Blue;
+  only the app reads the user's theme.
+- **Status colours** (success, warning, danger) drafted for every palette and mode. Draft values, pending
+  owner review in the design-system pages.
+- **Contrast failures** are fixed and every changed value is logged below (old → new, ratio).
+- **Design review pages** (`/design-system`) and, until auth exists, the app routes are hidden in production
+  unless `REELDEAL_DESIGN_REVIEW=1`.
+- **Four representative screens** are Phase 1 deliverables: marketing homepage, app dashboard, Autopilot,
+  Studio. They use labelled sample data and do not perform real uploads, generation, saving or rendering.
+- **Dashboard** has no approved design; designed from scratch as a creative workspace, with Autopilot and
+  Studio as the two primary actions.
+- **Placeholder imagery**: no production asset library yet. Screens use labelled, illustrated cinematic
+  placeholder scenes (the approach of `design/components/Scene.dc.html`, refined). All media goes through one
+  registry (`src/content/media.ts`) so real photos and footage replace placeholders without touching screens.

@@ -14,25 +14,6 @@
   --rd-orange: #FF5A00;            /* action + AI only, 5–10% of a screen */
   --rd-orange-deep: #C24400;
 
-  /* Light surfaces (website + light app).
-     These are the Crossroads Blue Workspace set (--rd-ws-*). Components read the
-     semantic tokens (--rd-bg, --rd-ink, ...) which are mapped onto the active
-     mode in the THEMES section at the end of this file. */
-  --rd-ws-bg: var(--rd-white);
-  --rd-ws-surface: var(--rd-white);
-  --rd-ws-surface-muted: var(--rd-ice);
-  --rd-ws-line: #DCE6F5;
-  --rd-ws-line-strong: #C9DAF2;
-  --rd-ws-ink: var(--rd-charcoal);
-  --rd-ws-ink-muted: #4B5563;
-  --rd-ws-ink-soft: #36415A;
-  --rd-ws-ink-disabled: #9AA3B5;
-  --rd-ws-primary: var(--rd-electric);
-  --rd-ws-on-primary: #FFFFFF;
-  --rd-ws-action: var(--rd-orange);
-  --rd-ws-on-action: var(--rd-charcoal);
-  --rd-ws-tint: var(--rd-sky-soft);
-  --rd-ws-focus: var(--rd-bleu-ciel);
 
   /* Dark surfaces (dark sections, Studio) */
   --rd-dark-bg: #1A1A1A;
@@ -45,25 +26,9 @@
   --rd-dark-ink-muted: #B8C2D9;
   --rd-dark-ink-soft: #7D879C;
 
-  /* Crossroads Blue Studio set (--rd-st-*), built from the dark surfaces above.
-     Text tiers follow the Workspace order: ink > ink-soft > ink-muted > ink-disabled. */
-  --rd-st-bg: var(--rd-dark-bg);
-  --rd-st-surface: var(--rd-dark-surface);
-  --rd-st-surface-muted: var(--rd-dark-surface-2);
-  --rd-st-line: var(--rd-dark-line);
-  --rd-st-line-strong: color-mix(in srgb, var(--rd-dark-line), var(--rd-dark-ink) 12%);
-  --rd-st-ink: var(--rd-dark-ink);
-  --rd-st-ink-muted: var(--rd-dark-ink-muted);
-  --rd-st-ink-soft: color-mix(in srgb, var(--rd-dark-ink) 50%, var(--rd-dark-ink-muted));
-  --rd-st-ink-disabled: var(--rd-dark-ink-soft);
-  --rd-st-primary: var(--rd-electric);
-  --rd-st-on-primary: #FFFFFF;
-  --rd-st-action: var(--rd-orange);
-  --rd-st-on-action: var(--rd-charcoal);
-  --rd-st-tint: var(--rd-sky);
-  --rd-st-focus: var(--rd-sky);
 
-  /* Semantic tokens (--rd-bg, --rd-primary, ...) are declared in THEMES below. */
+
+  /* Theme sets (--rd-ws-*, --rd-st-*) and semantic tokens are declared in THEMES below. */
 
   /* Gradients */
   --rd-grad-logo: linear-gradient(135deg, #007BFF 0%, #FFE6D0 30%, #FF5A00 55%, #6A3AA8 78%, #2038E2 100%);
@@ -81,6 +46,7 @@
   --rd-font-body: var(--font-inter, "Inter"), system-ui, sans-serif;
   --rd-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, monospace;
   --rd-font-accent: var(--font-instrument-serif, "Instrument Serif"), Georgia, serif; /* italic, 1–2 words per headline */
+  /* Typography combinations B and C are .type-b / .type-c (see TYPOGRAPHY below). */
 
   --rd-text-xs: 11px;
   --rd-text-sm: 13px;
@@ -141,9 +107,74 @@
    and do not change with the palette; theme-aware components use semantic tokens.
    ========================================================================== */
 
+/* Crossroads Blue (brand default). Also available as .palette-crossroads so it can be
+   shown inside a page themed with another palette (design review). */
+:root,
+.palette-crossroads {
+  /* Light surfaces (website + light app).
+     These are the Crossroads Blue Workspace set (--rd-ws-*). Components read the
+     semantic tokens (--rd-bg, --rd-ink, ...) which are mapped onto the active
+     mode in the THEMES section at the end of this file. */
+  --rd-ws-bg: var(--rd-white);
+  --rd-ws-surface: var(--rd-white);
+  --rd-ws-surface-muted: var(--rd-ice);
+  --rd-ws-line: #DCE6F5;
+  --rd-ws-line-strong: #C9DAF2;
+  --rd-ws-ink: var(--rd-charcoal);
+  --rd-ws-ink-muted: #4B5563;
+  --rd-ws-ink-soft: #36415A;
+  --rd-ws-ink-disabled: #9AA3B5;
+  --rd-ws-primary: var(--rd-electric);
+  --rd-ws-on-primary: #FFFFFF;
+  --rd-ws-action: var(--rd-orange);
+  --rd-ws-on-action: var(--rd-charcoal);
+  --rd-ws-tint: var(--rd-sky-soft);
+  --rd-ws-focus: var(--rd-bleu-ciel);
+  --rd-ws-link: var(--rd-electric);
+  --rd-ws-on-tint: var(--rd-ws-ink);
+
+  /* Crossroads Blue Studio set (--rd-st-*), built from the dark surfaces above.
+     Text tiers follow the Workspace order: ink > ink-soft > ink-muted > ink-disabled. */
+  --rd-st-bg: var(--rd-dark-bg);
+  --rd-st-surface: var(--rd-dark-surface);
+  --rd-st-surface-muted: var(--rd-dark-surface-2);
+  --rd-st-line: var(--rd-dark-line);
+  --rd-st-line-strong: color-mix(in srgb, var(--rd-dark-line), var(--rd-dark-ink) 12%);
+  --rd-st-ink: var(--rd-dark-ink);
+  --rd-st-ink-muted: var(--rd-dark-ink-muted);
+  --rd-st-ink-soft: color-mix(in srgb, var(--rd-dark-ink) 50%, var(--rd-dark-ink-muted));
+  --rd-st-ink-disabled: var(--rd-dark-ink-soft);
+  --rd-st-primary: var(--rd-electric);
+  --rd-st-on-primary: #FFFFFF;
+  --rd-st-action: var(--rd-orange);
+  --rd-st-on-action: var(--rd-charcoal);
+  --rd-st-tint: var(--rd-sky);
+  --rd-st-focus: var(--rd-sky);
+  /* Electric is too dark as text on charcoal (2.04:1); links use sky. */
+  --rd-st-link: var(--rd-sky);
+  --rd-st-on-tint: var(--rd-st-bg);
+
+  /* Theme-aware gradient (bg-grad-panel). Brand gradient here; palettes derive their own below. */
+  --rd-grad-panel: var(--rd-grad-sky-spark);
+}
+
+/* Status colours are shared by every palette (inherited from :root). */
+:root {
+  /* Status colours. DRAFT values (Phase 1), pending owner review.
+     Shared by every palette unless a palette block overrides them. Used for text,
+     icons and fills; pair a fill with its on-* colour. */
+  --rd-ws-success: #1E7A4C; --rd-ws-on-success: #FFFFFF;
+  --rd-ws-warning: #8F5300; --rd-ws-on-warning: #FFFFFF;
+  --rd-ws-danger: #C42B2B;  --rd-ws-on-danger: #FFFFFF;
+  --rd-st-success: #4CC38A; --rd-st-on-success: var(--rd-charcoal);
+  --rd-st-warning: #F2B33D; --rd-st-on-warning: var(--rd-charcoal);
+  --rd-st-danger: #FF7A70;  --rd-st-on-danger: var(--rd-charcoal);
+}
+
 /* Mode mapping: semantic tokens -> active set. Workspace is the default. */
 :root,
 .mode-workspace,
+.palette-crossroads,
 .palette-01, .palette-02, .palette-03, .palette-04, .palette-05, .palette-06 {
   --rd-bg: var(--rd-ws-bg);
   --rd-surface: var(--rd-ws-surface);
@@ -160,6 +191,20 @@
   --rd-on-action: var(--rd-ws-on-action);
   --rd-tint: var(--rd-ws-tint);
   --rd-focus: var(--rd-ws-focus);
+  --rd-link: var(--rd-ws-link);
+  --rd-on-tint: var(--rd-ws-on-tint);
+  --rd-success: var(--rd-ws-success);
+  --rd-on-success: var(--rd-ws-on-success);
+  --rd-warning: var(--rd-ws-warning);
+  --rd-on-warning: var(--rd-ws-on-warning);
+  --rd-danger: var(--rd-ws-danger);
+  --rd-on-danger: var(--rd-ws-on-danger);
+  /* "The AI is doing something" follows the palette's action colour. */
+  --rd-ai: var(--rd-ws-action);
+  --rd-on-ai: var(--rd-ws-on-action);
+  /* Form-control borders: strong enough for 3:1 against the surface. */
+  --rd-field-line: color-mix(in srgb, var(--rd-ws-ink-muted) 70%, var(--rd-ws-surface));
+  --rd-scrim: color-mix(in srgb, var(--rd-ws-ink) 55%, transparent);
   color-scheme: light;
 }
 
@@ -180,6 +225,20 @@
   --rd-on-action: var(--rd-st-on-action);
   --rd-tint: var(--rd-st-tint);
   --rd-focus: var(--rd-st-focus);
+  --rd-link: var(--rd-st-link);
+  --rd-on-tint: var(--rd-st-on-tint);
+  --rd-success: var(--rd-st-success);
+  --rd-on-success: var(--rd-st-on-success);
+  --rd-warning: var(--rd-st-warning);
+  --rd-on-warning: var(--rd-st-on-warning);
+  --rd-danger: var(--rd-st-danger);
+  --rd-on-danger: var(--rd-st-on-danger);
+  /* "The AI is doing something" follows the palette's action colour. */
+  --rd-ai: var(--rd-st-action);
+  --rd-on-ai: var(--rd-st-on-action);
+  /* Form-control borders: strong enough for 3:1 against the surface. */
+  --rd-field-line: color-mix(in srgb, var(--rd-st-ink-muted) 70%, var(--rd-st-surface));
+  --rd-scrim: color-mix(in srgb, var(--rd-st-bg) 78%, transparent);
   color-scheme: dark;
 }
 
@@ -189,10 +248,16 @@
   --rd-ws-ink-soft: color-mix(in srgb, var(--rd-ws-ink) 50%, var(--rd-ws-ink-muted));
   --rd-ws-ink-disabled: color-mix(in srgb, var(--rd-ws-ink-muted) 55%, var(--rd-ws-bg));
   --rd-ws-focus: var(--rd-ws-primary);
+  --rd-ws-link: var(--rd-ws-primary);
+  --rd-ws-on-tint: var(--rd-ws-ink);
   --rd-st-line-strong: color-mix(in srgb, var(--rd-st-line), var(--rd-st-ink) 12%);
   --rd-st-ink-soft: color-mix(in srgb, var(--rd-st-ink) 50%, var(--rd-st-ink-muted));
   --rd-st-ink-disabled: color-mix(in srgb, var(--rd-st-ink-muted) 55%, var(--rd-st-bg));
   --rd-st-focus: var(--rd-st-primary);
+  --rd-st-link: var(--rd-st-primary);
+  /* Studio tints are light pastels: text on them uses the dark page colour. */
+  --rd-st-on-tint: var(--rd-st-bg);
+  --rd-grad-panel: linear-gradient(90deg, var(--rd-ws-tint) 0%, var(--rd-ws-primary) 55%, var(--rd-ws-action) 100%);
 }
 
 /* Palette 01 — Cream / Blue / Orange */
@@ -201,6 +266,8 @@
   --rd-ws-ink: #1E2533; --rd-ws-ink-muted: #5A6275; --rd-ws-line: #E2D6C9;
   --rd-ws-primary: #F4721E; --rd-ws-on-primary: #1E2533;
   --rd-ws-action: #4D6080; --rd-ws-on-action: #FFFFFF; --rd-ws-tint: #E9D9CA;
+  /* Contrast fix: orange on cream is 2.5:1, so focus and link text use the palette's blue. */
+  --rd-ws-focus: var(--rd-ws-action); --rd-ws-link: var(--rd-ws-action);
 
   --rd-st-bg: #12151C; --rd-st-surface: #1B202B; --rd-st-surface-muted: #252B38;
   --rd-st-ink: #F3ECE4; --rd-st-ink-muted: #A5ADBD; --rd-st-line: #2E3546;
@@ -258,6 +325,8 @@
   --rd-st-ink: #F5F0EC; --rd-st-ink-muted: #A8A8A8; --rd-st-line: #363636;
   --rd-st-primary: #FF5A00; --rd-st-on-primary: #191919;
   --rd-st-action: #087BFF; --rd-st-on-action: #0B0B0B; --rd-st-tint: #FFE4D0;
+  /* Contrast fix: orange link text on #2C2C2C was 4.47:1; lightened 20% toward the palette's ink. */
+  --rd-st-link: color-mix(in srgb, var(--rd-st-primary) 80%, var(--rd-st-ink));
 }
 
 /* Palette 06 — Fold / Bone White / Blue */
@@ -266,9 +335,28 @@
   --rd-ws-ink: #141414; --rd-ws-ink-muted: #5E5E5E; --rd-ws-line: #E3E3E3;
   --rd-ws-primary: #2860FF; --rd-ws-on-primary: #FFFFFF;
   --rd-ws-action: #FF6500; --rd-ws-on-action: #141414; --rd-ws-tint: #F7B34B;
+  /* Contrast fix: blue link text on #ECECEC was 4.22:1; darkened 15% toward the palette's ink. */
+  --rd-ws-link: color-mix(in srgb, var(--rd-ws-primary) 85%, var(--rd-ws-ink));
 
   --rd-st-bg: #101114; --rd-st-surface: #18191D; --rd-st-surface-muted: #222328;
   --rd-st-ink: #F5F5F5; --rd-st-ink-muted: #A3A3A8; --rd-st-line: #2E2F35;
   --rd-st-primary: #F7B34B; --rd-st-on-primary: #141414;
   --rd-st-action: #5A85FF; --rd-st-on-action: #101114; --rd-st-tint: #F7B34B;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY combinations (brief §5). A is the default on :root.
+   Like modes, a type class can go on <html> or scope a subtree.
+   ========================================================================== */
+.type-a {
+  --rd-font-display: var(--font-space-grotesk, "Space Grotesk"), system-ui, sans-serif;
+  --rd-font-body: var(--font-inter, "Inter"), system-ui, sans-serif;
+}
+.type-b {
+  --rd-font-display: var(--font-sora, "Sora"), system-ui, sans-serif;
+  --rd-font-body: var(--font-dm-sans, "DM Sans"), system-ui, sans-serif;
+}
+.type-c {
+  --rd-font-display: var(--font-manrope, "Manrope"), system-ui, sans-serif;
+  --rd-font-body: var(--font-manrope, "Manrope"), system-ui, sans-serif;
 }

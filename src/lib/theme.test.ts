@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { MODES, PALETTES, themeClassName } from "./theme";
+import { MODES, PALETTES, parseTheme, serializeTheme, themeClassName, themeScript, TYPES } from "./theme";
 
 const css = readFileSync(new URL("../../tokens/tokens.css", import.meta.url), "utf8");
 
@@ -18,11 +18,11 @@ const REQUIRED = [
 
 describe("theme tokens", () => {
   it("has six palettes plus the brand default, and two modes", () => {
-    expect(PALETTES.filter((p) => p.className)).toHaveLength(6);
+    expect(PALETTES.filter((p) => p.id !== "crossroads")).toHaveLength(6);
     expect(MODES.map((m) => m.id)).toEqual(["workspace", "studio"]);
   });
 
-  for (const palette of PALETTES.filter((p) => p.className)) {
+  for (const palette of PALETTES.filter((p) => p.id !== "crossroads")) {
     it(`${palette.className} defines every Workspace and Studio value`, () => {
       const body = ruleBody(`.${palette.className}`);
       expect(body, `.${palette.className} rule missing`).not.toBe("");
@@ -49,10 +49,32 @@ describe("theme tokens", () => {
     }
   });
 
-  it("builds class names for all 14 combinations", () => {
-    const all = PALETTES.flatMap((p) => MODES.map((m) => themeClassName({ palette: p.id, mode: m.id })));
-    expect(new Set(all).size).toBe(14);
-    expect(themeClassName({ palette: "03", mode: "studio" })).toBe("palette-03 mode-studio");
-    expect(themeClassName({ palette: "crossroads", mode: "workspace" })).toBe("mode-workspace");
+  it("defines all three typography combinations", () => {
+    for (const t of TYPES) expect(css).toMatch(new RegExp(`\\.${t.className} \\{[^}]*--rd-font-display`));
+  });
+
+  it("builds class names for all 42 palette × mode × type combinations", () => {
+    const all = PALETTES.flatMap((p) => MODES.flatMap((m) => TYPES.map((t) => themeClassName({ palette: p.id, mode: m.id, type: t.id }))));
+    expect(new Set(all).size).toBe(42);
+    expect(themeClassName({ palette: "03", mode: "studio", type: "b" })).toBe("palette-03 mode-studio type-b");
+  });
+
+  it("round-trips the cookie value and rejects bad input", () => {
+    const t = { palette: "05", mode: "studio", type: "c" } as const;
+    expect(parseTheme(serializeTheme(t))).toEqual(t);
+    expect(parseTheme("99.studio.a")).toBeNull();
+    expect(parseTheme("01.dark.a")).toBeNull();
+    expect(parseTheme("<script>")).toBeNull();
+    expect(parseTheme(undefined)).toBeNull();
+  });
+
+  it("produces a no-flash script that only applies known classes", () => {
+    const html = { classList: new Set<string>(["palette-crossroads", "mode-workspace", "type-a", "antialiased"]) };
+    const document = {
+      cookie: "x=1; rd-theme=04.studio.b",
+      documentElement: { classList: { add: (c: string) => html.classList.add(c), remove: (c: string) => html.classList.delete(c) } },
+    };
+    new Function("document", themeScript())(document);
+    expect([...html.classList].sort()).toEqual(["antialiased", "mode-studio", "palette-04", "type-b"]);
   });
 });

@@ -31,7 +31,19 @@
   --color-ink-soft: var(--rd-ink-soft);
   --color-ink-disabled: var(--rd-ink-disabled);
   --color-tint: var(--rd-tint);
+  --color-on-tint: var(--rd-on-tint);
+  --color-link: var(--rd-link);
   --color-focus: var(--rd-focus);
+  --color-field-line: var(--rd-field-line);
+  --color-scrim: var(--rd-scrim);
+  --color-ai: var(--rd-ai);
+  --color-ai-foreground: var(--rd-on-ai);
+  --color-success: var(--rd-success);
+  --color-success-foreground: var(--rd-on-success);
+  --color-warning: var(--rd-warning);
+  --color-warning-foreground: var(--rd-on-warning);
+  --color-danger: var(--rd-danger);
+  --color-danger-foreground: var(--rd-on-danger);
 
   --color-dark-bg: var(--rd-dark-bg);
   --color-dark-deep: var(--rd-dark-bg-deep);
@@ -80,6 +92,8 @@
 @utility bg-grad-sky-spark { background-image: var(--rd-grad-sky-spark); }
 @utility bg-grad-ice { background-image: var(--rd-grad-ice); }
 @utility bg-glow-hero { background-image: var(--rd-glow-hero); }
+/* Theme-aware: brand gradient in Crossroads, palette-derived elsewhere. */
+@utility bg-grad-panel { background-image: var(--rd-grad-panel); }
 
 /* `studio:` variant for styles that apply inside Dark Studio mode. */
 @custom-variant studio (&:where(.mode-studio, .mode-studio *));
