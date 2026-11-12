@@ -5,15 +5,17 @@
   "scripts": {
     "dev": "next dev",
     "validate:pricing": "tsx scripts/validate-pricing.ts",
-    "prebuild": "npm run validate:pricing",
+    "prebuild": "npm run validate:pricing && npm run validate:env",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run validate:pricing && npm run check:tokens && npm run typecheck && npm run lint && npm run test",
+    "check": "npm run validate:pricing && npm run validate:env && npm run check:tokens && npm run check:secrets && npm run typecheck && npm run lint && npm run test",
     "check:tokens": "tsx scripts/check-tokens.ts",
-    "test:a11y": "tsx scripts/a11y.ts"
+    "test:a11y": "tsx scripts/a11y.ts",
+    "validate:env": "tsx scripts/validate-env.ts",
+    "check:secrets": "tsx scripts/check-secrets.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -23,6 +25,7 @@
     "radix-ui": "^1.8.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.7"
   },

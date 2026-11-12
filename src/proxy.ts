@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { designReviewEnabled } from "@/lib/env";
+import { designReviewEnabled } from "@/env/flags";
 
 /*
   Hides the design review pages and the app routes in production unless

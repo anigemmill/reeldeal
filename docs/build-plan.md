@@ -48,3 +48,18 @@ Work in phases. Finish and review each before starting the next. Commit small.
 ## Before pricing goes live
 Validate real costs (storage, analysis per hour, render per video, AI generation) against the
 allowances in `config/pricing.json` and the $100k annual operating profit target.
+
+---
+
+## Updates after Phase 1 (approved scope)
+Phase 1 grew, with approval, to include four designed screens on sample data: the marketing homepage,
+dashboard, Autopilot and Studio, plus the Appearance screen and an accessibility suite. That moves work out of
+later phases:
+
+- **Phase 2** no longer builds the homepage, Nav, Footer, ArcHero or PromptWall; it builds the other website
+  pages, SEO, OG images and the sitemap.
+- **Phase 3** wires the existing dashboard, AppNav meters and Appearance screen to real data, and implements
+  `docs/architecture/security.md` (auth, RLS, organisations, private R2, signed URLs).
+- **Phase 4** attaches the edit model, assistant, versions and render service to the existing Studio UI, and
+  the render confirmation already shown in Autopilot and Studio.
+- **Phase 5** attaches the Autopilot pipeline and notifications to the existing Autopilot screens.

@@ -124,3 +124,26 @@ controls reach 3:1; `scrim` is ink at 55% (Workspace) or the dark background at 
   and video are the same in every theme, because the picture does not change with the theme.
 - Both screens can be reviewed in any palette, mode and type at `/design-system/screens/home` and
   `/design-system/screens/dashboard`. The live homepage stays Crossroads Blue.
+
+## Checkpoint 2 sign-off (owner)
+- Signed off. Dashboard hierarchy kept. Placeholder imagery kept; geothermal steam is a known visual improvement.
+- No typography selected. GST wording stays a clearly marked pending decision.
+
+## Checkpoint 3
+- **Autopilot** is a mobile-first focus-mode route (no sidebar): Brief → Creating → Review, restyled from the
+  exploration designs. Credit cost is shown live and again before approval, computed from
+  `config/pricing.json` (`creditCosts` rows now have stable ids). Progress is simulated and labelled;
+  approve, request changes and export say they arrive in later phases.
+- **Studio** is a full-screen route, always Dark Studio in the user's palette. Playback, scrubbing, clip selection,
+  aspect switch and panel tabs work on sample data; editing tools, undo/redo, share and render are shown as
+  Phase 4. Below 1024px it shows a "best on a larger screen" notice that points to Autopilot.
+- **Appearance** saves palette, mode and type to the theme cookie and applies it before first paint. The
+  marketing site ignores it.
+- **Accessibility suite** (`npm run test:a11y`): axe WCAG 2.2 A/AA in all 14 palette/mode sets (type A) plus
+  types B and C, 4 mobile layouts, keyboard paths and reduced motion. All pass. Fixes it found:
+  - How-it-works pills in palette 01 (4.18:1): now outlined on the primary colour.
+  - Translucent text on the primary colour in palette 06 (4.33:1): now uses the full on-primary colour.
+- **Security foundation**: Zod-validated env (`src/env/`), `server-only` for secrets, `.env.example`, env
+  validation before every build, secret scan, security headers with CSP, and `docs/architecture/security.md`
+  (RLS, organisation isolation, private R2 with signed URLs) for Phase 3.
+- Pending, unchanged: GST wording, typography choice, geothermal steam, `[MUSIC LICENSING PARTNER]`.

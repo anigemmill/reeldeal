@@ -7,14 +7,28 @@ Added in Phase 0. The handoff docs in this folder are unchanged.
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server |
-| `npm run build` | Validates `config/pricing.json` (prebuild), then builds |
+| `npm run build` | Validates `config/pricing.json` and the environment (prebuild), then builds |
 | `npm run validate:pricing` | Pricing check on its own. Accepts a path: `npm run validate:pricing -- other.json` |
+| `npm run validate:env` | Environment variables against `src/env/schema.ts` |
+| `npm run check:tokens` | Fails on raw colours or fixed brand classes in UI code |
+| `npm run check:secrets` | Fails on committed credentials or `process.env` reads outside `src/env/` |
+| `npm run test:a11y` | Browser accessibility suite (axe, keyboard, reduced motion). Needs `npm run build` first |
 | `npm run typecheck` | Generates route types, then `tsc` |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
-| `npm run check` | All of the above except the build |
+| `npm run check` | Validation, token and secret checks, typecheck, lint and unit tests (not the build or a11y) |
 
-Node 22 or newer.
+Node 22 or newer. Copy `.env.example` to `.env.local` for local settings (none are required in Phase 1).
+
+## Routes
+
+| Route | What |
+|---|---|
+| `/` | Marketing homepage (always Crossroads Blue) |
+| `/dashboard`, `/autopilot`, `/studio`, `/settings/appearance` | App screens with labelled sample data |
+| `/design-system` | Review area: components, themes, type, contrast, and every screen in any theme |
+
+App routes and `/design-system` are hidden in production unless `REELDEAL_DESIGN_REVIEW=1`.
 
 ## Layout
 
@@ -27,7 +41,10 @@ src/app/fonts.ts            next/font setup (exposes --font-* variables)
 src/app/(marketing)/        public website, own layout
 src/app/(app)/              logged-in product, own layout
 src/lib/pricing/            typed pricing loader
-src/lib/theme.ts            palette and mode class names
+src/lib/theme.ts            palette, mode and type class names; theme cookie
+src/env/                    Zod-validated environment (public, server-only, flags)
+src/content/                media registry, site copy, labelled sample data
+docs/architecture/          security architecture
 ```
 
 ## Theming
