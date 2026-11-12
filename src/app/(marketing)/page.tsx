@@ -1,16 +1,22 @@
-// PHASE 0 PLACEHOLDER. The real home page (design/website/W-Home.dc.html) is built in Phase 2.
+import { SiteFooter } from "@/components/marketing/site-footer";
+import { SiteHeader } from "@/components/marketing/site-header";
+import { Container, Eyebrow } from "@/components/ui/misc";
+
+// CHECKPOINT 1 PLACEHOLDER between the real header and footer. The designed homepage arrives at Checkpoint 2.
 export default function HomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-container flex-1 flex-col justify-center gap-4 px-6 py-20">
-      <p className="font-mono text-xs uppercase tracking-label text-ink-muted">
-        Placeholder · Phase 0 scaffold
-      </p>
-      <h1 className="font-display text-5xl font-semibold tracking-display">
-        Reeldeal <em className="font-accent font-normal">website</em>
-      </h1>
-      <p className="max-w-prose text-ink-muted">
-        Marketing route group. The website pages are not built yet.
-      </p>
-    </main>
+    <>
+      <SiteHeader />
+      <main>
+        <Container className="flex min-h-[50vh] flex-col justify-center gap-4 py-20">
+          <Eyebrow>Placeholder · Checkpoint 1</Eyebrow>
+          <h1 className="font-display text-[length:var(--rd-display-md)] leading-[0.95] font-semibold tracking-display">
+            Homepage <em className="font-accent font-normal">coming next</em>
+          </h1>
+          <p className="max-w-prose text-ink-muted">Header, mobile menu and footer are built. The homepage sections arrive at Checkpoint 2.</p>
+        </Container>
+      </main>
+      <SiteFooter />
+    </>
   );
 }

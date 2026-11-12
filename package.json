@@ -11,11 +11,15 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run validate:pricing && npm run typecheck && npm run lint && npm run test"
+    "check": "npm run validate:pricing && npm run check:tokens && npm run typecheck && npm run lint && npm run test",
+    "check:tokens": "tsx scripts/check-tokens.ts"
   },
   "dependencies": {
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^1.72.0",
     "next": "16.4.6",
+    "radix-ui": "^1.8.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "tailwind-merge": "^3.7.0",
