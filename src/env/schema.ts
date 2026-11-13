@@ -74,6 +74,8 @@ export const serverSchema = z
     LOCAL_STORAGE_DIR: z.string().min(1).default(".data/storage"),
     /** Base URL that serves signed local media links (the dev MCP HTTP server). */
     LOCAL_MEDIA_BASE_URL: optionalUrl,
+    /** Tests only: run the suite against a real Postgres server (a throwaway database per test file). */
+    TEST_DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "must be a postgres:// URL").optional(),
     FFMPEG_PATH: z.string().min(1).default("ffmpeg"),
     FFPROBE_PATH: z.string().min(1).default("ffprobe"),
   })

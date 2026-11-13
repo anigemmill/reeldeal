@@ -90,7 +90,7 @@ export async function createVideoBrief(ctx: Ctx, raw: z.infer<typeof BriefInput>
   const brief = { ...data, suggested_asset_ids: ids.kept };
   const [row] = await asUser(ctx, (sql) =>
     sql.query<{ id: string; created_at: string }>(
-      "insert into public.video_briefs (org_id, project_id, request, brief, source, model, created_by) values ($1, $2, $3, $4::jsonb, 'ai', $5, $6) returning id, created_at",
+      "insert into public.video_briefs (org_id, project_id, request, brief, source, model, created_by) values ($1, $2, $3, $4::text::jsonb, 'ai', $5, $6) returning id, created_at",
       [ctx.principal.orgId, i.project_id ?? null, i.request, JSON.stringify(brief), model, ctx.principal.userId],
     ),
   );
@@ -151,7 +151,7 @@ export async function generateVideoConcepts(ctx: Ctx, raw: z.infer<typeof Concep
   });
   const [row] = await asUser(ctx, (sql) =>
     sql.query<{ id: string }>(
-      "insert into public.video_concepts (org_id, project_id, brief_id, concepts, model, created_by) values ($1, $2, $3, $4::jsonb, $5, $6) returning id",
+      "insert into public.video_concepts (org_id, project_id, brief_id, concepts, model, created_by) values ($1, $2, $3, $4::text::jsonb, $5, $6) returning id",
       [ctx.principal.orgId, projectId, brief?.id ?? null, JSON.stringify(concepts), model, ctx.principal.userId],
     ),
   );

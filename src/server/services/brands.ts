@@ -91,7 +91,7 @@ export async function createBrand(ctx: Ctx, input: BrandInput) {
     const [row] = await asUser(ctx, (sql) =>
       sql.query<BrandRow>(
         `insert into public.brand_profiles (org_id, name, description, industry, audiences, voice, colours, typography, guidelines, restrictions, created_by)
-         values ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9, $10, $11) returning ${COLS}`,
+         values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8::text::jsonb, $9, $10, $11) returning ${COLS}`,
         [
           ctx.principal.orgId,
           b.name,
@@ -124,8 +124,8 @@ export async function updateBrand(ctx: Ctx, id: string, input: Partial<BrandInpu
     ["industry", b.industry],
     ["audiences", b.audiences],
     ["voice", b.voice],
-    ["colours", b.colours && JSON.stringify(b.colours), "::jsonb"],
-    ["typography", b.typography && JSON.stringify(b.typography), "::jsonb"],
+    ["colours", b.colours && JSON.stringify(b.colours), "::text::jsonb"],
+    ["typography", b.typography && JSON.stringify(b.typography), "::text::jsonb"],
     ["guidelines", b.guidelines],
     ["restrictions", b.restrictions],
   ];

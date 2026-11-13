@@ -60,7 +60,7 @@ export async function submitJob(
 ): Promise<{ job: JobRow; duplicate: boolean }> {
   const inserted = await sys.query<JobRow>(
     `insert into public.jobs (org_id, kind, idempotency_key, input, project_id, media_id, created_by, credits_held, retry_of, attempt)
-     values ($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9, $10)
+     values ($1, $2, $3, $4::text::jsonb, $5, $6, $7, $8, $9, $10)
      on conflict (org_id, kind, idempotency_key) do nothing returning *`,
     [j.orgId, j.kind, j.idempotencyKey, JSON.stringify(j.input), j.projectId ?? null, j.mediaId ?? null, j.createdBy, j.creditsHeld ?? 0, j.retryOf ?? null, j.attempt ?? 1],
   );
@@ -100,11 +100,11 @@ export async function reportProgress(sys: Sql, jobId: string, stage: string, pro
 }
 
 export async function completeJob(sys: Sql, jobId: string, result: Record<string, unknown>) {
-  await sys.query("update public.jobs set status = 'succeeded', stage = 'done', progress = 100, result = $2::jsonb, finished_at = now() where id = $1", [jobId, JSON.stringify(result)]);
+  await sys.query("update public.jobs set status = 'succeeded', stage = 'done', progress = 100, result = $2::text::jsonb, finished_at = now() where id = $1", [jobId, JSON.stringify(result)]);
 }
 
 export async function failJob(sys: Sql, jobId: string, error: { message: string; retryable: boolean; code?: string }) {
-  await sys.query("update public.jobs set status = 'failed', stage = 'failed', error = $2::jsonb, finished_at = now() where id = $1", [jobId, JSON.stringify(error)]);
+  await sys.query("update public.jobs set status = 'failed', stage = 'failed', error = $2::text::jsonb, finished_at = now() where id = $1", [jobId, JSON.stringify(error)]);
 }
 
 /** Jobs whose worker stopped heartbeating go back to the queue (or fail after max attempts). */

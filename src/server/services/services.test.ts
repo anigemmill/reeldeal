@@ -208,6 +208,11 @@ describe("storyboards, rendering, credits and exports", () => {
     });
     storyboardId = sb.storyboard_id;
     expect(sb.total_duration_seconds).toBe(8);
+    // Regression: JSON must be stored as JSON, not as a double-encoded string (caught on real Postgres).
+    const [types] = await t.p.db.system((sql) =>
+      sql.query<{ scenes: string; colours: string }>("select jsonb_typeof(s.scenes) as scenes, jsonb_typeof(b.colours) as colours from public.storyboards s, public.brand_profiles b where s.id = $1 and b.id = $2", [storyboardId, t.demo.ids.brandA]),
+    );
+    expect(types).toEqual({ scenes: "array", colours: "array" });
     expect((await getProject(aroha, t.demo.ids.projectA)).status).toBe("ready_to_render");
   });
 

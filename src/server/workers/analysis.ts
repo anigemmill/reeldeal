@@ -86,7 +86,7 @@ export async function runMediaAnalysis(p: Platform, job: JobRow, workDir: string
 
   await sys(async (sql) => {
     await sql.query(
-      `insert into public.media_analysis (org_id, media_id, job_id, technical, scenes, quality, ai) values ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7::jsonb)`,
+      `insert into public.media_analysis (org_id, media_id, job_id, technical, scenes, quality, ai) values ($1, $2, $3, $4::text::jsonb, $5::text::jsonb, $6::text::jsonb, $7::text::jsonb)`,
       [asset.org_id, asset.id, job.id, JSON.stringify(meta), JSON.stringify(scenes), JSON.stringify(quality), ai ? JSON.stringify(ai) : null],
     );
     await sql.query("update public.media_assets set status = 'ready', duration_seconds = $2, width = $3, height = $4, ai_tags = $5 where id = $1", [

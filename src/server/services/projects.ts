@@ -230,7 +230,7 @@ export async function saveStoryboard(
     const [{ v }] = await sql.query<{ v: number }>("select coalesce(max(version), 0)::int + 1 as v from public.storyboards where project_id = $1", [sb.projectId]);
     const [row] = await sql.query<{ id: string; version: number; created_at: string }>(
       `insert into public.storyboards (org_id, project_id, version, title, format, total_duration_seconds, scenes, source, model, created_by)
-       values ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10) returning id, version, created_at`,
+       values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8, $9, $10) returning id, version, created_at`,
       [ctx.principal.orgId, sb.projectId, v, sb.title, sb.format, sb.total, JSON.stringify(sb.scenes), sb.source, sb.model ?? null, ctx.principal.userId],
     );
     await sql.query("update public.projects set status = $3 where org_id = $1 and id = $2 and status in ('draft', 'storyboarding', 'ready_to_render', 'completed')", [
