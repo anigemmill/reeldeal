@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
   experimental: { globalNotFound: true },
   partialPrefetching: true,
   poweredByHeader: false,
+  // Server-only packages loaded at runtime rather than bundled (database drivers, WASM).
+  serverExternalPackages: ["@electric-sql/pglite", "postgres"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

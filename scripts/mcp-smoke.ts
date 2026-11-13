@@ -3,7 +3,8 @@
     npm run mcp:smoke                         launches scripts/mcp-stdio.sh (STDIO)
     npm run mcp:smoke -- --http http://localhost:3333/mcp   connects over Streamable HTTP
   Uses REELDEAL_MCP_TOKEN, or the aroha_owner_full demo token from .data/dev-tokens.json.
-  Read-only except for --render, which also runs a quoted, confirmed render end to end.
+  Read-only except for --render (a quoted, confirmed render end to end) and
+  --upload <file.mp4> (signed upload, completion and analysis of a real file).
 */
 import { readFileSync } from "node:fs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -13,7 +14,8 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 const args = process.argv.slice(2);
 const httpUrl = args.includes("--http") ? args[args.indexOf("--http") + 1] : null;
 const tokenName = args.includes("--as") ? args[args.indexOf("--as") + 1] : "aroha_owner_full";
-const token = process.env.REELDEAL_MCP_TOKEN ?? (JSON.parse(readFileSync(".data/dev-tokens.json", "utf8")) as Record<string, string>)[tokenName];
+const tokenFile = args.includes("--tokens") ? args[args.indexOf("--tokens") + 1] : ".data/dev-tokens.json";
+const token = process.env.REELDEAL_MCP_TOKEN ?? (JSON.parse(readFileSync(tokenFile, "utf8")) as Record<string, string>)[tokenName];
 
 const short = (v: unknown) => JSON.stringify(v).slice(0, 220);
 
@@ -60,6 +62,31 @@ async function main() {
   const bad = await client.callTool({ name: "search_media", arguments: { limit: 999 } });
   console.log(`✓ invalid input rejected: ${bad.isError ? "yes" : "NO"}`);
 
+  if (args.includes("--upload")) {
+    const file = args[args.indexOf("--upload") + 1];
+    const { statSync, readFileSync: read } = await import("node:fs");
+    const up = await call("create_media_upload", { title: `Uploaded ${file.split("/").pop()}`, filename: file.split("/").pop(), content_type: "video/mp4", size_bytes: statSync(file).size, tags: ["upload-test"] });
+    const target = up.upload as { url: string; headers: Record<string, string> };
+    console.log(`✓ create_media_upload: ${up.media_id}, signed PUT expires ${(up.upload as { expires_at: string }).expires_at}`);
+    const put = await fetch(target.url, { method: "PUT", headers: target.headers, body: read(file) });
+    console.log(`✓ PUT to signed URL: HTTP ${put.status}`);
+    const tampered = await fetch(target.url.replace(/sig=[^&]+/, "sig=forged"), { method: "PUT", headers: target.headers, body: "x" });
+    console.log(`✓ PUT with a forged signature refused: HTTP ${tampered.status}`);
+    const done = await call("complete_media_upload", { media_id: up.media_id });
+    console.log(`✓ complete_media_upload: ${done.status}, ${done.size_bytes} bytes`);
+    const job = await call("analyse_media", { media_id: up.media_id });
+    console.log(`✓ analyse_media: job ${job.job_id} ${job.status}`);
+    for (let i = 0; i < 60; i++) {
+      const a = await call("get_media_analysis", { media_id: up.media_id });
+      if (a.status === "analysed") {
+        const an = a.analysis as { technical: { duration_seconds: number; width: number; height: number }; scenes: unknown[]; quality: { score: number } };
+        console.log(`✓ get_media_analysis: ${an.technical.duration_seconds}s ${an.technical.width}x${an.technical.height}, ${an.scenes.length} scene(s), quality ${an.quality.score}`);
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+
   if (args.includes("--render") && projects[0] && search[0]) {
     const sb = await call("submit_storyboard", {
       project_id: projects[0].id,
@@ -84,7 +111,15 @@ async function main() {
         const exp = (s.exports as { export_id: string }[])[0];
         if (exp) {
           const e = await call("get_export", { export_id: exp.export_id });
-          console.log(`✓ get_export: ${e.duration_seconds}s ${e.width}x${e.height}, signed download expires ${(e.download as { expires_at: string }).expires_at}`);
+          const dl = e.download as { url: string; expires_at: string };
+          console.log(`✓ get_export: ${e.duration_seconds}s ${e.width}x${e.height}, signed download expires ${dl.expires_at}`);
+          if (httpUrl) {
+            const file = await fetch(dl.url);
+            const bytes = Buffer.from(await file.arrayBuffer());
+            console.log(`✓ signed download: HTTP ${file.status}, ${bytes.length} bytes, MP4 signature ${bytes.subarray(4, 8).toString() === "ftyp" ? "ok" : "MISSING"}`);
+            const forged = await fetch(dl.url.replace(/sig=[^&]+/, "sig=forged"));
+            console.log(`✓ forged download link refused: HTTP ${forged.status}`);
+          }
         }
         break;
       }

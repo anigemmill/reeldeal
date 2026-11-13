@@ -19,7 +19,8 @@ const SECRET_PATTERNS: [string, RegExp][] = [
   ["GitHub token", /\bgh[pousr]_[A-Za-z0-9]{30,}\b/],
   ["Generic secret assignment", /(?:SECRET|PASSWORD|SERVICE_ROLE_KEY|ACCESS_KEY)[A-Z_]*\s*[=:]\s*["']?[A-Za-z0-9/+_-]{20,}/],
 ];
-const ENV_ALLOWED = /^(src\/env\/|scripts\/|next\.config\.ts$)/;
+// Tests may pass the environment to child processes they spawn.
+const ENV_ALLOWED = /^(src\/env\/|scripts\/|next\.config\.ts$)|\.test\.ts$/;
 
 const problems: string[] = [];
 for (const file of files) {

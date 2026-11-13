@@ -56,9 +56,10 @@ async function main() {
   while (await worker.runOnce()) done++;
   console.log(`✓ ${done} analysis jobs finished`);
 
-  await writeFile(".data/dev-tokens.json", JSON.stringify({ note: "Local demo tokens. Never use outside development.", ...demo.tokens }, null, 2));
-  await chmod(".data/dev-tokens.json", 0o600);
-  console.log("\nDemo access tokens saved to .data/dev-tokens.json (git-ignored).");
+  const tokenFile = env.DATABASE_URL ? ".data/dev-tokens.postgres.json" : ".data/dev-tokens.json";
+  await writeFile(tokenFile, JSON.stringify({ note: "Local demo tokens. Never use outside development.", ...demo.tokens }, null, 2));
+  await chmod(tokenFile, 0o600);
+  console.log(`\nDemo access tokens saved to ${tokenFile} (git-ignored).`);
   console.log("  aroha_owner_full      Lakeside Lodge owner, can render");
   console.log("  ben_editor_no_render  Lakeside Lodge editor, cannot start renders");
   console.log("  cleo_viewer_read      Lakeside Lodge viewer, read only");

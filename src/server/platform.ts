@@ -46,7 +46,9 @@ export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateE
   if (useR2 && env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY && env.R2_BUCKET) {
     storage = createR2Storage({ accountId: env.R2_ACCOUNT_ID, accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY, bucket: env.R2_BUCKET });
   } else {
-    if (env.NODE_ENV === "production") throw new Error("R2 storage is required in production");
+    // Production never falls back to local disk silently; STORAGE_DRIVER=local is an explicit opt-in for local testing only.
+    if (env.NODE_ENV === "production" && env.STORAGE_DRIVER !== "local") throw new Error("R2 storage is required in production");
+    if (env.NODE_ENV === "production") log.warn("Local file storage in a production build: for local testing only, never on a real deployment");
     storage = createLocalStorage({ dir: env.LOCAL_STORAGE_DIR, baseUrl: env.LOCAL_MEDIA_BASE_URL ?? `http://localhost:${env.MCP_HTTP_PORT}/media`, secret: signingSecret });
   }
 
