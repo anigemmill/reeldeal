@@ -15,7 +15,15 @@
     "check:tokens": "tsx scripts/check-tokens.ts",
     "test:a11y": "tsx scripts/a11y.ts",
     "validate:env": "tsx scripts/validate-env.ts",
-    "check:secrets": "tsx scripts/check-secrets.ts"
+    "check:secrets": "tsx scripts/check-secrets.ts",
+    "dev:setup": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/dev-setup.ts",
+    "mcp:stdio": "scripts/mcp-stdio.sh",
+    "mcp:http": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx src/mcp/http-server.ts",
+    "mcp:token": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/mcp-token.ts",
+    "worker": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/worker.ts",
+    "db:local": "scripts/db-local.sh",
+    "db:migrate": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/db-migrate.ts",
+    "mcp:smoke": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/mcp-smoke.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
