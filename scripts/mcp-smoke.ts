@@ -62,6 +62,37 @@ async function main() {
   const bad = await client.callTool({ name: "search_media", arguments: { limit: 999 } });
   console.log(`✓ invalid input rejected: ${bad.isError ? "yes" : "NO"}`);
 
+  if (args.includes("--ai")) {
+    // LIVE AI calls (costs money): only when explicitly requested.
+    const project = projects[0];
+    const brief = await call("create_video_brief", { request: "A 15 second Instagram Reel to get couples to book a summer weekend directly with us. Show the geothermal valley and a calm morning on the lake.", project_id: project.id });
+    const b = brief.brief as { objective: string; format: string; duration_seconds: number; call_to_action: string; from_request: string[]; assumptions: unknown[]; missing_information: string[]; suggested_asset_ids: string[] };
+    console.log(`✓ create_video_brief [live ${(brief.generated_by as { model: string }).model}]: ${b.format}, ${b.duration_seconds}s, CTA "${b.call_to_action}"; from request: ${b.from_request.join(", ")}; ${b.assumptions.length} assumption(s); ${b.missing_information.length} question(s); ${b.suggested_asset_ids.length} real clip(s) suggested`);
+    const concepts = await call("generate_video_concepts", { brief_id: brief.brief_id, count: 2 });
+    console.log(`✓ generate_video_concepts: ${(concepts.concepts as { title: string; hook: string }[]).map((c) => `"${c.title}" (hook: ${c.hook})`).join("; ")}`);
+    const sb = await call("generate_storyboard", { project_id: project.id, brief_id: brief.brief_id, concepts_id: concepts.concepts_id, concept_index: 0 });
+    const scenes = sb.scenes as { scene_number: number; duration_seconds: number; asset_title?: string; on_screen_text: string | null }[];
+    console.log(`✓ generate_storyboard: v${sb.version} "${sb.title}", ${sb.total_duration_seconds}s, renderable ${sb.renderable}, ${(sb.warnings as string[]).length} warning(s)`);
+    for (const s of scenes) console.log(`    ${s.scene_number}. ${s.duration_seconds}s ${s.asset_title ?? "[title card]"}${s.on_screen_text ? ` · "${s.on_screen_text}"` : ""}`);
+    if (args.includes("--render-ai") && sb.renderable) {
+      const quote = await call("create_video", { project_id: project.id, storyboard_id: sb.storyboard_id });
+      const q = quote.quote as { credits: number; quote_token: string };
+      console.log(`✓ create_video (quote for the AI storyboard): ${q.credits} credit(s)`);
+      const go = await call("create_video", { project_id: project.id, storyboard_id: sb.storyboard_id, confirm: true, quote_token: q.quote_token });
+      const jobId = (go.job as { job_id: string }).job_id;
+      for (let i = 0; i < 180; i++) {
+        const s = await call("get_render_status", { job_id: jobId });
+        if (s.status === "succeeded" || s.status === "failed") {
+          const exp = (s.exports as { export_id: string }[])[0];
+          const e = exp ? await call("get_export", { export_id: exp.export_id }) : null;
+          console.log(`✓ AI storyboard rendered: ${s.status}${e ? `, ${e.duration_seconds}s ${e.width}x${e.height}, export ${e.export_id}` : ""}`);
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+  }
+
   if (args.includes("--upload")) {
     const file = args[args.indexOf("--upload") + 1];
     const { statSync, readFileSync: read } = await import("node:fs");
