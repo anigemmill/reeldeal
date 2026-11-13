@@ -17,6 +17,15 @@ Added in Phase 0. The handoff docs in this folder are unchanged.
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
 | `npm run check` | Validation, token and secret checks, typecheck, lint and unit tests (not the build or a11y) |
+| `npm run dev:setup` | Embedded database, migrations, demo workspaces and MCP tokens (`.data/dev-tokens.json`) |
+| `npm run mcp:stdio` | MCP server over STDIO (what `scripts/mcp-stdio.sh` runs) |
+| `npm run mcp:http` | Standalone Streamable HTTP MCP server on port 3333 |
+| `npm run mcp:token` | Create, list or revoke personal access tokens |
+| `npm run mcp:smoke` | End-to-end MCP check with the SDK client (`--http`, `--render`, `--upload`, `--ai`) |
+| `npm run worker` | Background worker for analysis and render jobs (Postgres setups) |
+| `npm run db:local` | Local PostgreSQL 16 in `.data/postgres` on port 54329 |
+| `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
+| `npm run test:postgres` | Server and MCP suites against a throwaway PostgreSQL database |
 
 Node 22 or newer. Copy `.env.example` to `.env.local` for local settings (none are required in Phase 1).
 
@@ -44,7 +53,11 @@ src/lib/pricing/            typed pricing loader
 src/lib/theme.ts            palette, mode and type class names; theme cookie
 src/env/                    Zod-validated environment (public, server-only, flags)
 src/content/                media registry, site copy, labelled sample data
-docs/architecture/          security architecture
+docs/architecture/          security and MCP architecture
+src/server/                  platform core: db, auth, services, storage, AI, workers
+src/mcp/                     MCP server (tools, STDIO, Streamable HTTP)
+supabase/migrations/        database schema with RLS
+docs/mcp.md                 connecting Claude and other MCP clients
 ```
 
 ## Theming

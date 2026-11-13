@@ -63,3 +63,10 @@ later phases:
 - **Phase 4** attaches the edit model, assistant, versions and render service to the existing Studio UI, and
   the render confirmation already shown in Autopilot and Studio.
 - **Phase 5** attaches the Autopilot pipeline and notifications to the existing Autopilot screens.
+
+## Platform core and MCP server (built ahead of Phase 3/4)
+The overnight MCP mission built a functional slice of Phases 3 and 4 behind an MCP interface, with no UI
+changes: database schema with RLS, organisation isolation, tokens, media upload and FFmpeg analysis, brand
+profiles, AI briefs and storyboards, FFmpeg rendering, the credit ledger and jobs. See `docs/mcp.md`.
+Phase 3 now connects these services to Supabase Auth, R2 and the existing app screens instead of building
+them from scratch.

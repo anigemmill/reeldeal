@@ -147,3 +147,35 @@ controls reach 3:1; `scrim` is ink at 55% (Workspace) or the dark background at 
   validation before every build, secret scan, security headers with CSP, and `docs/architecture/security.md`
   (RLS, organisation isolation, private R2 with signed URLs) for Phase 3.
 - Pending, unchanged: GST wording, typography choice, geothermal steam, `[MUSIC LICENSING PARTNER]`.
+
+## MCP server and platform core (overnight engineering mission)
+Full description: `docs/mcp.md` and `docs/architecture/mcp.md`. Decisions made along the way:
+
+- **One service layer.** `src/server/services/` holds every rule (authorisation, validation, credits,
+  idempotency). The MCP layer only maps tools to services, so the app can call the same code later.
+- **Database: Postgres with RLS, two drivers.** Migrations are Supabase-compatible SQL. Locally and in tests
+  they run on embedded PGlite (no install) with a small shim for `auth.users` and `auth.uid()`; the same suites
+  also pass on PostgreSQL 16 (`npm run test:postgres`). Supabase itself is not connected yet.
+- **RLS is enforced, not bypassed.** User calls run inside a transaction as `authenticated` with JWT claims
+  (`asUser`). The owner connection (`system`) is used only for token lookup, workers and the credit ledger.
+  No service-role key is used by the MCP server.
+- **Auth: personal access tokens first, OAuth ready.** PATs are the development and private-pilot mechanism.
+  OAuth 2.1 is implemented as a resource server against the Supabase Auth OAuth server (JWKS); the
+  authorisation server still has to be configured. PATs can be switched off for the remote endpoint.
+- **Stateless Streamable HTTP with JSON responses**, so the endpoint runs on Vercel functions. No sessions, no
+  SSE streams, no deprecated HTTP+SSE transport.
+- **Vercel enqueues, workers render.** Analysis and rendering run in `npm run worker` (needs FFmpeg) because
+  they exceed serverless limits. With the embedded database the local servers run the worker in-process.
+- **Renderer v1 is FFmpeg**: per-scene segments at 1080p H.264 with a silent AAC track, Inter text overlays,
+  brand-colour title cards, fades, `+faststart`. Music, voice-over and captions are not in v1.
+- **Two-step billing.** `create_video` returns a signed quote first; only `confirm: true` with that quote
+  starts work. Credits are held, charged on success, released on failure; retries reuse the hold.
+- **AI tools are hidden when no provider is configured**, rather than returning placeholder output.
+  `submit_storyboard` lets Claude write a storyboard itself, validated like a generated one.
+- **AI sees metadata, not footage**, unless the organisation turns on `ai_media_analysis_consent` (off by
+  default; no UI for it yet).
+- **Live AI was verified once** through the STDIO server with the environment's OpenAI-compatible
+  integration (brief, concepts, storyboard, then a real render of the AI storyboard). Tests use a mocked
+  provider.
+- **Production refuses unsafe defaults:** it requires `DATABASE_URL`, `SIGNING_SECRET` and R2. Local storage in
+  a production build needs `STORAGE_DRIVER=local` as an explicit opt-in (used only for local testing).

@@ -129,10 +129,40 @@ becomes the auth gate (session check and redirect to sign in), and the review fl
 
 ## 7. Phase 3 checklist
 
-- [ ] Supabase project, auth providers, `organisations`, `memberships`, `user_preferences` with RLS and the
-      helper function above
-- [ ] RLS enabled check in CI; two-organisation isolation tests in CI
-- [ ] R2 bucket (private), scoped API token, presigned PUT/GET endpoints with membership checks, lifecycle rules
+- [ ] Supabase project and auth providers (not created; migrations are ready)
+- [x] `organisations`, `memberships` and all platform tables with RLS and `private.is_org_member` (migration
+      `20261113000001_platform_core.sql`; `user_preferences` still to add with the Appearance wiring)
+- [x] Two-organisation isolation tests (`src/mcp/mcp.test.ts`, `src/server/services/services.test.ts`), run on
+      PGlite and PostgreSQL 16. Still to add: a CI job against a local Supabase and an "RLS enabled" check
+- [ ] R2 bucket (private), scoped API token, lifecycle rules. Presigned PUT/GET with membership checks: done
+      in `src/server/storage/r2.ts`, not yet run against a real bucket
 - [ ] Proxy auth gate; nonce-based CSP; R2 and Supabase origins in CSP
 - [ ] Theme preference saved to `user_preferences` (Appearance screen), cookie kept as a cache
 - [ ] Server-only credit and usage writes; audit log for role changes and exports
+
+## 8. MCP server and platform core (implemented)
+
+Details in [`mcp.md`](mcp.md). What is in the code now:
+
+- **Identity from trusted data only.** MCP calls run as a `Principal` built from a personal access token row
+  or a verified OAuth token plus the user's current membership. Tool arguments never carry an organisation id.
+  STDIO re-verifies its token on every call, so revocation and role changes apply immediately.
+- **RLS is the enforcement point.** User-initiated SQL runs as `authenticated` with the user's JWT claims
+  (`Db.asUser`), so a service bug cannot read across organisations. Composite `(id, org_id)` foreign keys stop
+  cross-tenant links. Not-found and not-yours look the same.
+- **No service-role key in the request path.** Server-owned writes (jobs, analysis, exports, the credit
+  ledger) use the database owner connection inside workers and narrowly scoped service functions; users can
+  only read those tables. No Supabase, R2 or OpenAI credential is ever sent to an MCP client.
+- **Personal access tokens:** 256-bit random, SHA-256 hashed at rest, scoped (`mcp:read`, `mcp:write`,
+  `mcp:render`), bound to one organisation, expiring and revocable. For development and the private pilot.
+- **OAuth 2.1 resource server:** JWKS signature, issuer, audience (RFC 8707) and expiry checks; RFC 9728
+  protected-resource metadata; `401` challenge on every unauthenticated request. There is no unauthenticated
+  endpoint.
+- **Billable work needs confirmation:** HMAC-signed quotes bound to org, user, storyboard version and cost;
+  idempotent confirmation; holds before work, charge only on success.
+- **Customer footage and AI:** AI calls receive asset metadata only. Sending frames for AI description needs the
+  organisation's `ai_media_analysis_consent` and a configured provider; it is off by default. Request text is
+  passed to the model inside delimiters and treated as untrusted.
+- **Logs** are JSON on stderr with token, JWT and key redaction. Client-visible errors carry a code and a safe
+  message only.
+- **Rate limits** per principal (token bucket), stricter for AI and render tools.
