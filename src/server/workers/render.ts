@@ -13,8 +13,12 @@ import { defaultFont, probe, run } from "./ffmpeg";
   FFmpeg renderer (v1). Turns a storyboard into real MP4 files, one per format:
   each scene is cut from its source clip (or a brand-colour title card), cropped to
   the target aspect ratio, given its on-screen text in the brand font and colour,
-  then the scenes are joined. H.264 + AAC (a silent track until music licensing is in
-  place), 30 fps, fast-start. Remotion can replace this for richer motion design later.
+  then the scenes are joined. "cut" joins directly, "fade" fades in from black,
+  "dissolve" cross-fades picture and sound with the previous scene (the previous scene
+  is rendered slightly longer, so every scene keeps its storyboard length).
+  Sound: each clip keeps its own sound (with short fades so cuts don't click); text
+  cards are silent. No music or voice-over yet. H.264 (capped at 10 Mbit/s) + AAC,
+  30 fps, fast-start.
 
   Billing: on success the held credits become a charge; on failure the hold is
   released, so a failed render costs nothing (config/pricing.json: failed-render = 0).
@@ -24,6 +28,11 @@ const SIZES: Record<string, [number, number]> = { "9:16": [1080, 1920], "1:1": [
 export type RenderOptions = { resolutionScale?: number; preset?: string };
 
 const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
+
+const VIDEO_ENCODE = ["-c:v", "libx264", "-crf", "20", "-maxrate", "10M", "-bufsize", "20M", "-pix_fmt", "yuv420p", "-r", "30"];
+const AUDIO_ENCODE = ["-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2"];
+/** Cross-dissolve length into a scene (never more than a third of either scene). */
+export const dissolveSeconds = (prev: Scene | undefined, s: Scene) => (prev && s.transition === "dissolve" ? Math.min(0.5, prev.duration_seconds / 3, s.duration_seconds / 3) : 0);
 
 function wrap(text: string, max = 22) {
   const lines: string[] = [];
@@ -35,7 +44,7 @@ function wrap(text: string, max = 22) {
     } else line = (line + " " + word).trim();
   }
   if (line) lines.push(line);
-  return lines.slice(0, 3).join("\n");
+  return lines.slice(0, 4).join("\n");
 }
 
 function brandColours(colours: unknown): { box: string; text: string } {
@@ -47,33 +56,79 @@ function brandColours(colours: unknown): { box: string; text: string } {
   return { box, text: lum > 0.55 ? "1A1A1A" : "FFFFFF" };
 }
 
-async function renderSegment(p: Platform, s: Scene, src: string | null, out: string, w: number, h: number, colours: { box: string; text: string }, workDir: string, preset: string) {
+/**
+ * One scene as its own clip, exactly `length` seconds long (the scene's duration plus any
+ * overlap the next scene dissolves over). Short clips hold their last frame.
+ */
+async function renderSegment(p: Platform, s: Scene, src: { path: string; hasAudio: boolean } | null, length: number, fadeFromBlack: boolean, out: string, w: number, h: number, colours: { box: string; text: string }, workDir: string, preset: string) {
   const font = defaultFont();
-  const filters: string[] = [];
+  const L = length.toFixed(3);
+  const v: string[] = [];
   const inputs: string[] = [];
   if (src) {
-    inputs.push("-ss", String(s.source_in_seconds ?? 0), "-t", String(s.duration_seconds), "-i", src);
-    filters.push(`[0:v]scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=30,format=yuv420p`);
+    inputs.push("-ss", String(s.source_in_seconds ?? 0), "-t", L, "-i", src.path);
+    v.push(`[0:v]scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=30,format=yuv420p,tpad=stop_mode=clone:stop_duration=${L},trim=duration=${L},setpts=PTS-STARTPTS`);
   } else {
-    inputs.push("-f", "lavfi", "-t", String(s.duration_seconds), "-i", `color=c=0x${colours.box}:s=${w}x${h}:r=30`);
-    filters.push(`[0:v]setsar=1,format=yuv420p`);
+    inputs.push("-f", "lavfi", "-t", L, "-i", `color=c=0x${colours.box}:s=${w}x${h}:r=30`);
+    v.push(`[0:v]setsar=1,format=yuv420p`);
   }
-  inputs.push("-f", "lavfi", "-t", String(s.duration_seconds), "-i", "anullsrc=r=48000:cl=stereo");
-  if (s.transition !== "cut") filters.push(`fade=t=in:st=0:d=${Math.min(0.4, s.duration_seconds / 3)}`);
+  if (fadeFromBlack) v.push(`fade=t=in:st=0:d=${Math.min(0.4, s.duration_seconds / 3).toFixed(3)}`);
   if (s.on_screen_text && font) {
     const textFile = join(workDir, `text-${s.scene_number}.txt`);
-    await writeFile(textFile, wrap(s.on_screen_text));
-    const size = Math.round(h * (w > h ? 0.06 : 0.042));
+    // Lower third over footage; larger, centred type on brand cards.
+    await writeFile(textFile, wrap(s.on_screen_text, src ? 22 : 16));
+    const size = Math.round(h * (w > h ? (src ? 0.06 : 0.085) : src ? 0.042 : 0.058));
     const y = src ? "h*0.70" : "(h-text_h)/2";
-    filters.push(
-      `drawtext=fontfile='${font}':textfile='${textFile}':fontsize=${size}:fontcolor=0x${src ? colours.text : colours.text}:line_spacing=${Math.round(size * 0.25)}:x=(w-text_w)/2:y=${y}` +
+    v.push(
+      `drawtext=fontfile='${font}':textfile='${textFile}':fontsize=${size}:fontcolor=0x${colours.text}:line_spacing=${Math.round(size * 0.25)}:x=(w-text_w)/2:y=${y}` +
         (src ? `:box=1:boxcolor=0x${colours.box}@0.88:boxborderw=${Math.round(size * 0.5)}` : ""),
     );
   }
+  let audio: string;
+  if (src?.hasAudio) {
+    // The clip's own sound, padded if the clip is short, with tiny fades so cuts don't click.
+    audio = `[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,apad,atrim=duration=${L},asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=${Math.max(0, length - 0.06).toFixed(3)}:d=0.06[a]`;
+  } else {
+    inputs.push("-f", "lavfi", "-t", L, "-i", "anullsrc=r=48000:cl=stereo");
+    audio = `[1:a]atrim=duration=${L}[a]`;
+  }
   await run(
     p.media.ffmpeg,
-    ["-hide_banner", "-loglevel", "error", ...inputs, "-filter_complex", `${filters.join(",")}[v]`, "-map", "[v]", "-map", "1:a", "-c:v", "libx264", "-preset", preset, "-crf", "21", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-shortest", "-y", out],
+    ["-hide_banner", "-loglevel", "error", ...inputs, "-filter_complex", `${v.join(",")}[v];${audio}`, "-map", "[v]", "-map", "[a]", "-t", L, "-preset", preset, ...VIDEO_ENCODE, ...AUDIO_ENCODE, "-y", out],
     { timeoutMs: 10 * 60_000 },
+  );
+}
+
+/** Join scenes: plain concatenation, or a cross-dissolve where a scene asks for one. */
+async function assemble(p: Platform, segs: { path: string; length: number; dissolve: number }[], out: string, preset: string, workDir: string, tag: string) {
+  if (segs.every((s) => s.dissolve === 0)) {
+    const list = join(workDir, `${tag}-list.txt`);
+    await writeFile(list, segs.map((s) => `file '${s.path}'`).join("\n"));
+    await run(p.media.ffmpeg, ["-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list, "-c", "copy", "-movflags", "+faststart", "-y", out], { timeoutMs: 10 * 60_000 });
+    return;
+  }
+  const inputs = segs.flatMap((s) => ["-i", s.path]);
+  const f: string[] = [];
+  let v = "[0:v]";
+  let a = "[0:a]";
+  let at = segs[0]!.length;
+  for (let i = 1; i < segs.length; i++) {
+    const d = segs[i]!.dissolve;
+    if (d > 0) {
+      f.push(`${v}[${i}:v]xfade=transition=fade:duration=${d.toFixed(3)}:offset=${(at - d).toFixed(3)}[v${i}]`);
+      f.push(`${a}[${i}:a]acrossfade=d=${d.toFixed(3)}[a${i}]`);
+      at += segs[i]!.length - d;
+    } else {
+      f.push(`${v}${a}[${i}:v][${i}:a]concat=n=2:v=1:a=1[v${i}][a${i}]`);
+      at += segs[i]!.length;
+    }
+    v = `[v${i}]`;
+    a = `[a${i}]`;
+  }
+  await run(
+    p.media.ffmpeg,
+    ["-hide_banner", "-loglevel", "error", ...inputs, "-filter_complex", f.join(";"), "-map", v, "-map", a, "-preset", preset, ...VIDEO_ENCODE, ...AUDIO_ENCODE, "-movflags", "+faststart", "-y", out],
+    { timeoutMs: 20 * 60_000 },
   );
 }
 
@@ -95,13 +150,13 @@ export async function runRender(p: Platform, job: JobRow, workDir: string, opts:
     // Download each source clip once.
     await sys((sql) => reportProgress(sql, job.id, "fetching footage", 5));
     const ids = [...new Set(sb.scenes.map((s) => s.asset_id).filter(Boolean))] as string[];
-    const sources = new Map<string, string>();
+    const sources = new Map<string, { path: string; hasAudio: boolean }>();
     for (const id of ids) {
       const [a] = await sys((sql) => sql.query<{ storage_key: string }>("select storage_key from public.media_assets where id = $1 and org_id = $2 and status in ('uploaded', 'ready')", [id, job.org_id]));
       if (!a) throw Object.assign(new Error("Some footage in the storyboard is no longer available"), { retryable: false });
       const local = join(workDir, `src-${id}`);
       await p.storage.downloadToFile(ownedKey(a.storage_key, job.org_id), local);
-      sources.set(id, local);
+      sources.set(id, { path: local, hasAudio: (await probe(p.media, local)).has_audio });
     }
 
     const scale = opts.resolutionScale ?? 1;
@@ -112,17 +167,20 @@ export async function runRender(p: Platform, job: JobRow, workDir: string, opts:
     for (const format of input.formats) {
       const [bw, bh] = SIZES[format];
       const [w, h] = [even(bw * scale), even(bh * scale)];
-      const segs: string[] = [];
-      for (const s of sb.scenes) {
-        const out = join(workDir, `${format.replace(":", "x")}-${s.scene_number}.mp4`);
-        await renderSegment(p, s, s.asset_id ? sources.get(s.asset_id)! : null, out, w, h, colours, workDir, preset);
-        segs.push(out);
+      const tag = format.replace(":", "x");
+      const segs: { path: string; length: number; dissolve: number }[] = [];
+      for (const [i, s] of sb.scenes.entries()) {
+        const into = dissolveSeconds(sb.scenes[i - 1], s);
+        const length = s.duration_seconds + (sb.scenes[i + 1] ? dissolveSeconds(s, sb.scenes[i + 1]!) : 0);
+        const fadeFromBlack = s.transition === "fade" || (i === 0 && s.transition === "dissolve");
+        const out = join(workDir, `${tag}-${s.scene_number}.mp4`);
+        await renderSegment(p, s, s.asset_id ? sources.get(s.asset_id)! : null, length, fadeFromBlack, out, w, h, colours, workDir, preset);
+        segs.push({ path: out, length, dissolve: into });
         await sys((sql) => reportProgress(sql, job.id, `rendering ${format} · scene ${s.scene_number} of ${sb.scenes.length}`, 10 + (80 * ++done) / steps));
       }
-      const list = join(workDir, `${format.replace(":", "x")}-list.txt`);
-      await writeFile(list, segs.map((f) => `file '${f}'`).join("\n"));
-      const final = join(workDir, `${format.replace(":", "x")}-final.mp4`);
-      await run(p.media.ffmpeg, ["-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list, "-c", "copy", "-movflags", "+faststart", "-y", final], { timeoutMs: 10 * 60_000 });
+      await sys((sql) => reportProgress(sql, job.id, `joining ${format}`, 10 + (80 * done) / steps));
+      const final = join(workDir, `${tag}-final.mp4`);
+      await assemble(p, segs, final, preset, workDir, tag);
       const meta = await probe(p.media, final);
       const exportId = randomUUID();
       const key = exportKey(job.org_id, exportId);

@@ -204,6 +204,17 @@ export async function validateScenes(sql: Sql, orgId: string, scenes: (SceneInpu
       }
     }
     if (!assetId && !s.on_screen_text) fail("needs footage or on-screen text");
+    // On-screen text needs time to be read (about 3 words a second, at least 1.5s).
+    if (s.on_screen_text) {
+      const need = Math.max(1.5, Math.ceil((s.on_screen_text.trim().split(/\s+/).length / 3 + 0.5) * 2) / 2);
+      if (duration < need) {
+        const room = asset && assetId ? (num(asset.duration_seconds) ?? duration) - (sourceIn ?? 0) : Infinity;
+        if (mode === "lenient" && room >= need) {
+          warnings.push(`Scene ${n}: lengthened from ${duration}s to ${need}s so the on-screen text can be read`);
+          duration = need;
+        } else warnings.push(`Scene ${n}: "${s.on_screen_text}" is on screen for ${duration}s; about ${need}s is needed to read it`);
+      }
+    }
     return {
       scene_number: n,
       duration_seconds: duration,

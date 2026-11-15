@@ -49,7 +49,7 @@ the same platform services as the MCP server.
 | Projects, Exports | Real lists; signed downloads; failed renders shown as not charged |
 
 Shown but disabled, with the reason on screen: undo/redo, split/trim inside clips,
-captions, music and voice-over (the renderer has a silent track), colour, review links,
+captions, music and voice-over (renders keep each clip's own sound; brand cards are silent), colour, review links,
 templates.
 
 ## Run it locally
