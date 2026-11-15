@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import { LibraryScreen, type LibraryItem } from "@/components/app/library/library-screen";
 import { PageLoading } from "@/components/app/page-loading";
 import { requireAppContext } from "@/server/app/session";
+import { usageFor } from "@/server/app/view";
 import { permissionsFor } from "@/server/auth/principal";
 import { listMediaActivity, searchMedia } from "@/server/services/media";
-import { getUsage } from "@/server/services/usage";
 import { getMyWorkspace } from "@/server/services/workspace";
 
 export const metadata: Metadata = { title: "Library" };
@@ -17,7 +17,7 @@ async function Library({ searchParams }: PageProps<"/library">) {
     getMyWorkspace(ctx),
     searchMedia(ctx, { sort: "newest", limit: 48 }, { includeThumbnails: true }),
     listMediaActivity(ctx, { limit: 20 }),
-    getUsage(ctx),
+    usageFor(ctx),
   ]);
   const perms = permissionsFor(ctx.principal);
   return (

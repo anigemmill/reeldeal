@@ -4,13 +4,12 @@ import { DashboardScreen, type DashboardData } from "@/components/app/dashboard/
 import { PageLoading } from "@/components/app/page-loading";
 import { briefSuggestions } from "@/content/briefs";
 import { requireAppContext } from "@/server/app/session";
-import { usageMeters } from "@/server/app/view";
+import { usageFor, usageMeters } from "@/server/app/view";
 import { listBrands } from "@/server/services/brands";
 import { listMediaActivity, mediaThumbnails, searchMedia } from "@/server/services/media";
 import { listProjects } from "@/server/services/projects";
 import { listExports } from "@/server/services/render";
 import { getMyWorkspace } from "@/server/services/workspace";
-import { getUsage } from "@/server/services/usage";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -20,7 +19,7 @@ async function Dashboard({ searchParams }: PageProps<"/dashboard">) {
   const [ws, brands, usage, projects, activity, best, exp] = await Promise.all([
     getMyWorkspace(ctx),
     listBrands(ctx),
-    getUsage(ctx),
+    usageFor(ctx),
     listProjects(ctx, { limit: 5 }),
     listMediaActivity(ctx, { limit: 5 }),
     searchMedia(ctx, { kind: "video", status: "ready", sort: "best_quality", limit: 4 }, { includeThumbnails: true }),

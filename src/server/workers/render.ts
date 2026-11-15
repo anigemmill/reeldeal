@@ -152,10 +152,13 @@ export async function runRender(p: Platform, job: JobRow, workDir: string, opts:
     const ids = [...new Set(sb.scenes.map((s) => s.asset_id).filter(Boolean))] as string[];
     const sources = new Map<string, { path: string; hasAudio: boolean }>();
     for (const id of ids) {
-      const [a] = await sys((sql) => sql.query<{ storage_key: string }>("select storage_key from public.media_assets where id = $1 and org_id = $2 and status in ('uploaded', 'ready')", [id, job.org_id]));
+      const [a] = await sys((sql) => sql.query<{ storage_key: string; title: string }>("select storage_key, title from public.media_assets where id = $1 and org_id = $2 and status in ('uploaded', 'ready')", [id, job.org_id]));
       if (!a) throw Object.assign(new Error("Some footage in the storyboard is no longer available"), { retryable: false });
       const local = join(workDir, `src-${id}`);
-      await p.storage.downloadToFile(ownedKey(a.storage_key, job.org_id), local);
+      await p.storage.downloadToFile(ownedKey(a.storage_key, job.org_id), local).catch((e: unknown) => {
+        // A retry can't fix footage that is gone: say what happened and how to fix it.
+        throw (e as { missing?: boolean }).missing ? Object.assign(new Error(`The footage "${a.title}" is missing from storage. Replace it in Studio, then render again.`), { retryable: false }) : e;
+      });
       sources.set(id, { path: local, hasAudio: (await probe(p.media, local)).has_audio });
     }
 

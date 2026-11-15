@@ -1,9 +1,13 @@
 import "server-only";
+import { cache } from "react";
 import type { Ctx } from "../context";
 import { getUsage } from "../services/usage";
 import type { AppContext } from "./session";
 
 /* Shapes the shared services' results for the app chrome. No business rules here. */
+
+/** One usage lookup per request, shared by the navigation and the page. */
+export const usageFor = cache((ctx: Ctx) => getUsage(ctx));
 
 export type UsageMeter = { id: string; label: string; value: string; pct: number };
 export type NavData = {
@@ -36,7 +40,7 @@ export function usageMeters(u: Awaited<ReturnType<typeof getUsage>>): UsageMeter
 }
 
 export async function navData(c: AppContext, ctx: Ctx = c.ctx): Promise<NavData> {
-  const usage = await getUsage(ctx);
+  const usage = await usageFor(ctx);
   const ws = c.memberships.find((m) => m.org_id === ctx.principal.orgId)!;
   const name = c.user.displayName ?? c.user.email ?? "You";
   return {

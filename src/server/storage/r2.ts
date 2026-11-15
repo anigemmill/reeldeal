@@ -4,7 +4,7 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import { AwsClient } from "aws4fetch";
-import { assertKey, type SignedUrl, type Storage, type UploadedPart } from "./types";
+import { assertKey, StorageObjectMissing, type SignedUrl, type Storage, type UploadedPart } from "./types";
 
 /*
   Cloudflare R2 (S3-compatible), private bucket. Clients only ever receive SigV4
@@ -66,7 +66,9 @@ export function createR2Storage(cfg: R2Config): Storage {
     },
     async downloadToFile(key, localPath) {
       // Streamed to disk: originals can be many gigabytes.
-      const res = await call(objectUrl(key), {}, "read");
+      const res = await client.fetch(objectUrl(key));
+      if (res.status === 404) throw new StorageObjectMissing(key);
+      if (!res.ok) throw new Error(`Storage read failed (${res.status})`);
       if (!res.body) throw new Error("Storage read returned no body");
       await pipeline(Readable.fromWeb(res.body as unknown as WebReadableStream), createWriteStream(localPath));
     },

@@ -1,4 +1,5 @@
 import type { AiProvider, GenerateRequest } from "./provider";
+import { AppError } from "../errors";
 import { createMockProvider } from "./provider";
 
 /*
@@ -9,6 +10,8 @@ import { createMockProvider } from "./provider";
 */
 export function createFixtureProvider(): AiProvider {
   const p = createMockProvider((req: GenerateRequest<unknown>) => {
+    // Test hook: lets the browser suite check how an AI outage is handled.
+    if (req.user.includes("[simulate-ai-failure]")) throw new AppError("provider_error", "The AI service didn't respond (simulated test failure). Please try again.");
     const footage = [...req.user.matchAll(/- id ([0-9a-f-]{36}): "([^"]*)" · ([\d.?]+)s/g)].map((m) => ({ id: m[1]!, title: m[2]!, seconds: Number(m[3]) || 5 }));
     const request = /<request>\n([\s\S]*?)\n<\/request>/.exec(req.user)?.[1]?.trim() ?? "your video";
     const target = Number(/(\d+)-second/.exec(req.system)?.[1] ?? 15);

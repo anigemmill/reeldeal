@@ -46,6 +46,7 @@ function makeMedia() {
   ff(["-f", "lavfi", "-i", "testsrc2=size=800x600", "-frames:v", "1", join(dir, "logo.png")]);
   writeFileSync(join(dir, "broken_clip.mp4"), Buffer.alloc(300_000, 7)); // not a video: analysis must fail
   writeFileSync(join(dir, "notes.txt"), "not media");
+  ff(["-f", "lavfi", "-i", "testsrc2=size=1280x720:rate=30:duration=6", "-c:v", "libx264", "-preset", "veryfast", join(dir, "doomed_clip.mp4")]);
 }
 
 async function axe(page: Page, label: string) {
@@ -90,6 +91,7 @@ async function main() {
   };
   let projectA = "";
   let brandA = "";
+  let exportUrlA = "";
 
   /* ---- authentication ---- */
   await run("auth", async () => {
@@ -257,6 +259,7 @@ async function main() {
     await page.getByText(/Rendering|Queued/).first().waitFor({ timeout: 15000 });
     await page.getByText("Your video is ready").waitFor({ timeout: 240000 });
     const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30000 }), page.getByRole("button", { name: /Download .* MP4/ }).first().click()]);
+    exportUrlA = download.url();
     const buf = readFileSync((await download.path())!);
     check("The rendered MP4 downloads through a signed link", buf.subarray(4, 8).toString() === "ftyp" && buf.length > 100_000, `${(buf.length / 1e6).toFixed(1)} MB`);
     await page.goto(`${BASE}/dashboard`);
@@ -280,6 +283,106 @@ async function main() {
     await axe(page, "/studio (Dark Studio)");
   });
 
+  /* ---- failure recovery ---- */
+  await run("recovery: uploads", async () => {
+    await page.goto(`${BASE}/library`);
+    await page.waitForTimeout(2500);
+    // Network failure during upload: the file is marked failed, and Retry finishes it.
+    await page.route(/127\.0\.0\.1:9000|r2\.cloudflarestorage\.com/, (r) => (r.request().method() === "PUT" ? r.abort("failed") : r.continue()));
+    await page.locator("input[type=file]").setInputFiles(join(dir, "lake_morning.mp4"));
+    const panel = page.locator("#uploads-title").locator("xpath=../..");
+    await panel.getByText(/Failed: /).waitFor({ timeout: 30000 });
+    check("A network failure during upload is reported (not silent)", true);
+    await page.unroute(/127\.0\.0\.1:9000|r2\.cloudflarestorage\.com/);
+    await panel.getByRole("button", { name: "Retry" }).first().click();
+    await panel.getByText(/1 of 1 done|Analysing|Uploaded/).first().waitFor({ timeout: 60000 });
+    check("Retry completes the upload after the network recovers", true);
+    // Interrupted upload (page closed mid-upload): shown as interrupted, and can be removed.
+    await page.route(/127\.0\.0\.1:9000|r2\.cloudflarestorage\.com/, () => {
+      /* never answer: the upload hangs */
+    });
+    await page.locator("input[type=file]").setInputFiles(join(dir, "drone_ridge.mp4"));
+    await panel.getByText(/Uploading/).first().waitFor({ timeout: 15000 });
+    await page.unroute(/127\.0\.0\.1:9000|r2\.cloudflarestorage\.com/);
+    await page.reload();
+    await page.waitForTimeout(2500);
+    const grid = page.getByLabel("Media");
+    check("An upload interrupted by leaving the page is shown as interrupted", /Upload interrupted/.test(await grid.innerText()));
+    page.once("dialog", (d) => void d.accept());
+    await grid.getByRole("button", { name: /drone ridge/ }).filter({ hasText: /Upload interrupted/ }).first().click();
+    await page.getByRole("button", { name: "Remove unfinished upload" }).click();
+    await page.waitForTimeout(2000);
+    check("The interrupted upload can be removed", !/Upload interrupted/.test(await grid.innerText()));
+  });
+
+  await run("recovery: AI failure", async () => {
+    await page.goto(`${BASE}/autopilot?brief=${encodeURIComponent("[simulate-ai-failure] Spring offer for families")}`);
+    await page.waitForTimeout(2500);
+    await page.getByRole("button", { name: /Create 3 concepts/ }).first().click();
+    await page.getByRole("alert").filter({ hasText: /AI service didn.t respond/ }).waitFor({ timeout: 30000 });
+    check("A failed AI request shows a clear error and stops (nothing charged)", /Nothing was charged/.test(await page.locator("main").innerText()));
+    check("The failed stage offers Try again", await page.getByRole("button", { name: "Try again" }).isVisible());
+    await page.getByRole("button", { name: "Back to brief" }).click();
+    check("Going back keeps the brief text", (await page.getByLabel("Describe it").inputValue()).includes("Spring offer for families"));
+  });
+
+  await run("recovery: failed render, insufficient credits, duplicate confirm", async () => {
+    // Make a project whose footage then disappears from storage: the render must fail without charging.
+    const { default: postgres } = await import("postgres");
+    const { AwsClient } = await import("aws4fetch");
+    const db = postgres(process.env.DATABASE_URL!, { max: 1 });
+    const creditsText = async () => {
+      await page.goto(`${BASE}/dashboard`);
+      await settle(page);
+      return /Videos \d+ of \d+ left/.exec((await page.getByLabel("Usage").first().innerText()).replace(/\s+/g, " "))?.[0] ?? "";
+    };
+    const before = await creditsText();
+    await page.goto(`${BASE}/library`);
+    await page.waitForTimeout(2000);
+    await page.locator("input[type=file]").setInputFiles(join(dir, "doomed_clip.mp4"));
+    await page.waitForTimeout(3000);
+    for (let i = 0; i < 60 && /Analysing|Queued|Uploading/.test(await page.getByLabel("Media").innerText()); i++) await page.waitForTimeout(2000);
+    await page.goto(`${BASE}/autopilot?brief=${encodeURIComponent("Doomed render test video for the lake")}`);
+    await page.waitForTimeout(2500);
+    await page.getByLabel("Your analysed footage").getByRole("button", { name: "doomed clip" }).click();
+    await page.getByRole("button", { name: /Create 3 concepts/ }).first().click();
+    await page.waitForURL("**/autopilot?project=*", { timeout: 60000 });
+    const doomed = new URL(page.url()).searchParams.get("project")!;
+    await page.getByRole("heading", { name: "Scenes" }).waitFor({ timeout: 30000 });
+    // Only the doomed clip is removed (no other project uses it).
+    const keys = await db<{ storage_key: string }[]>`select m.storage_key from project_media pm join media_assets m on m.id = pm.media_id where pm.project_id = ${doomed} and m.title = 'doomed clip'`;
+    const s3 = new AwsClient({ accessKeyId: process.env.R2_ACCESS_KEY_ID!, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!, service: "s3", region: "auto" });
+    for (const k of keys) await s3.fetch(`${process.env.R2_ENDPOINT}/${process.env.R2_BUCKET}/${k.storage_key}`, { method: "DELETE" });
+    await page.getByRole("button", { name: "Approve and render" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: /Render · / }).click();
+    await page.getByText(/The render failed\. You were not charged\./).waitFor({ timeout: 120000 });
+    const failText = await page.locator("main").innerText();
+    check("A render with footage missing from storage names the clip and the fix", /"doomed clip" is missing from storage\. Replace it in Studio/.test(failText));
+    check("…and doesn't offer a retry that can't succeed", !(await page.getByRole("button", { name: "Retry free" }).isVisible()));
+    check("…and is not charged", (await creditsText()) === before, before);
+
+    // Duplicate confirmation: a double click starts one render and charges once.
+    await page.goto(`${BASE}/autopilot?project=${projectA}`);
+    await page.getByRole("heading", { name: "Scenes" }).waitFor({ timeout: 30000 });
+    await page.getByRole("button", { name: /Approve and render|Render again/ }).click();
+    const confirm = page.getByRole("dialog").getByRole("button", { name: /Render · / });
+    await confirm.dblclick();
+    await page.getByText("Your video is ready").waitFor({ timeout: 240000 });
+    const [{ n }] = await db<{ n: number }[]>`select count(*)::int as n from jobs where project_id = ${projectA} and kind = 'render'`;
+    check("Double-clicking confirm starts one render", n === 2, `${n} render jobs for the project`);
+    check("…and charges one credit", /Videos 0 of 2 left/.test(await creditsText()));
+
+    // No credits left: the quote says so and confirming is impossible.
+    await page.goto(`${BASE}/autopilot?project=${projectA}`);
+    await page.getByRole("heading", { name: "Scenes" }).waitFor({ timeout: 30000 });
+    await page.getByRole("button", { name: /Approve and render|Render again/ }).click();
+    const dlg = page.getByRole("dialog");
+    await dlg.getByText("Not enough credits for this render.").waitFor({ timeout: 10000 });
+    check("With no credits left the quote explains and Render is disabled", await dlg.getByRole("button", { name: /Render · / }).isDisabled());
+    await page.keyboard.press("Escape");
+    await db.end();
+  });
+
   /* ---- isolation: a second customer ---- */
   await run("isolation", async () => {
     const B = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -301,6 +404,15 @@ async function main() {
     await pb.goto(`${BASE}/exports`);
     await settle(pb);
     check("Another workspace sees no exports", /No exports yet/.test(await pb.locator("main").innerText()));
+    await pb.goto(`${BASE}/dashboard`);
+    await settle(pb);
+    check("Credit balances are separate (the new workspace still has 2 of 2)", /Videos\s*2 of 2 left/.test(await pb.getByLabel("Usage").first().innerText()));
+    // A signed link only opens the one object it was signed for: pointing it at another
+    // workspace's storage path is refused.
+    if (exportUrlA) {
+      const foreign = exportUrlA.replace(/org\/[0-9a-f-]{36}\//, "org/00000000-0000-4000-8000-000000000000/");
+      check("A signed download link can't be redirected to another workspace's files", (await fetch(foreign)).status === 403);
+    }
     await pb.goto(`${BASE}/settings/appearance`);
     await settle(pb);
     await axe(pb, "/settings/appearance");

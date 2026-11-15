@@ -3,10 +3,10 @@ import { Suspense } from "react";
 import { AutopilotScreen } from "@/components/app/autopilot/autopilot-screen";
 import { PageLoading } from "@/components/app/page-loading";
 import { requireAppContext } from "@/server/app/session";
+import { usageFor } from "@/server/app/view";
 import { permissionsFor } from "@/server/auth/principal";
 import { listBrands } from "@/server/services/brands";
 import { searchMedia } from "@/server/services/media";
-import { getUsage } from "@/server/services/usage";
 
 export const metadata: Metadata = { title: "Autopilot" };
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Autopilot" };
 async function Autopilot({ searchParams }: PageProps<"/autopilot">) {
   const q = await searchParams;
   const { ctx } = await requireAppContext("/autopilot");
-  const [brands, footage, usage] = await Promise.all([listBrands(ctx), searchMedia(ctx, { kind: "video", status: "ready", sort: "newest", limit: 24 }, { includeThumbnails: true }), getUsage(ctx)]);
+  const [brands, footage, usage] = await Promise.all([listBrands(ctx), searchMedia(ctx, { kind: "video", status: "ready", sort: "newest", limit: 24 }, { includeThumbnails: true }), usageFor(ctx)]);
   const str = (v: unknown) => (typeof v === "string" ? v : null);
   const uuid = (v: string | null) => (v && /^[0-9a-f-]{36}$/.test(v) ? v : null);
   return (

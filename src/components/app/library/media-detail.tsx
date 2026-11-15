@@ -4,7 +4,7 @@ import { AlertTriangle, Loader2, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { Dialog } from "radix-ui";
 import { useCallback, useEffect, useState } from "react";
-import { mediaDetail } from "@/app/(app)/_actions/media";
+import { cancelUpload, mediaDetail } from "@/app/(app)/_actions/media";
 import { AiBadge, Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/misc";
@@ -14,7 +14,7 @@ import { bytes, duration, ratioOf, relativeTime } from "@/lib/format";
 
 type Detail = Awaited<ReturnType<typeof mediaDetail>> extends { ok: true; data: infer D } | { ok: false } ? D : never;
 
-export function MediaDetail({ mediaId, canEdit, onClose, onAnalyse }: { mediaId: string; canEdit: boolean; onClose: () => void; onAnalyse: (id: string) => Promise<void> }) {
+export function MediaDetail({ mediaId, canEdit, uploadingHere, onClose, onAnalyse, onRemoved }: { mediaId: string; canEdit: boolean; uploadingHere?: boolean; onClose: () => void; onAnalyse: (id: string) => Promise<void>; onRemoved?: () => Promise<void> }) {
   const [data, setData] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -79,7 +79,7 @@ export function MediaDetail({ mediaId, canEdit, onClose, onAnalyse }: { mediaId:
                     <img src={d.preview_url.url} alt={d.title} className="max-h-80 w-full rounded-lg bg-surface-muted object-contain" />
                   ) : null
                 ) : (
-                  <p className="rounded-lg bg-surface-muted px-4 py-8 text-center text-sm text-ink-muted">{d.status === "awaiting_upload" ? "The upload hasn't finished yet." : d.status === "failed" && a.job?.status !== "failed" ? "This upload failed or was cancelled." : d.status === "failed" ? "This file couldn't be read as a video." : "No preview available."}</p>
+                  <p className="rounded-lg bg-surface-muted px-4 py-8 text-center text-sm text-ink-muted">{d.status === "awaiting_upload" ? (uploadingHere ? "Still uploading in this tab." : "This upload was interrupted before it finished (the page was closed or reloaded). Remove it and upload the file again.") : d.status === "failed" && a.job?.status !== "failed" ? "This upload failed or was cancelled." : d.status === "failed" ? "This file couldn't be read as a video." : "No preview available."}</p>
                 )}
 
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm sm:grid-cols-3">
@@ -131,6 +131,22 @@ export function MediaDetail({ mediaId, canEdit, onClose, onAnalyse }: { mediaId:
                   )}
                 </section>
 
+                {d.status === "awaiting_upload" && !uploadingHere && canEdit ? (
+                  <Button
+                    variant="secondary"
+                    loading={busy}
+                    onClick={async () => {
+                      if (!confirm("Remove this unfinished upload? Nothing else is affected.")) return;
+                      setBusy(true);
+                      const r = await cancelUpload(mediaId);
+                      setBusy(false);
+                      if (r.ok) await onRemoved?.();
+                      else setError(r.error.message);
+                    }}
+                  >
+                    Remove unfinished upload
+                  </Button>
+                ) : null}
                 {d.kind === "video" && d.status === "ready" ? (
                   <Button asChild variant="action">
                     <Link href={`/autopilot?media=${mediaId}`}>

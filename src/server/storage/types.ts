@@ -5,6 +5,14 @@
     org/{org_id}/exports/{export_id}.mp4
   Clients never see keys or permanent URLs, only short-lived signed URLs.
 */
+/** Thrown when an object is not in storage (deleted or never uploaded). Not retryable. */
+export class StorageObjectMissing extends Error {
+  readonly missing = true;
+  constructor(key: string) {
+    super(`Object not found in storage: ${key.replace(/^org\/[^/]+\//, "org/…/")}`);
+  }
+}
+
 export type SignedUrl = { url: string; expiresAt: string; method: "GET" | "PUT" };
 
 export type UploadedPart = { partNumber: number; etag: string; size: number };

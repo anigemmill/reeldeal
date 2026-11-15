@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { copyFile, mkdir, open, stat } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { assertKey, type SignedUrl, type Storage } from "./types";
+import { assertKey, StorageObjectMissing, type SignedUrl, type Storage } from "./types";
 
 /*
   Development storage on the local filesystem. Signed URLs are HMAC tokens checked
@@ -57,7 +57,9 @@ export function createLocalStorage(opts: { dir: string; baseUrl: string; secret:
       return { size: (await stat(dest)).size };
     },
     async downloadToFile(key, localPath) {
-      await copyFile(pathFor(key), localPath);
+      await copyFile(pathFor(key), localPath).catch((e: NodeJS.ErrnoException) => {
+        throw e.code === "ENOENT" ? new StorageObjectMissing(key) : e;
+      });
     },
     async head(key) {
       try {

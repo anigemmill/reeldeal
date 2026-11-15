@@ -98,6 +98,7 @@ export function LibraryScreen(props: {
   }, [router]);
 
   const uploads = useUploads(useCallback(() => void refresh(), [refresh]));
+  const activeUploads = new Set(uploads.items.filter((u) => u.mediaId && ["preparing", "uploading", "finishing"].includes(u.phase)).map((u) => u.mediaId!));
 
   // Search as you type (debounced), filters immediately.
   useEffect(() => {
@@ -106,7 +107,7 @@ export function LibraryScreen(props: {
   }, [filters, refresh]);
 
   // Poll while uploads run or analysis is pending.
-  const pending = uploads.active || items.some((i) => i.status === "analysing" || i.status === "awaiting_upload") || [...activity.values()].some((a) => a.analysis?.status === "queued" || a.analysis?.status === "running");
+  const pending = uploads.active || items.some((i) => i.status === "analysing") || [...activity.values()].some((a) => a.analysis?.status === "queued" || a.analysis?.status === "running");
   const wasPending = useRef(pending);
   useEffect(() => {
     // When processing finishes, refresh server-rendered usage (sidebar meters).
@@ -237,7 +238,7 @@ export function LibraryScreen(props: {
                 <Thumb src={m.thumbnail_url} alt={m.title} kind={m.kind} ratio="16:9" className="rounded-lg">
                   {m.quality_score !== null ? <span className="absolute top-1.5 left-1.5 rounded-pill bg-ai px-1.5 py-0.5 font-mono text-[10px] text-ai-foreground">{Math.round(m.quality_score)}</span> : null}
                   {m.duration_seconds ? <span className="absolute right-1.5 bottom-1.5 rounded-pill bg-media-veil/60 px-1.5 py-0.5 font-mono text-[10px] text-on-media">{duration(m.duration_seconds)}</span> : null}
-                  <StatusOverlay item={m} activity={activity.get(m.id)} />
+                  <StatusOverlay item={m} activity={activity.get(m.id)} active={activeUploads} />
                 </Thumb>
                 <span className="truncate text-sm font-medium group-hover:underline">{m.title}</span>
                 <span className="-mt-1.5 flex flex-wrap gap-1">
@@ -274,7 +275,7 @@ export function LibraryScreen(props: {
                   </button>
                 </td>
                 <td className="py-2">
-                  <StatusText item={m} activity={activity.get(m.id)} />
+                  <StatusText item={m} activity={activity.get(m.id)} active={activeUploads} />
                 </td>
                 <td className="hidden py-2 font-mono text-xs sm:table-cell">{duration(m.duration_seconds)}</td>
                 <td className="hidden py-2 md:table-cell">{m.orientation ?? "–"}</td>
@@ -294,6 +295,11 @@ export function LibraryScreen(props: {
           mediaId={selected}
           canEdit={props.canEdit}
           onClose={() => select(null)}
+          uploadingHere={activeUploads.has(selected)}
+          onRemoved={async () => {
+            select(null);
+            await refresh();
+          }}
           onAnalyse={async (id) => {
             const r = await analyse(id);
             if (!r.ok) toast({ title: "Analysis not started", description: r.error.message, tone: "danger" });
@@ -305,8 +311,9 @@ export function LibraryScreen(props: {
   );
 }
 
-function statusOf(item: LibraryItem, a?: Activity) {
-  if (item.status === "awaiting_upload") return { label: "Uploading", tone: "primary" as const };
+/* activeUploads: uploads running in this tab; an unfinished upload not among them was interrupted (tab closed, reload). */
+function statusOf(item: LibraryItem, a: Activity | undefined, activeUploads: Set<string>) {
+  if (item.status === "awaiting_upload") return activeUploads.has(item.id) ? { label: "Uploading", tone: "primary" as const } : { label: "Upload interrupted", tone: "danger" as const };
   if (a?.analysis?.status === "failed" && item.status !== "ready") return { label: "Analysis failed", tone: "danger" as const };
   if (item.status === "failed") return { label: "Upload failed or cancelled", tone: "danger" as const };
   if (item.status === "analysing" || a?.analysis?.status === "queued" || a?.analysis?.status === "running")
@@ -315,8 +322,8 @@ function statusOf(item: LibraryItem, a?: Activity) {
   return { label: item.kind === "video" ? "Not analysed" : "Uploaded", tone: "neutral" as const };
 }
 
-function StatusOverlay({ item, activity }: { item: LibraryItem; activity?: Activity }) {
-  const s = statusOf(item, activity);
+function StatusOverlay({ item, activity, active }: { item: LibraryItem; activity?: Activity; active: Set<string> }) {
+  const s = statusOf(item, activity, active);
   if (s.tone === "success" || s.tone === "neutral") return null;
   return (
     <span className="absolute inset-x-1.5 top-1.5 flex justify-end">
@@ -325,8 +332,8 @@ function StatusOverlay({ item, activity }: { item: LibraryItem; activity?: Activ
   );
 }
 
-function StatusText({ item, activity }: { item: LibraryItem; activity?: Activity }) {
-  const s = statusOf(item, activity);
+function StatusText({ item, activity, active }: { item: LibraryItem; activity?: Activity; active: Set<string> }) {
+  const s = statusOf(item, activity, active);
   return <span className={cn("text-xs", s.tone === "danger" ? "text-danger" : s.tone === "ai" ? "text-ink" : s.tone === "success" ? "text-ink" : "text-ink-muted")}>{s.label}</span>;
 }
 
