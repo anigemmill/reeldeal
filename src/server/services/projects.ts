@@ -264,3 +264,30 @@ export async function submitStoryboard(ctx: Ctx, raw: z.infer<typeof SubmitStory
   const saved = await saveStoryboard(ctx, { projectId: i.project_id, title: i.title, format: i.format, scenes: v.scenes, total: v.total, source: "client", renderable: v.renderable });
   return { ...saved, project_id: i.project_id, title: i.title, format: i.format, total_duration_seconds: v.total, renderable: v.renderable, scenes: v.scenes, warnings: v.warnings };
 }
+
+/** One saved storyboard version of a project (versions are immutable; edits save a new one). */
+export async function getStoryboard(ctx: Ctx, projectId: string, storyboardId: string) {
+  const [sb] = await asUser(ctx, (sql) =>
+    sql.query<{ id: string; version: number; title: string; format: string; total_duration_seconds: string; scenes: Scene[]; source: string; created_at: string; brand_version: number | null }>(
+      "select id, version, title, format, total_duration_seconds, scenes, source, created_at, brand_version from public.storyboards where org_id = $1 and project_id = $2 and id = $3",
+      [ctx.principal.orgId, projectId, storyboardId],
+    ),
+  );
+  if (!sb) throw notFound("Storyboard");
+  return { ...sb, total_duration_seconds: num(sb.total_duration_seconds), created_at: iso(sb.created_at) };
+}
+
+/** A saved scene back into submit_storyboard input (drops derived fields, nulls become absent). */
+export function toSceneInput(s: Scene): SceneInput {
+  return {
+    duration_seconds: s.duration_seconds,
+    purpose: s.purpose ?? undefined,
+    on_screen_text: s.on_screen_text,
+    voiceover: s.voiceover,
+    visual_description: s.visual_description ?? undefined,
+    asset_id: s.asset_id,
+    source_in_seconds: s.source_in_seconds,
+    transition: s.transition,
+    audio_notes: s.audio_notes,
+  };
+}

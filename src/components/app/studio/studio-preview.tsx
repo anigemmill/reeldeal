@@ -28,7 +28,7 @@ export type Ratio = "9:16" | "1:1" | "16:9";
 const RATIO_CSS: Record<Ratio, string> = { "9:16": "9 / 16", "1:1": "1 / 1", "16:9": "16 / 9" };
 const DURATION = STUDIO_PROJECT.duration;
 
-export function StudioScreen({ exitHref = "/dashboard" }: { exitHref?: string }) {
+export function StudioPreview({ exitHref = "/dashboard" }: { exitHref?: string }) {
   const [ratio, setRatio] = useState<Ratio>("9:16");
   const [time, setTime] = useState(1.8);
   const [playing, setPlaying] = useState(false);
