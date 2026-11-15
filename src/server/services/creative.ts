@@ -35,9 +35,10 @@ type Candidate = { id: string; title: string; description: string | null; tags: 
 async function candidates(ctx: Ctx, text: string, projectId?: string | null): Promise<Candidate[]> {
   const seen = new Map<string, Candidate>();
   const add = (rows: Candidate[]) => rows.forEach((r) => seen.size < 30 && !seen.has(r.id) && seen.set(r.id, r));
-  if (projectId) add((await searchMedia(ctx, { project_id: projectId, kind: "video", limit: 30 })).results as Candidate[]);
-  add((await searchMedia(ctx, { query: text.slice(0, 300), kind: "video", limit: 20 })).results as Candidate[]);
-  if (seen.size < 8) add((await searchMedia(ctx, { kind: "video", sort: "best_quality", limit: 15 })).results as Candidate[]);
+  // Only analysed clips: anything else has no known length and cannot be cut (or failed analysis).
+  if (projectId) add((await searchMedia(ctx, { project_id: projectId, kind: "video", status: "ready", limit: 30 })).results as Candidate[]);
+  add((await searchMedia(ctx, { query: text.slice(0, 300), kind: "video", status: "ready", limit: 20 })).results as Candidate[]);
+  if (seen.size < 8) add((await searchMedia(ctx, { kind: "video", status: "ready", sort: "best_quality", limit: 15 })).results as Candidate[]);
   return [...seen.values()];
 }
 

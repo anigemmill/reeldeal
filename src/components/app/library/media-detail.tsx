@@ -79,7 +79,7 @@ export function MediaDetail({ mediaId, canEdit, onClose, onAnalyse }: { mediaId:
                     <img src={d.preview_url.url} alt={d.title} className="max-h-80 w-full rounded-lg bg-surface-muted object-contain" />
                   ) : null
                 ) : (
-                  <p className="rounded-lg bg-surface-muted px-4 py-8 text-center text-sm text-ink-muted">{d.status === "awaiting_upload" ? "The upload hasn't finished yet." : d.status === "failed" ? "This upload failed or was cancelled." : "No preview available."}</p>
+                  <p className="rounded-lg bg-surface-muted px-4 py-8 text-center text-sm text-ink-muted">{d.status === "awaiting_upload" ? "The upload hasn't finished yet." : d.status === "failed" && a.job?.status !== "failed" ? "This upload failed or was cancelled." : d.status === "failed" ? "This file couldn't be read as a video." : "No preview available."}</p>
                 )}
 
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm sm:grid-cols-3">
@@ -118,8 +118,8 @@ export function MediaDetail({ mediaId, canEdit, onClose, onAnalyse }: { mediaId:
                   {a.status === "analysed" && a.analysis ? (
                     <AnalysisResult analysis={a.analysis} />
                   ) : a.job && (a.job.status === "queued" || a.job.status === "running") ? (
-                    <p className="flex items-center gap-2 text-sm text-ai" role="status">
-                      <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
+                    <p className="flex items-center gap-2 text-sm" role="status">
+                      <Loader2 className="size-4 animate-spin text-ai motion-reduce:animate-none" aria-hidden />
                       {a.job.status === "queued" ? "Queued: a worker will pick this up shortly." : `${a.job.stage ?? "Analysing"} · ${Math.round(a.job.progress_percent)}%`}
                     </p>
                   ) : a.job?.status === "failed" ? (

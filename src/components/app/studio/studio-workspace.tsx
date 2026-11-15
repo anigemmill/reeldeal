@@ -372,7 +372,8 @@ function MediaPanel({ initial, brand, canEdit, selectedScene, onUse }: { initial
           <ul className="grid grid-cols-2 gap-2">
             {shown.filter((m) => m.kind === "video" && m.status === "ready").map((m) => (
               <li key={m.id}>
-                <button type="button" disabled={!canEdit} onClick={() => (setFocus(m.id), onUse(m))} className={cn("block w-full text-left disabled:cursor-not-allowed", focus === m.id && "ring-2 ring-primary rounded-[9px]")} aria-label={`${selectedScene !== null ? `Use in scene ${selectedScene + 1}` : "Add a scene with"}: ${m.title}`}>
+                <button type="button" disabled={!canEdit} onClick={() => (setFocus(m.id), onUse(m))} className={cn("block w-full text-left disabled:cursor-not-allowed", focus === m.id && "ring-2 ring-primary rounded-[9px]")}>
+                  <span className="sr-only">{selectedScene !== null ? `Use in scene ${selectedScene + 1}: ` : "Add a scene with: "}</span>
                   <Thumb src={m.thumbnail_url} alt="" ratio="16:9" className="rounded-[9px]">
                     {m.duration_seconds ? <span className="absolute right-1 bottom-1 rounded-[4px] bg-media-veil/60 px-1 font-mono text-[9px] text-on-media">{duration(m.duration_seconds)}</span> : null}
                   </Thumb>
@@ -465,7 +466,7 @@ function Inspector(props: { scene: Scene | undefined; index: number | null; coun
             </Field>
           </div>
           <Field label="Transition in">
-            <select value={s.transition} disabled={!canEdit} onChange={(e) => props.onChange({ transition: e.target.value as Scene["transition"] })} className="h-11 rounded-md border border-field-line bg-surface px-3">
+            <select aria-label="Transition in" value={s.transition} disabled={!canEdit} onChange={(e) => props.onChange({ transition: e.target.value as Scene["transition"] })} className="h-11 rounded-md border border-field-line bg-surface px-3">
               <option value="cut">Cut</option>
               <option value="dissolve">Dissolve</option>
               <option value="fade">Fade</option>
@@ -623,7 +624,7 @@ function Timeline({ scenes, starts, total, time, selected, thumbs, onSeek, onSel
           </div>
           <div className="mt-1.5 flex h-6 gap-0.5">
             {scenes.map((s, i) => (
-              <span key={i} className={cn("min-w-0 truncate rounded-[5px] px-1.5 text-[10px] leading-6", s.on_screen_text ? "bg-tint text-ink" : "")} style={{ flex: s.duration_seconds }}>
+              <span key={i} className={cn("min-w-0 truncate rounded-[5px] px-1.5 text-[10px] leading-6", s.on_screen_text ? "bg-surface-muted text-ink" : "")} style={{ flex: s.duration_seconds }}>
                 {s.on_screen_text ?? ""}
               </span>
             ))}

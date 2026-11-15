@@ -307,8 +307,8 @@ export function LibraryScreen(props: {
 
 function statusOf(item: LibraryItem, a?: Activity) {
   if (item.status === "awaiting_upload") return { label: "Uploading", tone: "primary" as const };
-  if (item.status === "failed") return { label: "Upload failed", tone: "danger" as const };
   if (a?.analysis?.status === "failed" && item.status !== "ready") return { label: "Analysis failed", tone: "danger" as const };
+  if (item.status === "failed") return { label: "Upload failed or cancelled", tone: "danger" as const };
   if (item.status === "analysing" || a?.analysis?.status === "queued" || a?.analysis?.status === "running")
     return { label: a?.analysis?.status === "queued" ? "Queued for analysis" : `Analysing${a?.analysis?.progress_percent ? ` ${Math.round(a.analysis.progress_percent)}%` : ""}`, tone: "ai" as const };
   if (item.status === "ready") return { label: "Analysed", tone: "success" as const };
@@ -327,7 +327,7 @@ function StatusOverlay({ item, activity }: { item: LibraryItem; activity?: Activ
 
 function StatusText({ item, activity }: { item: LibraryItem; activity?: Activity }) {
   const s = statusOf(item, activity);
-  return <span className={cn("text-xs", s.tone === "danger" ? "text-danger" : s.tone === "ai" ? "text-ai" : s.tone === "success" ? "text-success" : "text-ink-muted")}>{s.label}</span>;
+  return <span className={cn("text-xs", s.tone === "danger" ? "text-danger" : s.tone === "ai" ? "text-ink" : s.tone === "success" ? "text-ink" : "text-ink-muted")}>{s.label}</span>;
 }
 
 function UploadPanel({ uploads, activity }: { uploads: ReturnType<typeof useUploads>; activity: Map<string, Activity> }) {
@@ -409,8 +409,8 @@ function AnalysisNote({ consent, canManage, aiConfigured, analysis, onConsent }:
   return (
     <section aria-label="About analysis" className="flex flex-wrap items-start gap-4 rounded-[20px] bg-tint px-5 py-4">
       <div className="flex min-w-[260px] flex-1 flex-col gap-1.5">
-        <span className="flex items-center gap-2 font-mono text-[11px] text-ai">
-          <Sparkles className="size-3.5" aria-hidden /> ANALYSIS
+        <span className="flex items-center gap-2 font-mono text-[11px] text-ink">
+          <Sparkles className="size-3.5 text-ai" aria-hidden /> ANALYSIS
         </span>
         <p className="text-sm leading-relaxed">
           Every uploaded video is analysed on our servers: length, resolution, scene changes, a keyframe per scene, and quality checks for resolution, exposure, black frames, frame rate and sound.

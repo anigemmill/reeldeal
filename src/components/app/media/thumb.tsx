@@ -15,7 +15,7 @@ export function Thumb({ src, alt, kind = "video", ratio = "16:9", className, chi
         // eslint-disable-next-line @next/next/no-img-element -- signed, short-lived storage URLs (not optimisable)
         <img src={src} alt={alt} loading="lazy" className="absolute inset-0 size-full object-cover" />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-ink-muted" aria-label={alt} role="img">
+        <div className="absolute inset-0 flex items-center justify-center text-ink-muted" {...(alt ? { role: "img", "aria-label": alt } : { "aria-hidden": true })}>
           <Icon className="size-6" strokeWidth={1.5} aria-hidden />
         </div>
       )}

@@ -34,7 +34,16 @@ const THEMES: Theme[] = [
   { palette: "crossroads", mode: "workspace", type: "b" },
   { palette: "crossroads", mode: "workspace", type: "c" },
 ];
-const APP_PAGES = ["/dashboard", "/autopilot", "/autopilot?step=review", "/studio", "/settings/appearance"];
+/*
+  The designed app screens are checked through their design-review routes (same
+  components, labelled sample data), because the real app routes need a signed-in
+  session; the signed-in pages themselves are checked with axe in npm run test:e2e.
+  Public account pages are checked directly.
+*/
+const REVIEW_SCREENS = ["dashboard", "autopilot", "autopilot&step=review", "studio"];
+const review = (screen: string, theme: string) => `/design-system/screens/${screen.replace("&", `?theme=${theme}&`)}${screen.includes("&") ? "" : `?theme=${theme}`}`;
+const PUBLIC_APP_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
+const dropToolbar = (page: Page) => page.evaluate(() => document.body.querySelector(":scope > header")?.remove());
 
 async function startServer() {
   if (BASE) return;
@@ -89,7 +98,13 @@ async function axeAll(browser: Browser) {
     const key = serializeTheme(theme);
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     await ctx.addCookies([{ name: THEME_COOKIE, value: key, url: BASE }]);
-    for (const path of APP_PAGES) {
+    for (const screen of REVIEW_SCREENS) {
+      const page = await load(ctx, review(screen, key));
+      await dropToolbar(page);
+      await axe(page, `${screen} screen`, key);
+      await page.close();
+    }
+    for (const path of PUBLIC_APP_PAGES) {
       const page = await load(ctx, path);
       await axe(page, path, key);
       await page.close();
@@ -104,8 +119,9 @@ async function axeAll(browser: Browser) {
   }
   // Mobile layouts (Crossroads, type A)
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
-  for (const path of ["/", "/dashboard", "/autopilot", "/studio"]) {
+  for (const path of ["/", review("dashboard", "crossroads.workspace.a"), review("autopilot", "crossroads.workspace.a"), review("studio", "crossroads.workspace.a"), "/sign-in"]) {
     const page = await load(m, path);
+    if (path.startsWith("/design-system")) await dropToolbar(page);
     await axe(page, `${path} (390px)`, "crossroads.workspace.a");
     await page.close();
   }
@@ -144,14 +160,14 @@ async function keyboard(browser: Browser) {
   await page.close();
 
   // Autopilot: option radiogroup.
-  page = await load(ctx, "/autopilot?step=review");
+  page = await load(ctx, review("autopilot&step=review", "crossroads.workspace.a"));
   await page.getByRole("radio", { checked: true }).focus();
   await page.keyboard.press("ArrowRight");
   check("Autopilot: arrow key picks the next option", (await page.getByRole("radio", { name: /2 · Energetic/ }).getAttribute("aria-checked")) === "true");
   await page.close();
 
   // Studio: playhead slider and clip buttons.
-  page = await load(ctx, "/studio");
+  page = await load(ctx, review("studio", "crossroads.workspace.a"));
   const slider = page.getByRole("slider", { name: "Playhead" });
   await slider.focus();
   await page.keyboard.press("End");
@@ -182,7 +198,7 @@ async function main() {
   await startServer();
   const browser = await chromium.launch();
   try {
-    console.log(`axe: ${THEMES.length} theme sets × ${APP_PAGES.length + 1} screens, plus 4 mobile layouts`);
+    console.log(`axe: ${THEMES.length} theme sets × ${REVIEW_SCREENS.length + PUBLIC_APP_PAGES.length + 1} pages, plus 5 mobile layouts`);
     await axeAll(browser);
     const byRule = new Map<string, Finding[]>();
     for (const f of findings) byRule.set(f.rule, [...(byRule.get(f.rule) ?? []), f]);

@@ -286,6 +286,7 @@ function BriefStep(
             {v.variants} concept{v.variants === 1 ? "" : "s"} and a storyboard, from your footage
           </p>
           <CostLines credits={v.credits} formats={v.formats.length} length={v.length} available={props.credits} />
+          <p className="text-[11px] leading-relaxed text-ink-muted">The exact cost is confirmed from the final storyboard before anything renders.</p>
           {blocked ? <p className="rounded-md bg-surface-muted px-3 py-2 text-sm text-ink-muted">{blocked}</p> : null}
           <Button type="submit" variant="action" size="lg" disabled={Boolean(blocked)}>
             Create {v.variants === 1 ? "storyboard" : `${v.variants} concepts`} <ArrowRight aria-hidden />
@@ -328,7 +329,6 @@ function CostLines({ credits, formats, length, available }: { credits: number; f
         <dt className="text-ink-muted">{available.label}</dt>
         <dd className="font-mono text-xs">{available.available} available</dd>
       </div>
-      <p className="text-[11px] leading-relaxed text-ink-muted">The exact cost is confirmed from the final storyboard before anything renders.</p>
     </dl>
   );
 }
