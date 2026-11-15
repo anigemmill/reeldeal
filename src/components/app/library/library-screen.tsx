@@ -315,7 +315,7 @@ export function LibraryScreen(props: {
 function statusOf(item: LibraryItem, a: Activity | undefined, activeUploads: Set<string>) {
   if (item.status === "awaiting_upload") return activeUploads.has(item.id) ? { label: "Uploading", tone: "primary" as const } : { label: "Upload interrupted", tone: "danger" as const };
   if (a?.analysis?.status === "failed" && item.status !== "ready") return { label: "Analysis failed", tone: "danger" as const };
-  if (item.status === "failed") return { label: "Upload failed or cancelled", tone: "danger" as const };
+  if (item.status === "failed") return { label: "Upload failed", tone: "danger" as const };
   if (item.status === "analysing" || a?.analysis?.status === "queued" || a?.analysis?.status === "running")
     return { label: a?.analysis?.status === "queued" ? "Queued for analysis" : `Analysing${a?.analysis?.progress_percent ? ` ${Math.round(a.analysis.progress_percent)}%` : ""}`, tone: "ai" as const };
   if (item.status === "ready") return { label: "Analysed", tone: "success" as const };
@@ -326,7 +326,7 @@ function StatusOverlay({ item, activity, active }: { item: LibraryItem; activity
   const s = statusOf(item, activity, active);
   if (s.tone === "success" || s.tone === "neutral") return null;
   return (
-    <span className="absolute inset-x-1.5 top-1.5 flex justify-end">
+    <span className="absolute inset-x-1.5 top-1.5 flex min-w-0 justify-end [&>*]:max-w-full [&>*]:truncate">
       {s.tone === "ai" ? <AiBadge size="sm">{s.label}</AiBadge> : <Badge size="sm" tone={s.tone === "danger" ? "danger" : "primary"}>{s.label}</Badge>}
     </span>
   );

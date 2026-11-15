@@ -96,7 +96,11 @@ export function AutopilotScreen(props: AutopilotProps) {
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Sparkles className="size-4 shrink-0 text-ai" aria-hidden />
             <span className="font-display text-base font-semibold">Autopilot</span>
-            {props.ai.fixture ? <Badge tone="warning">Test AI: fixture output, not real generation</Badge> : null}
+            {props.ai.fixture ? (
+              <Badge tone="warning" className="hidden md:inline-flex">
+                Test AI: fixture output, not real generation
+              </Badge>
+            ) : null}
           </div>
           <ol aria-label="Progress" className="flex items-center gap-1.5 font-mono text-[11px]">
             {STEPS.map((s, i) => {
@@ -117,6 +121,9 @@ export function AutopilotScreen(props: AutopilotProps) {
         </div>
       </header>
 
+      {props.ai.fixture ? (
+        <p className="border-b border-line bg-warning px-4 py-1.5 text-center font-mono text-[11px] text-warning-foreground md:hidden">Test AI: fixture output, not real generation</p>
+      ) : null}
       <main id="main" className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col px-4 py-6 sm:px-6 lg:py-10">
         {step === "brief" && (
           <BriefStep

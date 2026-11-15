@@ -77,7 +77,7 @@ export function DashboardScreen({ data }: { data: DashboardData }) {
 
       {firstUse ? <GettingStarted data={data} /> : null}
 
-      <section aria-label="Create" className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
+      <section aria-label="Create" className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <AutopilotCard suggestions={data.suggestions} credits={data.credits} />
         <StudioCard project={data.projects[0] ?? null} hasMedia={data.counts.media > 0} />
       </section>
@@ -95,9 +95,9 @@ export function DashboardScreen({ data }: { data: DashboardData }) {
         </section>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <FootageCard data={data} />
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <ExportsCard exports={data.exports} failed={data.failedRenders} />
           <CreditsCard data={data} />
         </div>

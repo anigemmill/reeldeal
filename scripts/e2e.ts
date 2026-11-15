@@ -222,6 +222,16 @@ async function main() {
     check("Asset details show real metadata and analysis", /1280×720/.test(await page.getByRole("dialog").innerText()));
     await axe(page, "/library media detail");
     await page.keyboard.press("Escape");
+    await page.getByRole("dialog").waitFor({ state: "detached", timeout: 5000 });
+    check("Keyboard: Escape closes the media details", true);
+    const item = page.getByRole("button", { name: /^lake morning/ }).first();
+    await item.focus();
+    await page.keyboard.press("Enter");
+    check("Keyboard: Enter on a library item opens its details", await page.getByRole("dialog").isVisible({ timeout: 5000 }));
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Upload" }).focus();
+    const [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 5000 }), page.keyboard.press("Enter")]);
+    check("Keyboard: Upload opens the file chooser", chooser.isMultiple());
   });
 
   /* ---- brand ---- */
