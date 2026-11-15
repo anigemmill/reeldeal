@@ -33,6 +33,7 @@ Added in Phase 0. The handoff docs in this folder are unchanged.
 | `npm run infra:check` | Read-only check of every configured credential and service |
 | `npm run workspace:bootstrap` | Workspace and MCP token for an existing Supabase Auth user |
 | `npm run integration:live` | Full workflow over MCP on real infrastructure |
+| `npm run test:e2e` | Customer journey in a real browser on the local stack (see `docs/app.md`) |
 | `npm run worker:restart-test` | Kills a worker mid-render and checks recovery and single charging |
 
 Node 22 or newer. Copy `.env.example` to `.env.local` for local settings (none are required in Phase 1).

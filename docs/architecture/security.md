@@ -174,3 +174,20 @@ Details in [`mcp.md`](mcp.md). What is in the code now:
 - **Logs** are JSON on stderr with token, JWT and key redaction. Client-visible errors carry a code and a safe
   message only.
 - **Rate limits** per principal (token bucket), stricter for AI and render tools.
+
+## 9. Customer web app (implemented)
+
+- Supabase Auth sessions in cookies via `@supabase/ssr`; `src/proxy.ts` refreshes them and
+  redirects signed-out visitors; every page and server action re-verifies the user with
+  Supabase Auth. Auth tokens are never logged or passed to client components.
+- The workspace cookie (`rd_org`, httpOnly) is only a preference: it is accepted only for an
+  organisation the user is a member of, otherwise their first workspace is used.
+- All reads and writes run through the shared services under RLS as `authenticated`.
+  Another workspace's ids return not found (the page shows the same message for missing
+  and foreign resources).
+- Server actions return safe errors only (`AppError` messages); unexpected errors are
+  logged server-side and shown as a generic message.
+- Uploads and downloads use short-lived signed URLs to private storage; the CSP allows the
+  storage origin for `connect-src`, `img-src` and `media-src`.
+- Password reset links go through `/auth/callback` (PKCE code exchange); changing a password
+  ends the user's other sessions (verified in the browser suite).

@@ -51,6 +51,13 @@ any values.
    - `INTEGRATION_USER_A_EMAIL` / `_PASSWORD` and `INTEGRATION_USER_B_EMAIL` / `_PASSWORD`: two test users;
      put their emails and passwords in `.env.local` too
 
+5. **Authentication → URL Configuration** (needed by the web app): Site URL = your app URL
+   (`http://localhost:3000` for local use); add `http://localhost:3000/auth/callback` to
+   Redirect URLs. Password-reset and confirmation emails link back through it.
+6. Decide whether new accounts must confirm their email (Authentication → Providers → Email).
+   Both work: without confirmation users go straight to onboarding; with it, the sign-up
+   page says to check their email.
+
 ### 2. Apply the migrations (first change to the database: needs your go-ahead)
 
 ```bash
@@ -84,8 +91,10 @@ with [`connect-claude.md`](connect-claude.md).
 2. **R2 → Manage API tokens → Create API token**: permission **Object Read & Write**, applied to
    **this bucket only**. Copy the Access Key ID and Secret Access Key (shown once) and your Account ID
    into `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ACCOUNT_ID`; set `R2_BUCKET=reeldeal-dev-media`.
-3. Bucket rules: [`infra/r2/lifecycle.md`](../infra/r2/lifecycle.md) (abort incomplete multipart uploads
-   after 7 days; CORS only when the web upload screen exists).
+3. Bucket rules: [`infra/r2/lifecycle.md`](../infra/r2/lifecycle.md): abort incomplete multipart uploads
+   after 7 days, and **CORS is now required** because the web library uploads straight from the
+   browser: allow your app origin with `PUT`, `GET`, `HEAD` and the headers `content-type` and
+   `if-none-match` (`infra/r2/cors.json`, edit the origin).
 4. `npm run infra:check` should show the bucket reachable and private.
 
 ### 5. OpenAI and the signing secret

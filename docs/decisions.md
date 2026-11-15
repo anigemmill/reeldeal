@@ -206,3 +206,37 @@ Setup checklist: `docs/infrastructure-setup.md`. Decisions:
   build sandbox; Ubuntu also ships Inter). `tsx` moved to runtime dependencies (the worker runs TypeScript).
 - **Remote MCP stays development-only.** Production builds refuse personal access tokens and return 503 until
   OAuth is configured; the standalone HTTP server binds to 127.0.0.1.
+
+## Mission 3: connected customer web app
+How it is wired: `docs/app.md`. Decisions:
+
+- **One backend.** Pages call `src/server/services` directly; client components call server
+  actions (`src/app/(app)/_actions`) that wrap one service call each and return safe
+  `{ ok, data | error }` results. The website never calls the MCP server, and no business
+  rule lives in React. The web app and `/api/mcp` share one platform instance.
+- **Supabase Auth with `@supabase/ssr`** (cookie sessions, refreshed in `src/proxy.ts`,
+  verified with `getUser` in every page and action). Sign-in, sign-up, reset and
+  onboarding are server actions, so tokens never reach browser JavaScript.
+- **Web sessions are principals** (`via: "session"`) built from the verified user and real
+  memberships. They carry all scopes; roles still apply, and billable work still needs the
+  server-signed quote and an explicit confirmation.
+- **New workspaces start on the Free plan** (2 one-off video credits, 30 analysis minutes,
+  1 brand profile, from `config/pricing.json`). No billing was built.
+- **Design screens kept, sample versions preserved**: the Phase 1 dashboard, Autopilot and
+  Studio components moved to `*-preview.tsx` for the design review pages; the product
+  versions keep the same layout on real data.
+- **Autopilot stages are honest**: four real requests (project, brief, concepts,
+  storyboard), each shown as running only while it is in flight; no simulated
+  percentages. Render progress is the worker's real stage and percentage.
+- **Studio edits are versions**: a draft is saved through `submit_storyboard` validation
+  as a new storyboard version; assistant revisions and restores also create new versions.
+  `generate_storyboard` gained `base_storyboard_id` for revisions (also on the MCP tool).
+- **Brand versions** are snapshotted by a database trigger; briefs and storyboards record
+  the brand id and version they used. Logos must be images in the same workspace.
+- **AI fixture provider** (`AI_PROVIDER=fixture`) for automated browser tests; labelled in
+  the UI and refused in production. Live AI was verified separately (the same browser
+  journey with `gpt-4.1-mini`).
+- **Accessibility of the designed screens** is now checked through the review routes (app
+  routes need a session); signed-in pages are checked with axe inside `npm run test:e2e`.
+- **Bug found by the browser tests and fixed**: AI footage candidates could include a clip
+  whose analysis had failed. Candidates are now analysed clips only.
