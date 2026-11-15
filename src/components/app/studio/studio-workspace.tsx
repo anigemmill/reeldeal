@@ -412,7 +412,7 @@ function MediaPanel({ initial, brand, canEdit, selectedScene, onUse }: { initial
           )}
         </TabsContent>
         <TabsContent value="audio" className="pt-3 text-xs text-ink-muted">
-          Renders keep each clip's own sound; brand cards are silent. Music and recorded voice-over are not part of the renderer yet, so voiceover lines in scenes are script notes only.
+          Renders keep each clip&apos;s own sound; brand cards are silent. Music and recorded voice-over are not part of the renderer yet, so voiceover lines in scenes are script notes only.
         </TabsContent>
       </Tabs>
     </aside>
