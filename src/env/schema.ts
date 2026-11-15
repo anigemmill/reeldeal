@@ -82,6 +82,10 @@ export const serverSchema = z
     LOCAL_MEDIA_BASE_URL: optionalUrl,
     /** Tests only: run the suite against a real Postgres server (a throwaway database per test file). */
     TEST_DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "must be a postgres:// URL").optional(),
+    /** Worker: heartbeat interval, when a silent job counts as abandoned, and shutdown grace. */
+    WORKER_HEARTBEAT_SECONDS: z.coerce.number().int().min(1).max(300).default(15),
+    WORKER_STALE_SECONDS: z.coerce.number().int().min(10).max(3600).default(120),
+    WORKER_SHUTDOWN_GRACE_SECONDS: z.coerce.number().int().min(0).max(3600).default(25),
     FFMPEG_PATH: z.string().min(1).default("ffmpeg"),
     FFPROBE_PATH: z.string().min(1).default("ffprobe"),
   })

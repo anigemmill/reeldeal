@@ -28,6 +28,8 @@ export type JobRow = {
   project_id: string | null;
   media_id: string | null;
   credits_held: number;
+  claim_count?: number;
+  locked_by?: string | null;
   created_by: string | null;
   created_at: string;
   started_at: string | null;
@@ -87,7 +89,7 @@ export async function listJobs(ctx: Ctx, opts: { kind?: JobKind; status?: JobSta
 
 export async function claimNextJob(sys: Sql, kinds: JobKind[], workerId: string): Promise<JobRow | null> {
   const [row] = await sys.query<JobRow>(
-    `update public.jobs set status = 'running', started_at = now(), heartbeat_at = now(), locked_by = $2, stage = 'starting'
+    `update public.jobs set status = 'running', started_at = now(), heartbeat_at = now(), locked_by = $2, stage = 'starting', claim_count = claim_count + 1
       where id = (select id from public.jobs where status = 'queued' and kind = any($1) order by created_at for update skip locked limit 1)
       returning *`,
     [kinds, workerId],
@@ -107,11 +109,61 @@ export async function failJob(sys: Sql, jobId: string, error: { message: string;
   await sys.query("update public.jobs set status = 'failed', stage = 'failed', error = $2::text::jsonb, finished_at = now() where id = $1", [jobId, JSON.stringify(error)]);
 }
 
-/** Jobs whose worker stopped heartbeating go back to the queue (or fail after max attempts). */
-export async function requeueStaleJobs(sys: Sql, staleAfterSeconds = 600) {
-  return sys.query<{ id: string }>(
-    `update public.jobs set status = 'queued', locked_by = null, stage = 'requeued after worker stopped'
-      where status = 'running' and heartbeat_at < now() - make_interval(secs => $1) returning id`,
+/** Keeps the claim alive while a long step runs. False means another worker or the sweeper took the job. */
+export async function heartbeat(sys: Sql, jobId: string, workerId: string) {
+  const rows = await sys.query("update public.jobs set heartbeat_at = now() where id = $1 and locked_by = $2 and status = 'running' returning id", [jobId, workerId]);
+  return rows.length > 0;
+}
+
+/**
+ * Called inside the finalising transaction, before any billing: locks the job row and
+ * checks that this worker still owns it. A worker that lost its claim (it was presumed
+ * dead and the job was requeued) must not write results or move credits.
+ */
+export async function assertStillOwned(sql: Sql, job: JobRow) {
+  const [row] = await sql.query<{ status: string; locked_by: string | null }>("select status, locked_by from public.jobs where id = $1 for update", [job.id]);
+  if (!row || row.status !== "running" || row.locked_by !== job.locked_by) {
+    throw Object.assign(new Error("This worker no longer owns the job; its result was discarded"), { handled: true, lostClaim: true });
+  }
+}
+
+/** Graceful shutdown: put a job this worker is still running straight back in the queue. */
+export async function releaseJob(sys: Sql, jobId: string, workerId: string) {
+  const rows = await sys.query(
+    "update public.jobs set status = 'queued', locked_by = null, stage = 'requeued: worker shut down' where id = $1 and locked_by = $2 and status = 'running' returning id",
+    [jobId, workerId],
+  );
+  return rows.length > 0;
+}
+
+/**
+ * Jobs whose worker stopped heartbeating go back to the queue, or fail after
+ * max_attempts claims (a job that keeps killing its worker must not loop forever).
+ * A failed render releases its credit hold, so it costs nothing.
+ */
+export async function requeueStaleJobs(sys: Sql, staleAfterSeconds = 120) {
+  const stale = await sys.query<{ id: string; kind: JobKind; org_id: string; credits_held: number; project_id: string | null; media_id: string | null; claim_count: number; max_attempts: number }>(
+    `select id, kind, org_id, credits_held, project_id, media_id, claim_count, max_attempts from public.jobs
+      where status = 'running' and heartbeat_at < now() - make_interval(secs => $1) for update skip locked`,
     [staleAfterSeconds],
   );
+  for (const j of stale) {
+    if (j.claim_count < j.max_attempts) {
+      await sys.query("update public.jobs set status = 'queued', locked_by = null, stage = 'requeued after worker stopped' where id = $1", [j.id]);
+      continue;
+    }
+    await failJob(sys, j.id, { message: "Processing stopped repeatedly on our side. You were not charged; please try again.", retryable: true, code: "worker_lost" });
+    if (j.kind === "render") {
+      if (j.credits_held > 0) {
+        await sys.query(
+          "insert into public.credit_transactions (org_id, wallet, kind, amount, period, job_id, note) values ($1, 'video', 'release', $2, $4, $3, 'Render failed: hold released, no charge') on conflict do nothing",
+          [j.org_id, j.credits_held, j.id, new Date().toISOString().slice(0, 7)],
+        );
+      }
+      await sys.query("update public.projects set status = 'ready_to_render' where id = $1 and org_id = $2 and status = 'rendering'", [j.project_id, j.org_id]);
+    } else {
+      await sys.query("update public.media_assets set status = 'uploaded' where id = $1 and status = 'analysing'", [j.media_id]);
+    }
+  }
+  return stale;
 }

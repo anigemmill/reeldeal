@@ -62,6 +62,12 @@ export async function seedDemoData(p: Platform, opts: { scale?: number; clips?: 
   };
   const media: { id: string; org: "a" | "b"; title: string }[] = [];
 
+  // Demo users are written straight into auth.users, which is only acceptable on a
+  // local database. On a Supabase project (Supabase Auth owns auth.users) refuse:
+  // create real users in Supabase Auth and use npm run workspace:bootstrap instead.
+  const [{ supabaseAuth }] = await p.db.system((sql) => sql.query<{ supabaseAuth: boolean }>(`select to_regclass('auth.identities') is not null as "supabaseAuth"`));
+  if (supabaseAuth) throw new Error("This database uses Supabase Auth: demo data is not seeded here. Use npm run workspace:bootstrap for real users.");
+
   await p.db.system(async (sql) => {
     for (const [id, email] of [[ids.aroha, "aroha@lakeside.example"], [ids.ben, "ben@lakeside.example"], [ids.cleo, "cleo@lakeside.example"], [ids.dev, "dev@harbourcafe.example"]]) {
       await sql.query("insert into auth.users (id, email) values ($1, $2)", [id, email]);

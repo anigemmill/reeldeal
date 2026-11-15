@@ -3,7 +3,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Platform } from "../context";
 import type { Sql } from "../db/types";
-import { completeJob, failJob, reportProgress, type JobRow } from "../services/jobs";
+import { assertStillOwned, completeJob, failJob, reportProgress, type JobRow } from "../services/jobs";
 import type { Scene } from "../services/projects";
 import { currentPeriod } from "../services/usage";
 import { exportKey, ownedKey } from "../storage/types";
@@ -132,6 +132,7 @@ export async function runRender(p: Platform, job: JobRow, workDir: string, opts:
     }
 
     await sys(async (sql) => {
+      await assertStillOwned(sql, job);
       for (const o of outputs) {
         await sql.query(
           `insert into public.exports (id, org_id, project_id, job_id, storyboard_id, format, status, storage_key, mime_type, size_bytes, duration_seconds, width, height)
@@ -148,8 +149,10 @@ export async function runRender(p: Platform, job: JobRow, workDir: string, opts:
       await completeJob(sql, job.id, { exports: outputs.map((o) => ({ export_id: o.exportId, format: o.format, duration_seconds: o.duration, size_bytes: o.size })), credits_charged: job.credits_held });
     });
   } catch (e) {
+    if ((e as { lostClaim?: boolean }).lostClaim) throw e;
     const retryable = (e as { retryable?: boolean }).retryable !== false;
     await sys(async (sql) => {
+      await assertStillOwned(sql, job);
       if (job.credits_held > 0) {
         await sql.query("insert into public.credit_transactions (org_id, wallet, kind, amount, period, job_id, note) values ($1, 'video', 'release', $2, $3, $4, 'Render failed: hold released, no charge')", [job.org_id, job.credits_held, currentPeriod(), job.id]);
       }

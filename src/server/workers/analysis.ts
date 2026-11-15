@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { Platform } from "../context";
 import type { Sql } from "../db/types";
 import { MediaDescriptionOutput } from "../ai/schemas";
-import { completeJob, reportProgress, type JobRow } from "../services/jobs";
+import { assertStillOwned, completeJob, reportProgress, type JobRow } from "../services/jobs";
 import { currentPeriod } from "../services/usage";
 import { ownedKey } from "../storage/types";
 import { detectSceneCuts, extractFrame, measureQuality, probe } from "./ffmpeg";
@@ -86,6 +86,7 @@ export async function runMediaAnalysis(p: Platform, job: JobRow, workDir: string
   }
 
   await sys(async (sql) => {
+    await assertStillOwned(sql, job);
     await sql.query(
       `insert into public.media_analysis (org_id, media_id, job_id, technical, scenes, quality, ai) values ($1, $2, $3, $4::text::jsonb, $5::text::jsonb, $6::text::jsonb, $7::text::jsonb)`,
       [asset.org_id, asset.id, job.id, JSON.stringify(meta), JSON.stringify(scenes), JSON.stringify(quality), ai ? JSON.stringify(ai) : null],

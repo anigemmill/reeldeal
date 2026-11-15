@@ -31,7 +31,9 @@ for (const file of files) {
     continue;
   }
   text.split("\n").forEach((line, i) => {
-    for (const [name, re] of SECRET_PATTERNS) if (re.test(line)) problems.push(`${file}:${i + 1}  possible ${name}`);
+    // Throwaway values for the local container stack (infra/local) are named "local-dev-only…".
+    const localOnly = /local-dev-only/.test(line);
+    for (const [name, re] of SECRET_PATTERNS) if (!localOnly && re.test(line)) problems.push(`${file}:${i + 1}  possible ${name}`);
     if (/^src\//.test(file) && !ENV_ALLOWED.test(file) && /process\.env\b/.test(line) && !/^\s*(\/\/|\*)/.test(line)) {
       problems.push(`${file}:${i + 1}  reads process.env directly; use src/env/public.ts or src/env/server.ts`);
     }

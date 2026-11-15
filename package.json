@@ -11,7 +11,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run validate:pricing && npm run validate:env && npm run check:tokens && npm run check:secrets && npm run typecheck && npm run lint && npm run test",
+    "check": "npm run validate:pricing && npm run validate:env && npm run check:tokens && npm run check:secrets && npm run check:migrations && npm run typecheck && npm run lint && npm run test",
     "check:tokens": "tsx scripts/check-tokens.ts",
     "test:a11y": "tsx scripts/a11y.ts",
     "validate:env": "tsx scripts/validate-env.ts",
@@ -28,7 +28,11 @@
     "stack:up": "docker compose -f infra/local/docker-compose.yml up -d --wait",
     "stack:down": "docker compose -f infra/local/docker-compose.yml down",
     "test:storage": "TEST_S3_ENDPOINT=${TEST_S3_ENDPOINT:-http://127.0.0.1:9000} vitest run src/server/storage",
-    "test:supabase-local": "TEST_DATABASE_URL=postgres://postgres:local-dev-only-password@127.0.0.1:54322/postgres vitest run src/server src/mcp"
+    "test:supabase-local": "TEST_DATABASE_URL=postgres://postgres:local-dev-only-password@127.0.0.1:54322/postgres vitest run src/server src/mcp",
+    "workspace:bootstrap": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/workspace-bootstrap.ts",
+    "check:migrations": "node --import tsx scripts/check-migrations.ts",
+    "integration:live": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/integration-live.ts",
+    "worker:restart-test": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/worker-restart-test.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
@@ -45,6 +49,7 @@
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.7.0",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -57,7 +62,6 @@
     "eslint-config-next": "16.4.6",
     "playwright": "^1.63.0",
     "tailwindcss": "4.3.3",
-    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
   },

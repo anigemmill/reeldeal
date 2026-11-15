@@ -6,13 +6,21 @@ import type { Db } from "./types";
   Applies supabase/migrations in order and records them. On a non-Supabase database
   (local Postgres, PGlite) it first applies supabase/local/*, which recreates the
   small part of Supabase the migrations use (roles, auth.users, auth.uid()).
-  On a real Supabase project use the Supabase CLI (`supabase db push`) instead.
+  On a Supabase project (auth.users exists) the local files are never applied.
+  Every migration is additive (npm run check:migrations) and runs in a transaction.
 */
 const ROOT = join(process.cwd(), "supabase");
 
-export async function migrate(db: Db, execFile: (sql: string) => Promise<void>, log: (msg: string) => void = () => {}) {
+export async function pendingMigrations(db: Db) {
+  const hasMeta = await db.system(async (sql) => (await sql.query<{ ok: boolean }>("select to_regclass('reeldeal_meta.migrations') is not null as ok"))[0].ok);
+  const done = new Set(hasMeta ? await db.system(async (sql) => (await sql.query<{ name: string }>("select name from reeldeal_meta.migrations")).map((r) => r.name)) : []);
+  return readdirSync(join(ROOT, "migrations")).filter((x) => x.endsWith(".sql") && !done.has(x)).sort();
+}
+
+export async function migrate(db: Db, execFile: (sql: string) => Promise<void>, log: (msg: string) => void = () => {}, opts: { allowLocalShim?: boolean } = {}) {
   const hasAuth = await db.system(async (sql) => (await sql.query<{ ok: boolean }>("select to_regclass('auth.users') is not null as ok"))[0].ok);
   if (!hasAuth) {
+    if (opts.allowLocalShim === false) throw new Error("This database has no auth schema. It is not a Supabase project; refusing to apply the local compatibility files to it.");
     for (const f of readdirSync(join(ROOT, "local")).filter((x) => x.endsWith(".sql")).sort()) {
       await execFile(readFileSync(join(ROOT, "local", f), "utf8"));
       log(`applied local/${f}`);
