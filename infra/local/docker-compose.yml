@@ -1,0 +1,48 @@
+# LOCAL ONLY: a Supabase-equivalent database and auth server plus an S3-compatible store,
+# so migrations, RLS, auth and signed storage can be verified without any cloud account.
+#   docker compose -f infra/local/docker-compose.yml up -d     (or: npm run stack:up)
+# All passwords and keys below are throwaway local values. Never reuse them anywhere.
+name: reeldeal-local
+services:
+  db:
+    # Same image family Supabase runs (Postgres 17 with Supabase roles, extensions and default privileges).
+    image: supabase/postgres:17.6.1.166
+    environment:
+      POSTGRES_PASSWORD: local-dev-only-password
+      POSTGRES_DB: postgres
+      JWT_SECRET: local-dev-only-jwt-secret-at-least-32-characters
+    ports: ["127.0.0.1:54322:5432"]
+    volumes:
+      - ./db-roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 2s
+      retries: 60
+  auth:
+    # Supabase Auth (GoTrue): creates the real auth schema and issues real user JWTs.
+    image: supabase/gotrue:v2.180.0
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: http://localhost:9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:local-dev-only-password@db:5432/postgres
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_SECRET: local-dev-only-jwt-secret-at-least-32-characters
+    ports: ["127.0.0.1:9999:9999"]
+  storage:
+    # S3-compatible object store standing in for Cloudflare R2 (SigV4 presigning, multipart, conditional PUT).
+    image: bitnamilegacy/minio:latest
+    environment:
+      MINIO_ROOT_USER: localdevaccesskey
+      MINIO_ROOT_PASSWORD: local-dev-only-secret-key
+      MINIO_DEFAULT_BUCKETS: reeldeal-media
+    ports: ["127.0.0.1:9000:9000"]

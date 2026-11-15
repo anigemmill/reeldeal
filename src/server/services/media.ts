@@ -4,7 +4,7 @@ import { z } from "zod";
 import { asUser, iso, num, type Ctx } from "../context";
 import { requireRole, requireScope } from "../auth/principal";
 import { AppError, invalid, notFound, toAppError, unavailable, parseInput } from "../errors";
-import { mediaKey } from "../storage/types";
+import { mediaKey, ownedKey } from "../storage/types";
 import { mediaToolsAvailable } from "../workers/ffmpeg";
 import { currentPeriod } from "./usage";
 import { presentJob, submitJob, type JobRow } from "./jobs";
@@ -139,7 +139,7 @@ export async function getMediaDetails(ctx: Ctx, id: string, opts: { includePrevi
     return { analysis, projects, pending };
   });
   const canPreview = opts.includePreviewUrl && (m.status === "uploaded" || m.status === "ready" || m.status === "analysing");
-  const preview = canPreview ? await ctx.storage.signedGetUrl(m.storage_key, { ttlSeconds: ctx.signedUrlTtlSeconds, filename: m.original_filename ?? undefined }) : null;
+  const preview = canPreview ? await ctx.storage.signedGetUrl(ownedKey(m.storage_key, ctx.principal.orgId), { ttlSeconds: ctx.signedUrlTtlSeconds, filename: m.original_filename ?? undefined }) : null;
   return {
     ...summary(m),
     description: m.description,
@@ -214,8 +214,9 @@ export async function completeMediaUpload(ctx: Ctx, id: string) {
   if (!head) throw invalid("The file has not been uploaded yet (nothing found at the upload URL)");
   const type = UPLOAD_TYPES[m.mime_type];
   const tooBig = !type || head.size > type.maxBytes;
-  await asUser(ctx, (sql) =>
-    sql.query("update public.media_assets set status = $3, size_bytes = $4 where org_id = $1 and id = $2", [ctx.principal.orgId, id, tooBig ? "failed" : "uploaded", head.size]),
+  // Status and verified size are server-owned columns (users cannot set them directly).
+  await ctx.db.system((sys) =>
+    sys.query("update public.media_assets set status = $3, size_bytes = $4 where org_id = $1 and id = $2 and status = 'awaiting_upload'", [ctx.principal.orgId, id, tooBig ? "failed" : "uploaded", head.size]),
   );
   if (tooBig) throw invalid("The uploaded file is larger than allowed and was rejected");
   return { media_id: id, status: "uploaded", size_bytes: head.size, next_step: "Call analyse_media to extract duration, scenes and quality." };
@@ -276,7 +277,7 @@ export async function getMediaAnalysis(ctx: Ctx, id: string, opts: { includeThum
   const scenes = await Promise.all(
     row.scenes.map(async ({ thumbnail_key, ...s }) => ({
       ...s,
-      ...(opts.includeThumbnailUrls && thumbnail_key ? { thumbnail_url: (await ctx.storage.signedGetUrl(thumbnail_key, { ttlSeconds: ctx.signedUrlTtlSeconds })).url } : {}),
+      ...(opts.includeThumbnailUrls && thumbnail_key ? { thumbnail_url: (await ctx.storage.signedGetUrl(ownedKey(thumbnail_key, ctx.principal.orgId), { ttlSeconds: ctx.signedUrlTtlSeconds })).url } : {}),
     })),
   );
   return {

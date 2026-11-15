@@ -6,6 +6,7 @@ import { requireRole, requireScope } from "../auth/principal";
 import type { Sql } from "../db/types";
 import { AppError, invalid, notFound, unavailable, parseInput } from "../errors";
 import { mediaToolsAvailable } from "../workers/ffmpeg";
+import { ownedKey } from "../storage/types";
 import { presentJob, submitJob, type JobRow } from "./jobs";
 import { FORMATS, loadProject, validateScenes, type Scene } from "./projects";
 import { availableVideoCredits, currentPeriod, ensureGrant } from "./usage";
@@ -244,7 +245,7 @@ export async function getExport(ctx: Ctx, exportId: string, opts: { includeDownl
   let download: { url: string; expires_at: string } | null = null;
   if (e.status === "ready" && e.storage_key && opts.includeDownloadUrl !== false) {
     const safeName = `${(e.project_name ?? "video").replace(/[^A-Za-z0-9 _-]/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "video"}-${e.format.replace(":", "x")}.mp4`;
-    const signed = await ctx.storage.signedGetUrl(e.storage_key, { ttlSeconds: ctx.signedUrlTtlSeconds, filename: safeName });
+    const signed = await ctx.storage.signedGetUrl(ownedKey(e.storage_key, ctx.principal.orgId), { ttlSeconds: ctx.signedUrlTtlSeconds, filename: safeName });
     download = { url: signed.url, expires_at: signed.expiresAt };
   }
   return { ...presentExport(e), download };

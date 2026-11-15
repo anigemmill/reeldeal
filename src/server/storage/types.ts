@@ -28,5 +28,11 @@ export function assertKey(key: string, orgId?: string) {
   if (orgId && !key.startsWith(`org/${orgId}/`)) throw new Error("Storage key belongs to another organisation");
 }
 
+/** Returns the key only if it sits inside the given organisation's namespace (checked at every use). */
+export function ownedKey(key: string, orgId: string) {
+  assertKey(key, orgId);
+  return key;
+}
+
 export const mediaKey = (orgId: string, mediaId: string, ext: string) => `org/${orgId}/media/${mediaId}/original.${ext}`;
 export const exportKey = (orgId: string, exportId: string, ext = "mp4") => `org/${orgId}/exports/${exportId}.${ext}`;

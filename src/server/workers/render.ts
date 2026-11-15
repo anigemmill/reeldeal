@@ -6,7 +6,7 @@ import type { Sql } from "../db/types";
 import { completeJob, failJob, reportProgress, type JobRow } from "../services/jobs";
 import type { Scene } from "../services/projects";
 import { currentPeriod } from "../services/usage";
-import { exportKey } from "../storage/types";
+import { exportKey, ownedKey } from "../storage/types";
 import { defaultFont, probe, run } from "./ffmpeg";
 
 /*
@@ -100,7 +100,7 @@ export async function runRender(p: Platform, job: JobRow, workDir: string, opts:
       const [a] = await sys((sql) => sql.query<{ storage_key: string }>("select storage_key from public.media_assets where id = $1 and org_id = $2 and status in ('uploaded', 'ready')", [id, job.org_id]));
       if (!a) throw Object.assign(new Error("Some footage in the storyboard is no longer available"), { retryable: false });
       const local = join(workDir, `src-${id}`);
-      await p.storage.downloadToFile(a.storage_key, local);
+      await p.storage.downloadToFile(ownedKey(a.storage_key, job.org_id), local);
       sources.set(id, local);
     }
 

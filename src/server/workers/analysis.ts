@@ -5,6 +5,7 @@ import type { Sql } from "../db/types";
 import { MediaDescriptionOutput } from "../ai/schemas";
 import { completeJob, reportProgress, type JobRow } from "../services/jobs";
 import { currentPeriod } from "../services/usage";
+import { ownedKey } from "../storage/types";
 import { detectSceneCuts, extractFrame, measureQuality, probe } from "./ffmpeg";
 
 /*
@@ -30,7 +31,7 @@ export async function runMediaAnalysis(p: Platform, job: JobRow, workDir: string
 
   const local = join(workDir, "source");
   await sys((sql) => reportProgress(sql, job.id, "downloading", 5));
-  await p.storage.downloadToFile(asset.storage_key, local);
+  await p.storage.downloadToFile(ownedKey(asset.storage_key, asset.org_id), local);
 
   await sys((sql) => reportProgress(sql, job.id, "reading metadata", 15));
   let meta;
