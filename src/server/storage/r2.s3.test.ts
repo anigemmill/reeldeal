@@ -63,8 +63,8 @@ describe.skipIf(!endpoint)("R2 storage driver on an S3-compatible server", () =>
     expect((await fetch(get.url.replace(/X-Amz-Signature=[0-9a-f]+/, "X-Amz-Signature=" + "0".repeat(64)))).status).toBe(403);
     await new Promise((r) => setTimeout(r, 2100));
     expect((await fetch(get.url)).status).toBe(403);
-    // No anonymous access to the bucket.
-    expect((await fetch(`${endpoint}/${cfg.bucket}/${key}`)).status).toBe(403);
+    // No anonymous access to the bucket (MinIO answers 403; R2 answers 400 "InvalidArgument: Authorization").
+    expect([400, 403]).toContain((await fetch(`${endpoint}/${cfg.bucket}/${key}`)).status);
   });
 
   it("streams a multipart upload and downloads it back intact", async () => {
