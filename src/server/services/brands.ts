@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { asUser, iso, type Ctx } from "../context";
 import { requireRole, requireScope } from "../auth/principal";
-import { invalid, notFound, toAppError, parseInput } from "../errors";
+import { getPlan } from "@/lib/pricing";
+import { AppError, invalid, notFound, toAppError, parseInput } from "../errors";
 
 /* Brand profiles: the organisation's own brand data only. Nothing is invented. */
 
@@ -99,6 +100,12 @@ export async function createBrand(ctx: Ctx, input: BrandInput) {
   requireRole(ctx.principal, "editor");
   const b = parseInput(BrandInput, input);
   if (b.logo_media_id) await assertLogo(ctx, b.logo_media_id);
+  // Plan limit on brand profiles (config/pricing.json).
+  const [{ n, plan_id }] = await asUser(ctx, (sql) =>
+    sql.query<{ n: number; plan_id: string }>("select (select count(*)::int from public.brand_profiles where org_id = $1) as n, (select plan_id from public.organisations where id = $1) as plan_id", [ctx.principal.orgId]),
+  );
+  const limit = getPlan(plan_id)?.brandProfiles;
+  if (typeof limit === "number" && n >= limit) throw new AppError("conflict", `Your ${getPlan(plan_id)?.name ?? plan_id} plan includes ${limit} brand profile${limit === 1 ? "" : "s"}. Edit the existing one, or upgrade for more.`);
   try {
     const [row] = await asUser(ctx, (sql) =>
       sql.query<BrandRow>(
