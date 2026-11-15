@@ -87,6 +87,12 @@ Workers claim with `FOR UPDATE SKIP LOCKED`, heartbeat while running and requeue
 only enqueue; long work runs in `npm run worker` (any Node host with FFmpeg). With the embedded database the
 STDIO and standalone HTTP servers run a worker in-process.
 
+Reliability: jobs are rows in Postgres, so they survive restarts of the app and of workers. A running worker
+heartbeats every `WORKER_HEARTBEAT_SECONDS`; a job silent for `WORKER_STALE_SECONDS` is requeued by any worker,
+and failed (credits released) once it has been claimed `max_attempts` times. Before writing results or moving
+credits the worker re-checks, inside the same transaction, that it still owns the job. On SIGTERM it finishes
+within `WORKER_SHUTDOWN_GRACE_SECONDS` or hands the job back. Container: `infra/worker/Dockerfile`.
+
 ## Credits
 
 `credit_transactions` is an append-only ledger per organisation and period: `grant`, `hold`, `release`,

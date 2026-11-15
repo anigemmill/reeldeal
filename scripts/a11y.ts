@@ -128,7 +128,12 @@ async function keyboard(browser: Browser) {
   check("Modal: focus is trapped", await inDialog());
   await page.keyboard.press("Escape");
   await page.waitForSelector("[role=dialog]", { state: "detached" });
-  check("Modal: Esc closes and returns focus", await trigger.evaluate((el) => el === document.activeElement));
+  // Radix restores focus in a timeout after the dialog unmounts: wait for it (up to 2s) instead of racing it.
+  const focusReturned = await trigger
+    .evaluateHandle((el) => el)
+    .then((h) => page.waitForFunction((el) => el === document.activeElement, h, { timeout: 2000 }))
+    .then(() => true, () => false);
+  check("Modal: Esc closes and returns focus", focusReturned);
 
   // Tabs: arrow keys move selection.
   await page.getByRole("tab", { name: "Moments" }).focus();

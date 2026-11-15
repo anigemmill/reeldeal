@@ -26,6 +26,14 @@ Added in Phase 0. The handoff docs in this folder are unchanged.
 | `npm run db:local` | Local PostgreSQL 16 in `.data/postgres` on port 54329 |
 | `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
 | `npm run test:postgres` | Server and MCP suites against a throwaway PostgreSQL database |
+| `npm run stack:up` / `stack:down` | Local Supabase Postgres + Supabase Auth + S3-compatible store (`infra/local`, Docker) |
+| `npm run test:supabase-local` | Server and MCP suites on the `supabase/postgres` image |
+| `npm run test:storage` | R2 driver and large uploads against the local S3-compatible store |
+| `npm run check:migrations` | Fails on destructive migration statements (part of `npm run check`) |
+| `npm run infra:check` | Read-only check of every configured credential and service |
+| `npm run workspace:bootstrap` | Workspace and MCP token for an existing Supabase Auth user |
+| `npm run integration:live` | Full workflow over MCP on real infrastructure |
+| `npm run worker:restart-test` | Kills a worker mid-render and checks recovery and single charging |
 
 Node 22 or newer. Copy `.env.example` to `.env.local` for local settings (none are required in Phase 1).
 

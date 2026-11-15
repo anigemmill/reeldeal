@@ -32,7 +32,8 @@
     "workspace:bootstrap": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/workspace-bootstrap.ts",
     "check:migrations": "node --import tsx scripts/check-migrations.ts",
     "integration:live": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/integration-live.ts",
-    "worker:restart-test": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/worker-restart-test.ts"
+    "worker:restart-test": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/worker-restart-test.ts",
+    "infra:check": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/infra-check.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

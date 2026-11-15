@@ -179,3 +179,30 @@ Full description: `docs/mcp.md` and `docs/architecture/mcp.md`. Decisions made a
   provider.
 - **Production refuses unsafe defaults:** it requires `DATABASE_URL`, `SIGNING_SECRET` and R2. Local storage in
   a production build needs `STORAGE_DRIVER=local` as an explicit opt-in (used only for local testing).
+
+## Infrastructure connection phase
+Setup checklist: `docs/infrastructure-setup.md`. Decisions:
+
+- **A dedicated Supabase project for Reeldeal.** The org's existing active projects hold another product's
+  live data; they were listed read-only and left untouched.
+- **Least-privilege grants (migration `20261115000001`).** On Supabase's own Postgres image, the first
+  migration left Supabase's default ALL grants in place: a signed-in user could, through the Data API, have
+  changed `plan_id`, widened their own token's scopes, repointed `storage_key` at another organisation's
+  object, or TRUNCATEd tables. Now every grant is per column, anon has nothing, keys are constrained to the
+  row's organisation, and every signing and download re-checks the key against the caller's organisation.
+  The local shim reproduces Supabase's default grants, so tests catch this class of bug.
+- **No service-role key anywhere.** User requests run as `authenticated` under RLS; workers and the ledger use
+  the database connection. `SUPABASE_SERVICE_ROLE_KEY` stays empty.
+- **Migrations: `npm run db:migrate`, not the Supabase CLI**, for this project (the two record applied
+  migrations in different tables; use one). Remote targets need `--apply`; migrations must be additive.
+- **Local stand-ins for verification** (`infra/local`): `supabase/postgres` 17 + Supabase Auth (GoTrue) and an
+  S3-compatible store (MinIO, Bitnami legacy image: development only). They prove behaviour, not the
+  hosted services' configuration, which `npm run infra:check` and `npm run integration:live` cover.
+- **Multipart uploads above 100 MiB**, 64 MiB equal parts (R2 requires equal parts), server lists parts on
+  completion, missing parts get fresh URLs. Video uploads up to 20 GB. Single PUTs carry `If-None-Match: *`.
+- **Worker:** jobs are claimed at most `max_attempts` times; heartbeat every 15 s; stale after 120 s; ownership
+  re-checked before finalising; a unique ledger index makes double charging impossible; SIGTERM finishes within
+  25 s or hands the job back. Container: Ubuntu 24.04 + FFmpeg 6.1 (Debian mirrors were unreachable from the
+  build sandbox; Ubuntu also ships Inter). `tsx` moved to runtime dependencies (the worker runs TypeScript).
+- **Remote MCP stays development-only.** Production builds refuse personal access tokens and return 503 until
+  OAuth is configured; the standalone HTTP server binds to 127.0.0.1.

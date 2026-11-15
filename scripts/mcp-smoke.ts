@@ -17,13 +17,16 @@ const tokenName = args.includes("--as") ? args[args.indexOf("--as") + 1] : "aroh
 const tokenFile = args.includes("--tokens") ? args[args.indexOf("--tokens") + 1] : ".data/dev-tokens.json";
 const token = process.env.REELDEAL_MCP_TOKEN ?? (JSON.parse(readFileSync(tokenFile, "utf8")) as Record<string, string>)[tokenName];
 
+const serverLog: string[] = [];
 const short = (v: unknown) => JSON.stringify(v).slice(0, 220);
 
 async function main() {
   const client = new Client({ name: "reeldeal-smoke-test", version: "1.0.0" });
   const transport = httpUrl
     ? new StreamableHTTPClientTransport(new URL(httpUrl), { requestInit: { headers: { authorization: `Bearer ${token}` } } })
-    : new StdioClientTransport({ command: "scripts/mcp-stdio.sh", env: { ...(process.env as Record<string, string>), REELDEAL_MCP_TOKEN: token }, stderr: "ignore" });
+    : new StdioClientTransport({ command: "scripts/mcp-stdio.sh", env: { ...(process.env as Record<string, string>), REELDEAL_MCP_TOKEN: token }, stderr: "pipe" });
+  // Keep the server's log lines so a failed start can be explained.
+  (transport as StdioClientTransport).stderr?.on?.("data", (d: Buffer) => serverLog.push(...d.toString().split("\n").filter(Boolean)));
   await client.connect(transport);
   const info = client.getServerVersion();
   console.log(`✓ connected over ${httpUrl ? "Streamable HTTP" : "STDIO"} to ${info?.name} ${info?.version} (protocol negotiated)`);
@@ -162,5 +165,13 @@ async function main() {
 
 main().catch((e) => {
   console.error(`✗ ${(e as Error).message}`);
+  for (const line of serverLog.slice(-5)) {
+    try {
+      const l = JSON.parse(line) as { level: string; msg: string };
+      if (l.level === "error" || l.level === "warn") console.error(`  server: ${l.msg}`);
+    } catch {
+      console.error(`  server: ${line.slice(0, 200)}`);
+    }
+  }
   process.exit(1);
 });

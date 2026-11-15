@@ -52,7 +52,9 @@ async function main() {
       else res.end();
     }
   });
-  server.listen(port, () => platform.log.info("reeldeal MCP server listening (streamable http)", { url: resourceUrl, oauth: Boolean(cfg.oauth), worker: Boolean(worker), storage: platform.storage.driver }));
+  // Loopback only: this server accepts personal access tokens and is a development tool.
+  // Remote clients use the deployed /api/mcp endpoint with OAuth.
+  server.listen(port, "127.0.0.1", () => platform.log.info("reeldeal MCP server listening (streamable http)", { url: resourceUrl, oauth: Boolean(cfg.oauth), worker: Boolean(worker), storage: platform.storage.driver }));
 
   const shutdown = async () => {
     server.close();

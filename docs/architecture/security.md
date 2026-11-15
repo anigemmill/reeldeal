@@ -142,6 +142,14 @@ becomes the auth gate (session check and redirect to sign in), and the review fl
 
 ## 8. MCP server and platform core (implemented)
 
+**Privileges on Supabase (migration `20261115000001_supabase_privileges.sql`).** Supabase grants ALL on new
+public tables to `anon` and `authenticated` by default. Grants are now explicit and per column: anon has none;
+users never get TRUNCATE (which ignores RLS), cannot write server-owned tables or columns (`plan_id`, token
+scopes, `storage_key`, media `status`), and cannot read token hashes. `storage_key` is constrained to the row's
+own organisation namespace. Audited by `src/server/db/privileges.test.ts` on PGlite, PostgreSQL 16 and the
+`supabase/postgres` image, and by `npm run infra:check` on a live project.
+
+
 Details in [`mcp.md`](mcp.md). What is in the code now:
 
 - **Identity from trusted data only.** MCP calls run as a `Principal` built from a personal access token row

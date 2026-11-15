@@ -46,6 +46,8 @@ npm run mcp:smoke -- --render
 
 `--render` submits a two-scene storyboard, quotes it, confirms and waits for a real 1080×1920 MP4.
 
+Step-by-step guide with checks and troubleshooting: [`docs/connect-claude.md`](connect-claude.md).
+
 ### Claude Desktop
 
 Edit `claude_desktop_config.json` (Settings → Developer → Edit Config). Use the absolute path of your
@@ -124,6 +126,11 @@ Two ways to serve the same endpoint:
 | Next.js (Vercel) | `npm run dev` / deployed app | `/api/mcp` |
 | Standalone Node | `npm run mcp:http` | `http://localhost:3333/mcp` |
 
+**Remote authentication is development-only until the OAuth authorisation server is connected.**
+Personal access tokens are accepted only by `npm run dev` and by the standalone server, which listens on
+`127.0.0.1` only. A production build (any Vercel deployment, preview included) refuses tokens and answers
+`503` until OAuth is configured. Nothing is deployed.
+
 Both are stateless Streamable HTTP with JSON responses, so they run on serverless platforms. Neither
 accepts unauthenticated requests: without a valid bearer token the server answers `401` with
 `WWW-Authenticate: Bearer resource_metadata="…/.well-known/oauth-protected-resource/…"` (RFC 9728), which
@@ -150,11 +157,19 @@ server**; the authorisation server is the Supabase Auth OAuth 2.1 server. Set:
 
 The verifier checks signature (JWKS), issuer, audience and expiry, then resolves the organisation from the
 user's memberships. A user in several workspaces picks one with the `X-Reeldeal-Organisation` header; the
-choice is checked against their memberships, never trusted. Set `allowPats: false` (see `src/mcp/next.ts`)
-to accept OAuth only once it is live.
+choice is checked against their memberships, never trusted. Production builds accept OAuth tokens only.
 
 Status: verifier implemented and tested against a local JWKS server; not yet connected to a live Supabase
 OAuth server.
+
+## Uploads
+
+`create_media_upload` returns either one signed PUT (`upload.method: "PUT"`, with headers that must be sent,
+including `If-None-Match: *` on R2) or, above 100 MiB on R2, a multipart plan (`upload.method: "multipart"`):
+equal-sized parts with a signed URL and byte range each. Parts can be sent in any order or in parallel.
+`complete_media_upload` checks the stored parts itself; if any are missing it returns
+`status: "awaiting_upload"` with fresh URLs for just those parts. Originals are never overwritten. Upload
+links last `UPLOAD_URL_TTL_SECONDS` (default 1 hour); download links `R2_SIGNED_URL_TTL_SECONDS`.
 
 ## Credits and confirmation
 
@@ -196,8 +211,8 @@ message; internal details stay in the server log.
 
 | Capability | Status |
 |---|---|
-| Database, RLS, organisation isolation | Real (embedded PGlite locally, PostgreSQL 16 tested; Supabase not connected yet) |
-| Uploads and downloads with signed URLs | Real with local storage; R2 driver written and unit-tested, not run against a bucket |
+| Database, RLS, organisation isolation | Real. Verified on PGlite, PostgreSQL 16 and the `supabase/postgres` 17 image with Supabase Auth (`infra/local`). Not yet run on a hosted Supabase project |
+| Uploads and downloads with signed URLs | Real. R2 driver verified against an S3-compatible server (SigV4, multipart, conditional PUT). Not yet run against a Cloudflare R2 bucket |
 | Analysis | Real FFmpeg: technical metadata, scene cuts, keyframes, quality heuristics (sharpness, exposure, black frames, audio). AI description only with the organisation's consent and a provider |
 | Briefs, concepts, storyboards | Real AI calls (OpenAI structured outputs) when configured; otherwise unavailable |
 | Rendering | Real FFmpeg MP4 (H.264/AAC, 1080p, cuts, text overlays, brand-colour title cards). No music, voice-over or captions yet |
@@ -210,6 +225,11 @@ message; internal details stay in the server log.
 |---|---|
 | `npm test` | All unit tests, including the server and MCP suites on embedded PGlite (AI mocked) |
 | `npm run test:postgres` | The server and MCP suites against a throwaway database on a local PostgreSQL 16 |
+| `npm run test:supabase-local` | The same suites on the `supabase/postgres` image (`npm run stack:up` first) |
+| `npm run test:storage` | R2 driver and large uploads against the local S3-compatible server |
+| `npm run integration:live` | Full workflow on real infrastructure: see [`docs/infrastructure-setup.md`](infrastructure-setup.md) |
+| `npm run worker:restart-test` | Kills a real worker mid-render and checks recovery and single charging |
+| `npm run infra:check` | Read-only check of every configured credential |
 | `npm run mcp:smoke` | SDK client against the real STDIO server (add `--http <url>` for HTTP) |
 | `npx @modelcontextprotocol/inspector scripts/mcp-stdio.sh` | Interactive inspection (set `REELDEAL_MCP_TOKEN` first) |
 

@@ -4,8 +4,9 @@
   (Supabase), R2_* (Cloudflare R2), OPENAI_API_KEY (with --ai). A worker must be
   running against the same database and storage (npm run worker, or the container).
 
-    npm run integration:live -- --auth-url https://<ref>.supabase.co/auth/v1 --anon-key <publishable key> \
-        [--footage path/to/real-clip.mp4] [--ai] [--signup]
+    npm run integration:live -- [--footage path/to/real-clip.mp4] [--ai] [--signup]
+  Supabase Auth is reached at NEXT_PUBLIC_SUPABASE_URL with the publishable key
+  (override with --auth-url / --anon-key, e.g. http://localhost:9999 for infra/local).
 
   Needs two Supabase Auth test users (they are signed in with a password to obtain
   real session JWTs): INTEGRATION_USER_A_EMAIL / _PASSWORD and INTEGRATION_USER_B_EMAIL / _PASSWORD.
@@ -23,6 +24,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { createAccessToken, revokeAccessToken } from "../src/server/auth/tokens";
 import { pendingMigrations } from "../src/server/db/migrate";
+import { publicEnv } from "../src/env/public";
 import { createPlatform, platformEnv as env } from "../src/server/platform";
 import { ensureGrant } from "../src/server/services/usage";
 
@@ -35,8 +37,9 @@ const fail = (msg: string): never => {
 };
 
 async function authSession(email: string, password: string) {
-  const base = args["auth-url"] ?? fail("--auth-url is required (https://<ref>.supabase.co/auth/v1)");
-  const headers: Record<string, string> = { "content-type": "application/json", ...(args["anon-key"] ? { apikey: args["anon-key"] } : {}) };
+  const base = args["auth-url"] ?? (publicEnv.NEXT_PUBLIC_SUPABASE_URL ? `${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/auth/v1` : fail("Set NEXT_PUBLIC_SUPABASE_URL or pass --auth-url"));
+  const anonKey = args["anon-key"] ?? publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const headers: Record<string, string> = { "content-type": "application/json", ...(anonKey ? { apikey: anonKey } : {}) };
   const signIn = () => fetch(`${base}/token?grant_type=password`, { method: "POST", headers, body: JSON.stringify({ email, password }) });
   let res = await signIn();
   if (res.status === 400 && args.signup) {
