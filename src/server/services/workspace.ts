@@ -1,6 +1,6 @@
 import { getPlan } from "@/lib/pricing";
 import { asUser, iso, type Ctx } from "../context";
-import { permissionsFor } from "../auth/principal";
+import { permissionsFor, requireRole } from "../auth/principal";
 import { AppError } from "../errors";
 import { getUsage } from "./usage";
 
@@ -44,4 +44,17 @@ export async function getMyWorkspace(ctx: Ctx) {
     contents: data.counts,
     other_workspaces: data.others.filter((o) => o.id !== data.org.id).map((o) => ({ id: o.id, name: o.name, role: o.role })),
   };
+}
+
+/**
+ * The workspace's consent to send keyframes (never whole videos) to the AI provider
+ * for descriptions during analysis. Admins and owners only; off by default.
+ */
+export async function setAiMediaConsent(ctx: Ctx, enabled: boolean) {
+  requireRole(ctx.principal, "admin");
+  const [row] = await asUser(ctx, (sql) =>
+    sql.query<{ ai_media_analysis_consent: boolean }>("update public.organisations set ai_media_analysis_consent = $2 where id = $1 returning ai_media_analysis_consent", [ctx.principal.orgId, enabled]),
+  );
+  if (!row) throw new AppError("forbidden", "Only workspace admins can change this setting");
+  return { ai_media_analysis_consent: row.ai_media_analysis_consent };
 }
