@@ -43,6 +43,12 @@ export const serverSchema = z
     R2_SECRET_ACCESS_KEY: optionalString,
     /** Private bucket: no public access; files are served through signed URLs only. */
     R2_BUCKET: optionalString,
+    /** Optional S3 endpoint override: an R2 jurisdiction endpoint, or a local S3-compatible server for tests. */
+    R2_ENDPOINT: optionalUrl,
+    /** Signing region. R2 uses "auto". */
+    R2_REGION: z.string().min(1).default("auto"),
+    /** Lifetime of upload links (single PUT and multipart parts). Large files need longer than downloads. */
+    UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().min(300).max(43200).default(3600),
     /** Lifetime of signed upload/download URLs. Keep short. */
     R2_SIGNED_URL_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
 

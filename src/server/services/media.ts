@@ -15,9 +15,9 @@ import { presentJob, submitJob, type JobRow } from "./jobs";
 */
 
 export const UPLOAD_TYPES: Record<string, { ext: string; kind: "video" | "image" | "audio"; maxBytes: number }> = {
-  "video/mp4": { ext: "mp4", kind: "video", maxBytes: 5e9 },
-  "video/quicktime": { ext: "mov", kind: "video", maxBytes: 5e9 },
-  "video/webm": { ext: "webm", kind: "video", maxBytes: 5e9 },
+  "video/mp4": { ext: "mp4", kind: "video", maxBytes: 20e9 },
+  "video/quicktime": { ext: "mov", kind: "video", maxBytes: 20e9 },
+  "video/webm": { ext: "webm", kind: "video", maxBytes: 20e9 },
   "image/jpeg": { ext: "jpg", kind: "image", maxBytes: 5e7 },
   "image/png": { ext: "png", kind: "image", maxBytes: 5e7 },
   "image/webp": { ext: "webp", kind: "image", maxBytes: 5e7 },
@@ -196,21 +196,95 @@ export async function createMediaUpload(ctx: Ctx, raw: z.infer<typeof UploadInpu
   } catch (e) {
     throw toAppError(e);
   }
-  const put = await ctx.storage.signedPutUrl(key, { ttlSeconds: Math.max(ctx.signedUrlTtlSeconds, 900), contentType: u.content_type });
+  if (ctx.storage.multipart && u.size_bytes > MULTIPART_THRESHOLD_BYTES) return startMultipart(ctx, id, key, u.content_type, u.size_bytes);
+  const put = await ctx.storage.signedPutUrl(key, { ttlSeconds: ctx.uploadUrlTtlSeconds, contentType: u.content_type });
   return {
     media_id: id,
     status: "awaiting_upload",
-    upload: { method: "PUT", url: put.url, expires_at: put.expiresAt, headers: { "content-type": u.content_type } },
-    next_step: "PUT the file bytes to upload.url with the content-type header, then call complete_media_upload with this media_id.",
+    upload: { method: "PUT", url: put.url, expires_at: put.expiresAt, headers: ctx.storage.uploadHeaders?.(u.content_type) ?? { "content-type": u.content_type } },
+    next_step: "PUT the file bytes to upload.url with exactly these headers, then call complete_media_upload with this media_id.",
+  };
+}
+
+/*
+  Large files: S3/R2 multipart. All parts except the last have the same size (an R2
+  requirement). The client PUTs each byte range to its part URL, in any order or in
+  parallel; the server lists the stored parts itself on completion.
+*/
+export const MULTIPART_THRESHOLD_BYTES = 100 * 1024 * 1024;
+const MIN_PART = 64 * 1024 * 1024;
+
+export function partPlan(size: number) {
+  const mib = 1024 * 1024;
+  const partSize = Math.max(MIN_PART, Math.ceil(size / 10000 / mib) * mib);
+  return { partSize, partCount: Math.ceil(size / partSize) };
+}
+
+async function signParts(ctx: Ctx, key: string, uploadId: string, partSize: number, size: number, numbers: number[]) {
+  const mp = ctx.storage.multipart!;
+  return Promise.all(
+    numbers.map(async (n) => {
+      const signed = await mp.signPart(key, uploadId, n, ctx.uploadUrlTtlSeconds);
+      const start = (n - 1) * partSize;
+      return { part_number: n, url: signed.url, byte_start: start, byte_end_inclusive: Math.min(size, start + partSize) - 1 };
+    }),
+  );
+}
+
+async function startMultipart(ctx: Ctx, id: string, key: string, contentType: string, size: number) {
+  const { partSize, partCount } = partPlan(size);
+  const { uploadId } = await ctx.storage.multipart!.create(key, contentType);
+  await ctx.db.system((sys) =>
+    sys.query("insert into public.media_uploads (media_id, org_id, upload_id, part_size_bytes, part_count) values ($1, $2, $3, $4, $5)", [id, ctx.principal.orgId, uploadId, partSize, partCount]),
+  );
+  const parts = await signParts(ctx, key, uploadId, partSize, size, Array.from({ length: partCount }, (_, i) => i + 1));
+  return {
+    media_id: id,
+    status: "awaiting_upload",
+    upload: {
+      method: "multipart",
+      part_size_bytes: partSize,
+      part_count: partCount,
+      expires_at: new Date(Date.now() + ctx.uploadUrlTtlSeconds * 1000).toISOString(),
+      parts,
+    },
+    next_step: "PUT each byte range (byte_start to byte_end_inclusive) of the file to its part URL, then call complete_media_upload with this media_id. If parts are missing it returns fresh URLs for them.",
   };
 }
 
 export async function completeMediaUpload(ctx: Ctx, id: string) {
   requireScope(ctx.principal, "mcp:write");
   requireRole(ctx.principal, "editor");
-  const m = await loadMedia(ctx, id);
+  const m = await loadMedia(ctx, id); // ownership check in user context
   if (m.status !== "awaiting_upload") throw new AppError("conflict", `This upload is already ${m.status}`);
-  const head = await ctx.storage.head(m.storage_key);
+  const key = ownedKey(m.storage_key, ctx.principal.orgId);
+  const [mp] = await ctx.db.system((sys) =>
+    sys.query<{ upload_id: string; part_size_bytes: string; part_count: number }>(
+      "select upload_id, part_size_bytes, part_count from public.media_uploads where media_id = $1 and org_id = $2 and completed_at is null",
+      [id, ctx.principal.orgId],
+    ),
+  );
+  if (mp && ctx.storage.multipart) {
+    const partSize = Number(mp.part_size_bytes);
+    const declared = Number(m.size_bytes ?? 0);
+    const stored = await ctx.storage.multipart.listParts(key, mp.upload_id);
+    const byNumber = new Map(stored.map((p) => [p.partNumber, p]));
+    const expectedSize = (n: number) => (n < mp.part_count ? partSize : declared - partSize * (mp.part_count - 1));
+    const bad = Array.from({ length: mp.part_count }, (_, i) => i + 1).filter((n) => byNumber.get(n)?.size !== expectedSize(n));
+    if (bad.length) {
+      return {
+        media_id: id,
+        status: "awaiting_upload",
+        parts_received: mp.part_count - bad.length,
+        part_count: mp.part_count,
+        missing_parts: await signParts(ctx, key, mp.upload_id, partSize, declared, bad.slice(0, 1000)),
+        next_step: `${bad.length} part(s) are missing or the wrong size. Upload them to the fresh URLs, then call complete_media_upload again.`,
+      };
+    }
+    await ctx.storage.multipart.complete(key, mp.upload_id, stored);
+    await ctx.db.system((sys) => sys.query("update public.media_uploads set completed_at = now() where media_id = $1", [id]));
+  }
+  const head = await ctx.storage.head(key);
   if (!head) throw invalid("The file has not been uploaded yet (nothing found at the upload URL)");
   const type = UPLOAD_TYPES[m.mime_type];
   const tooBig = !type || head.size > type.maxBytes;

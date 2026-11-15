@@ -13,6 +13,8 @@ export type Platform = {
   /** HMAC secret for credit quotes (and local signed URLs). */
   signingSecret: string;
   signedUrlTtlSeconds: number;
+  /** Lifetime of upload links (single PUT and multipart parts). */
+  uploadUrlTtlSeconds: number;
   media: { ffmpeg: string; ffprobe: string };
   version: string;
 };

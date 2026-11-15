@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Platform } from "../context";
-import { seedDemoData, type DemoData } from "../seed";
+import type { DemoData } from "../seed";
 import { createTestPlatform } from "../testing";
 
 /*

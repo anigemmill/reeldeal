@@ -7,8 +7,22 @@
 */
 export type SignedUrl = { url: string; expiresAt: string; method: "GET" | "PUT" };
 
+export type UploadedPart = { partNumber: number; etag: string; size: number };
+
+/** Multipart uploads for large files (S3/R2). Optional: local storage takes single streamed PUTs. */
+export interface MultipartStorage {
+  create(key: string, contentType: string): Promise<{ uploadId: string }>;
+  signPart(key: string, uploadId: string, partNumber: number, ttlSeconds: number): Promise<SignedUrl>;
+  listParts(key: string, uploadId: string): Promise<UploadedPart[]>;
+  complete(key: string, uploadId: string, parts: UploadedPart[]): Promise<void>;
+  abort(key: string, uploadId: string): Promise<void>;
+}
+
 export interface Storage {
   readonly driver: "local" | "r2";
+  readonly multipart?: MultipartStorage;
+  /** Headers the client must send with a signed PUT (they are part of the signature). */
+  uploadHeaders?(contentType: string): Record<string, string>;
   /** Signed download link (GET), valid for ttlSeconds. */
   signedGetUrl(key: string, opts: { ttlSeconds: number; filename?: string }): Promise<SignedUrl>;
   /** Signed upload link (PUT) for a new object. */

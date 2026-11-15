@@ -158,7 +158,7 @@ export const TOOLS: ToolDef[] = [
   tool({
     name: "create_media_upload",
     title: "Start a media upload",
-    description: `Register a new media file and get a short-lived signed upload URL. Then PUT the file bytes to that URL with the given content-type header (for example with curl -X PUT -H 'content-type: …' --data-binary @file 'URL'), and call complete_media_upload. Allowed types: ${Object.keys(UPLOAD_TYPES).join(", ")}. Requires editor role.`,
+    description: `Register a new media file and get signed upload URLs. Small files (upload.method "PUT"): PUT the bytes to upload.url with exactly upload.headers (for example curl -X PUT -H 'content-type: …' -H 'if-none-match: *' --data-binary @file 'URL'). Large files (upload.method "multipart"): PUT each byte range to its part URL (any order, parallel is fine). Then call complete_media_upload. Existing originals can never be overwritten. Allowed types: ${Object.keys(UPLOAD_TYPES).join(", ")}. Requires editor role.`,
     scope: "mcp:write",
     input: z.object({
       title: z.string().min(1).max(200),
@@ -170,14 +170,14 @@ export const TOOLS: ToolDef[] = [
       brand_id: id("Brand").optional(),
       usage_rights: z.string().max(500).optional(),
     }),
-    output: loose({ media_id: z.string(), status: z.string(), upload: loose({ url: z.string(), expires_at: z.string() }) }),
+    output: loose({ media_id: z.string(), status: z.string(), upload: loose({ method: z.enum(["PUT", "multipart"]), expires_at: z.string() }) }),
     annotations: WRITE,
     run: (ctx, a) => createMediaUpload(ctx, a),
   }),
   tool({
     name: "complete_media_upload",
     title: "Finish a media upload",
-    description: "Confirm that the file was uploaded to the signed URL. The platform checks the stored file and marks the asset uploaded. Then call analyse_media.",
+    description: "Confirm that the file was uploaded. The platform checks the stored file (and, for multipart uploads, every part) and marks the asset uploaded; then call analyse_media. If multipart parts are missing, it returns status awaiting_upload with fresh URLs for just those parts.",
     scope: "mcp:write",
     input: z.object({ media_id: id("Media asset") }),
     output: loose({ media_id: z.string(), status: z.string() }),

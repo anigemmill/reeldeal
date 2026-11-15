@@ -44,7 +44,7 @@ export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateE
   const useR2 = env.STORAGE_DRIVER === "r2" || (!env.STORAGE_DRIVER && env.R2_BUCKET);
   let storage: Storage;
   if (useR2 && env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY && env.R2_BUCKET) {
-    storage = createR2Storage({ accountId: env.R2_ACCOUNT_ID, accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY, bucket: env.R2_BUCKET });
+    storage = createR2Storage({ accountId: env.R2_ACCOUNT_ID, accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY, bucket: env.R2_BUCKET, endpoint: env.R2_ENDPOINT, region: env.R2_REGION });
   } else {
     // Production never falls back to local disk silently; STORAGE_DRIVER=local is an explicit opt-in for local testing only.
     if (env.NODE_ENV === "production" && env.STORAGE_DRIVER !== "local") throw new Error("R2 storage is required in production");
@@ -63,6 +63,7 @@ export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateE
     log,
     signingSecret,
     signedUrlTtlSeconds: env.R2_SIGNED_URL_TTL_SECONDS,
+    uploadUrlTtlSeconds: env.UPLOAD_URL_TTL_SECONDS,
     media: { ffmpeg: env.FFMPEG_PATH, ffprobe: env.FFPROBE_PATH },
     version: PLATFORM_VERSION,
   };
