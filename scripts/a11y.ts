@@ -161,7 +161,7 @@ async function keyboard(browser: Browser) {
 
   // Autopilot: option radiogroup.
   page = await load(ctx, review("autopilot&step=review", "crossroads.workspace.a"));
-  await page.getByRole("radio", { checked: true }).focus();
+  await page.getByRole("radiogroup", { name: "Choose an option" }).getByRole("radio", { checked: true }).focus();
   await page.keyboard.press("ArrowRight");
   check("Autopilot: arrow key picks the next option", (await page.getByRole("radio", { name: /2 · Energetic/ }).getAttribute("aria-checked")) === "true");
   await page.close();

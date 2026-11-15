@@ -31,7 +31,7 @@ export function SignInForm({ next, banner }: { next: string; banner?: string }) 
         <Input name="password" type="password" autoComplete="current-password" required />
       </Field>
       <div className="flex justify-end text-sm">
-        <Link href="/forgot-password" className="text-primary underline-offset-4 hover:underline">Forgot your password?</Link>
+        <Link href="/forgot-password" className="text-link underline-offset-4 hover:underline">Forgot your password?</Link>
       </div>
       <Button type="submit" variant="primary" size="lg" loading={pending}>
         {pending ? "Signing in…" : "Sign in"}

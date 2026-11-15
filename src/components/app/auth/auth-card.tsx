@@ -5,7 +5,7 @@ import { Logo } from "@/components/brand/logo";
 /* Centered card used by sign-in, sign-up, password reset and onboarding. */
 export function AuthCard({ title, accent, intro, children, footer }: { title: string; accent?: string; intro?: ReactNode; children: ReactNode; footer?: ReactNode }) {
   return (
-    <main id="main" className="flex min-h-dvh items-center justify-center bg-tint px-4 py-10">
+    <main id="main" className="flex min-h-dvh items-center justify-center bg-bg px-4 py-10">
       <div className="flex w-full max-w-[440px] flex-col gap-6">
         <Link href="/" aria-label="Reeldeal home" className="w-fit self-center rounded-sm px-1.5 py-1">
           <Logo size="sm" />

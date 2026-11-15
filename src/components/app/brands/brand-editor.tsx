@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { COLOUR_PICKER_FALLBACK_HEX, NEW_BRAND_COLOUR_HEX } from "@/content/brand-defaults";
 import { relativeTime } from "@/lib/format";
 
 /*
@@ -139,7 +140,7 @@ export function BrandEditor({ brand, canEdit, logoUrl, versions, assets }: { bra
           <legend className="mb-2 text-sm font-medium">Colours</legend>
           {colours.map((c, i) => (
             <div key={i} className="flex items-center gap-2">
-              <input type="color" aria-label={`Colour ${i + 1} picker`} value={/^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : "#000000"} onChange={(e) => setColours((cs) => cs.map((x, k) => (k === i ? { ...x, hex: e.target.value.toUpperCase() } : x)))} className="size-11 shrink-0 cursor-pointer rounded-md border border-line bg-surface" />
+              <input type="color" aria-label={`Colour ${i + 1} picker`} value={/^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : COLOUR_PICKER_FALLBACK_HEX} onChange={(e) => setColours((cs) => cs.map((x, k) => (k === i ? { ...x, hex: e.target.value.toUpperCase() } : x)))} className="size-11 shrink-0 cursor-pointer rounded-md border border-line bg-surface" />
               <Input aria-label={`Colour ${i + 1} name`} value={c.name} placeholder="Name, e.g. Lake blue" onChange={(e) => setColours((cs) => cs.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))} />
               <Input aria-label={`Colour ${i + 1} hex`} value={c.hex} className="w-28 font-mono" onChange={(e) => setColours((cs) => cs.map((x, k) => (k === i ? { ...x, hex: e.target.value } : x)))} />
               <Button type="button" variant="ghost" size="sm" aria-label={`Remove colour ${i + 1}`} onClick={() => setColours((cs) => cs.filter((_, k) => k !== i))}>
@@ -148,7 +149,7 @@ export function BrandEditor({ brand, canEdit, logoUrl, versions, assets }: { bra
             </div>
           ))}
           {errors.colours ? <p className="text-xs text-danger">Use #RRGGBB for every colour.</p> : null}
-          <Button type="button" variant="secondary" size="sm" className="w-fit" disabled={colours.length >= 12} onClick={() => setColours((cs) => [...cs, { name: "", hex: "#1F4E79" }])}>
+          <Button type="button" variant="secondary" size="sm" className="w-fit" disabled={colours.length >= 12} onClick={() => setColours((cs) => [...cs, { name: "", hex: NEW_BRAND_COLOUR_HEX }])}>
             <Plus aria-hidden /> Add colour
           </Button>
           <p className="text-xs text-ink-muted">The renderer uses your first colour for text cards.</p>

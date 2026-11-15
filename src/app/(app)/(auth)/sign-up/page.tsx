@@ -12,7 +12,7 @@ export default function SignUpPage() {
       title="Start making"
       accent="videos."
       intro="Create your account, then set up your workspace and brand in under a minute."
-      footer={<>Already have an account? <Link href="/sign-in" className="font-medium text-primary underline-offset-4 hover:underline">Sign in</Link></>}
+      footer={<>Already have an account? <Link href="/sign-in" className="font-medium text-link underline-offset-4 hover:underline">Sign in</Link></>}
     >
       {authConfigured ? <SignUpForm /> : <FormMessage tone="error">Accounts aren&apos;t available on this server yet: Supabase Auth is not configured.</FormMessage>}
     </AuthCard>
