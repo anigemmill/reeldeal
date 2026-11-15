@@ -115,7 +115,9 @@ export function MediaDetail({ mediaId, canEdit, uploadingHere, onClose, onAnalys
                       </Button>
                     ) : null}
                   </div>
-                  {a.status === "analysed" && a.analysis ? (
+                  {a.status === "analysed" && a.analysis && d.kind === "image" ? (
+                    <p className="text-sm text-ink-muted">Dimensions read and a thumbnail made. Images aren&apos;t scored.</p>
+                  ) : a.status === "analysed" && a.analysis ? (
                     <AnalysisResult analysis={a.analysis} />
                   ) : a.job && (a.job.status === "queued" || a.job.status === "running") ? (
                     <p className="flex items-center gap-2 text-sm" role="status">
@@ -127,7 +129,7 @@ export function MediaDetail({ mediaId, canEdit, uploadingHere, onClose, onAnalys
                       <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden /> {a.job.error?.message ?? "Analysis failed."}
                     </p>
                   ) : (
-                    <p className="text-sm text-ink-muted">{d.kind === "video" ? "Not analysed yet." : "Images are not analysed."}</p>
+                    <p className="text-sm text-ink-muted">{d.kind === "audio" ? "Audio files are not analysed." : "Not analysed yet."}</p>
                   )}
                 </section>
 

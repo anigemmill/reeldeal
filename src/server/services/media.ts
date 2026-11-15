@@ -75,7 +75,8 @@ function summary(m: MediaRow) {
 
 /** Short-lived signed thumbnail: the first analysed keyframe of a video, or the image itself. */
 async function thumbnailUrl(ctx: Ctx, m: Pick<MediaRow, "kind" | "status" | "storage_key" | "thumb_key">) {
-  const key = m.kind === "image" && (m.status === "uploaded" || m.status === "ready") ? m.storage_key : m.thumb_key;
+  // The generated thumbnail when there is one; an image's original only until its thumbnail exists.
+  const key = m.thumb_key ?? (m.kind === "image" && (m.status === "uploaded" || m.status === "ready") ? m.storage_key : null);
   if (!key) return null;
   return (await ctx.storage.signedGetUrl(ownedKey(key, ctx.principal.orgId), { ttlSeconds: ctx.signedUrlTtlSeconds })).url;
 }
@@ -311,7 +312,7 @@ export async function requestAnalysis(ctx: Ctx, id: string) {
   requireScope(ctx.principal, "mcp:write");
   requireRole(ctx.principal, "editor");
   const m = await loadMedia(ctx, id); // ownership check in user context
-  if (m.kind !== "video") throw invalid("Analysis currently supports video files only");
+  if (m.kind === "audio") throw invalid("Analysis supports video and image files");
   if (m.status === "awaiting_upload") throw invalid("Finish the upload first (complete_media_upload)");
   if (!(await mediaToolsAvailable(ctx.media))) throw unavailable("Media analysis is not available on this server (FFmpeg is not installed).");
   if (!(await ctx.storage.head(m.storage_key))) throw invalid("The original file is missing from storage");

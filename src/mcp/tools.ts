@@ -188,7 +188,7 @@ export const TOOLS: ToolDef[] = [
     name: "analyse_media",
     title: "Analyse footage",
     description:
-      "Queue a background analysis of a video: duration, dimensions, scene changes with keyframes, and technical quality. AI descriptions and tags are added only if the workspace has consented to AI media analysis. Uses the plan's analysis minutes. Returns a job; poll get_media_analysis or get_render_status with the job id. Asking again while one is running returns the same job.",
+      "Queue a background analysis. Videos: duration, dimensions, scene changes with keyframes, and technical quality; AI descriptions and tags only if the workspace has consented to AI media analysis. Images: dimensions and a thumbnail. Uses the plan's analysis minutes. Returns a job; poll get_media_analysis or get_render_status with the job id. Asking again while one is running returns the same job.",
     scope: "mcp:write",
     input: z.object({ media_id: id("Media asset") }),
     output: jobOutput,

@@ -21,8 +21,8 @@ const MIN_SCENE = 0.6;
 export async function runMediaAnalysis(p: Platform, job: JobRow, workDir: string) {
   const sys = <T>(fn: (sql: Sql) => Promise<T>) => p.db.system(fn);
   const [asset] = await sys((sql) =>
-    sql.query<{ id: string; org_id: string; storage_key: string; title: string; description: string | null; consent: boolean }>(
-      `select m.id, m.org_id, m.storage_key, m.title, m.description, o.ai_media_analysis_consent as consent
+    sql.query<{ id: string; org_id: string; storage_key: string; title: string; description: string | null; consent: boolean; kind: string }>(
+      `select m.id, m.org_id, m.storage_key, m.title, m.description, m.kind, o.ai_media_analysis_consent as consent
          from public.media_assets m join public.organisations o on o.id = m.org_id where m.id = $1 and m.org_id = $2`,
       [job.media_id, job.org_id],
     ),
@@ -32,6 +32,8 @@ export async function runMediaAnalysis(p: Platform, job: JobRow, workDir: string
   const local = join(workDir, "source");
   await sys((sql) => reportProgress(sql, job.id, "downloading", 5));
   await p.storage.downloadToFile(ownedKey(asset.storage_key, asset.org_id), local);
+
+  if (asset.kind === "image") return analyseImage(p, job, asset, local, workDir);
 
   await sys((sql) => reportProgress(sql, job.id, "reading metadata", 15));
   let meta;
@@ -106,5 +108,34 @@ export async function runMediaAnalysis(p: Platform, job: JobRow, workDir: string
       `Analysis of ${asset.title} (seconds)`,
     ]);
     await completeJob(sql, job.id, { media_id: asset.id, duration_seconds: meta.duration_seconds, scene_count: scenes.length, quality_score: quality.score, ai_description: Boolean(ai) });
+  });
+}
+
+/**
+ * Images: dimensions and a 480px JPEG thumbnail (so the library never downloads a large
+ * original just to show a tile). Not scored and not charged to the analysis allowance.
+ */
+async function analyseImage(p: Platform, job: JobRow, asset: { id: string; org_id: string }, local: string, workDir: string) {
+  const sys = <T>(fn: (sql: Sql) => Promise<T>) => p.db.system(fn);
+  await sys((sql) => reportProgress(sql, job.id, "reading image", 30));
+  const meta = await probe(p.media, local).catch(() => null);
+  if (!meta?.width || !meta.height) {
+    await sys((sql) => sql.query("update public.media_assets set status = 'failed' where id = $1", [asset.id]));
+    throw Object.assign(new Error("This file could not be read as an image"), { retryable: false });
+  }
+  await sys((sql) => reportProgress(sql, job.id, "making thumbnail", 60));
+  const thumb = join(workDir, "thumb.jpg");
+  await extractFrame(p.media, local, 0, thumb);
+  const key = `org/${asset.org_id}/media/${asset.id}/analysis/${job.id}/thumb.jpg`;
+  await p.storage.putFile(key, thumb, "image/jpeg");
+  const technical = { width: meta.width, height: meta.height, format: meta.video_codec };
+  await sys(async (sql) => {
+    await assertStillOwned(sql, job);
+    await sql.query(
+      `insert into public.media_analysis (org_id, media_id, job_id, technical, scenes, quality, ai) values ($1, $2, $3, $4::text::jsonb, $5::text::jsonb, $6::text::jsonb, null)`,
+      [asset.org_id, asset.id, job.id, JSON.stringify(technical), JSON.stringify([{ index: 0, start: 0, end: 0, thumbnail_key: key }]), JSON.stringify({ score: null, method: "images are not scored" })],
+    );
+    await sql.query("update public.media_assets set status = 'ready', width = $2, height = $3 where id = $1", [asset.id, meta.width, meta.height]);
+    await completeJob(sql, job.id, { media_id: asset.id, width: meta.width, height: meta.height, thumbnail: true });
   });
 }

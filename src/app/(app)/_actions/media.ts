@@ -24,7 +24,7 @@ export async function finishUpload(mediaId: string) {
     const done = await completeMediaUpload(ctx, mediaId);
     if (done.status !== "uploaded") return { ...done, analysis: null };
     const details = await getMediaDetails(ctx, mediaId);
-    if (details.kind !== "video") return { ...done, analysis: null };
+    if (details.kind === "audio") return { ...done, analysis: null };
     try {
       const job = await requestAnalysis(ctx, mediaId);
       return { ...done, analysis: { queued: true as const, job_id: job.job_id as string } };

@@ -97,3 +97,22 @@ describe("render output quality", () => {
     expect(v.warnings.join()).toMatch(/lengthened/);
   });
 });
+
+describe("image thumbnails", () => {
+  it("analyses an image into a small thumbnail (the library never loads the original)", async () => {
+    const { mediaThumbnails, getMediaAnalysis } = await import("../services/media");
+    const png = join(dir, "big.png");
+    ff(["-f", "lavfi", "-i", "testsrc2=size=3000x2000", "-frames:v", "1", png]);
+    const id = randomUUID();
+    const key = mediaKey(t.demo.ids.orgA, id, "png");
+    await t.p.storage.putFile(key, png, "image/png");
+    await t.p.db.system((sql) => sql.query("insert into public.media_assets (id, org_id, title, kind, mime_type, storage_key, status) values ($1, $2, 'Big image', 'image', 'image/png', $3, 'uploaded')", [id, t.demo.ids.orgA, key]));
+    await requestAnalysis(aroha, id);
+    expect((await createWorker(t.p).runOnce())?.status).toBe("succeeded");
+    const a = (await getMediaAnalysis(aroha, id)) as { status: string; analysis: { technical: { width: number; height: number } } };
+    expect(a).toMatchObject({ status: "analysed", analysis: { technical: { width: 3000, height: 2000 } } });
+    const url = (await mediaThumbnails(aroha, [id]))[id]!;
+    expect(url).toContain("/analysis/");
+    expect(url).not.toContain("original.png");
+  }, 120_000);
+});
