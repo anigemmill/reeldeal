@@ -646,9 +646,11 @@ function Timeline({ scenes, starts, total, time, selected, thumbs, onSeek, onSel
                   onSeek(map[e.key]!);
                 }
               }}
-              className="absolute top-5 bottom-0 w-0.5 -translate-x-1/2 rounded-pill bg-ai focus-visible:outline-2 focus-visible:outline-ai"
+              className="absolute top-5 bottom-0 flex w-6 -translate-x-1/2 cursor-ew-resize justify-center rounded-sm focus-visible:outline-2 focus-visible:outline-ai"
               style={{ left: pct(time) }}
-            />
+            >
+              <span aria-hidden className="h-full w-0.5 rounded-pill bg-ai" />
+            </span>
           ) : null}
         </div>
       </div>

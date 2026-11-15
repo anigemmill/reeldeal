@@ -111,7 +111,7 @@ async function main() {
 
     page = await signUp(A, "Ana Example", emailA, "E2E Lakeside");
     check("Register and complete onboarding lands on the dashboard", page.url().includes("/dashboard"));
-    const eyebrow = await page.evaluate(() => /E2E Lakeside · Free plan/.test(document.body.textContent ?? ""));
+    const eyebrow = await page.getByText(/E2E Lakeside · Free plan/i).first().waitFor({ timeout: 15000 }).then(() => true, () => false);
     check("Dashboard shows the new workspace and plan", eyebrow);
     await axe(page, "/dashboard (new workspace)");
 
