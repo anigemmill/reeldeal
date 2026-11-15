@@ -284,6 +284,7 @@ export const TOOLS: ToolDef[] = [
       concepts_id: id("Concepts").optional(),
       concept_index: z.number().int().min(0).max(4).optional(),
       direction: z.string().max(2000).optional().describe("Extra direction from the user"),
+      base_storyboard_id: id("Storyboard").optional().describe("Revise this existing storyboard according to direction, keeping the rest (saved as a new version)"),
       format: z.enum(FORMATS).optional(),
       duration_seconds: z.number().int().min(5).max(300).optional(),
     }),

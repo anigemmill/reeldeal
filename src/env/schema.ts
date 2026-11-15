@@ -73,6 +73,8 @@ export const serverSchema = z
     /** OpenAI (customer-facing AI provider). Without a key, AI tools report that AI is not configured. */
     OPENAI_API_KEY: optionalString,
     OPENAI_BASE_URL: optionalUrl,
+    /** AI provider: openai (default when OPENAI_API_KEY is set) or fixture (automated tests only; refused in production). */
+    AI_PROVIDER: z.enum(["openai", "fixture"]).optional(),
     OPENAI_MODEL: z.string().min(1).default("gpt-4.1-mini"),
     OPENAI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(45000),
     /** Media storage: "r2" (production) or "local" (development files under LOCAL_STORAGE_DIR). */

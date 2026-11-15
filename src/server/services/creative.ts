@@ -77,7 +77,7 @@ export async function createVideoBrief(ctx: Ctx, raw: z.infer<typeof BriefInput>
   const i = parseInput(BriefInput, raw);
   const ai = requireAi(ctx);
   const project = i.project_id ? await asUser(ctx, (sql) => loadProject(sql, ctx.principal.orgId, i.project_id!)) : null;
-  const { text: brand } = await brandText(ctx, i.brand_id ?? project?.brand_id);
+  const { brand: brandRow, text: brand } = await brandText(ctx, i.brand_id ?? project?.brand_id);
   const footage = await candidates(ctx, i.request, i.project_id);
   const { data, model } = await ai.generate({
     task: "video_brief",
@@ -90,8 +90,8 @@ export async function createVideoBrief(ctx: Ctx, raw: z.infer<typeof BriefInput>
   const brief = { ...data, suggested_asset_ids: ids.kept };
   const [row] = await asUser(ctx, (sql) =>
     sql.query<{ id: string; created_at: string }>(
-      "insert into public.video_briefs (org_id, project_id, request, brief, source, model, created_by) values ($1, $2, $3, $4::text::jsonb, 'ai', $5, $6) returning id, created_at",
-      [ctx.principal.orgId, i.project_id ?? null, i.request, JSON.stringify(brief), model, ctx.principal.userId],
+      "insert into public.video_briefs (org_id, project_id, request, brief, source, model, created_by, brand_id, brand_version) values ($1, $2, $3, $4::text::jsonb, 'ai', $5, $6, $7, $8) returning id, created_at",
+      [ctx.principal.orgId, i.project_id ?? null, i.request, JSON.stringify(brief), model, ctx.principal.userId, ((brandRow as { id?: string } | null)?.id) ?? null, ((brandRow as { version?: number } | null)?.version) ?? null],
     ),
   );
   return {
@@ -173,6 +173,8 @@ export const StoryboardInput = z.object({
   concepts_id: z.uuid().optional(),
   concept_index: z.number().int().min(0).max(4).optional(),
   direction: z.string().trim().max(2000).optional(),
+  /** Revise this storyboard (same project) according to `direction`, keeping what isn't asked to change. */
+  base_storyboard_id: z.uuid().optional(),
   format: z.enum(FORMATS).optional(),
   duration_seconds: z.number().int().min(5).max(300).optional(),
 });
@@ -190,9 +192,16 @@ export async function generateStoryboard(ctx: Ctx, raw: z.infer<typeof Storyboar
     if (!c) throw notFound("Concepts");
     concept = c.concepts[i.concept_index ?? 0] ?? null;
   }
-  const format = i.format ?? (brief?.brief.format as (typeof FORMATS)[number] | undefined) ?? (project.formats[0] as (typeof FORMATS)[number]);
+  let base: { title: string; format: string; scenes: unknown[] } | null = null;
+  if (i.base_storyboard_id) {
+    if (!i.direction) throw invalid("Say what to change (direction) when revising a storyboard.");
+    const [b] = await asUser(ctx, (sql) => sql.query<{ title: string; format: string; scenes: unknown[] }>("select title, format, scenes from public.storyboards where org_id = $1 and project_id = $2 and id = $3", [ctx.principal.orgId, project.id, i.base_storyboard_id]));
+    if (!b) throw notFound("Storyboard");
+    base = b;
+  }
+  const format = i.format ?? (base?.format as (typeof FORMATS)[number] | undefined) ?? (brief?.brief.format as (typeof FORMATS)[number] | undefined) ?? (project.formats[0] as (typeof FORMATS)[number]);
   const duration = i.duration_seconds ?? brief?.brief.duration_seconds ?? project.duration_seconds ?? 30;
-  const { text: brand } = await brandText(ctx, project.brand_id);
+  const { brand: brandRow, text: brand } = await brandText(ctx, project.brand_id);
   const footage = await candidates(ctx, [project.name, project.objective, project.description, brief?.request, i.direction].filter(Boolean).join(". "), project.id);
   const { data, model } = await ai.generate({
     task: "storyboard",
@@ -202,12 +211,12 @@ export async function generateStoryboard(ctx: Ctx, raw: z.infer<typeof Storyboar
 - Scene durations must add up to about ${duration} seconds (within 10%).
 - For each scene with footage, set asset_id from the footage list and source_in_seconds so that source_in_seconds + duration_seconds is within that clip's length.
 - On-screen text: at most 8 words per scene. The last scene carries the call to action.
-- Transitions: cut, dissolve or fade only.`,
-    user: `Project: ${project.name}\nObjective: ${project.objective ?? "-"}\nAudience: ${project.audience ?? "-"}\nDescription: ${project.description ?? "-"}\n${brief ? `Brief (JSON): ${JSON.stringify(brief.brief)}\n` : ""}${concept ? `Chosen concept (JSON): ${JSON.stringify(concept)}\n` : ""}${i.direction ? `<request>\n${i.direction}\n</request>\n` : ""}Brand profile:\n${brand}\n\nFootage list:\n${footageList(footage)}`,
+- Transitions: cut, dissolve or fade only.${base ? "\n- You are REVISING the current storyboard below: apply the change in <request> and keep everything else as it is." : ""}`,
+    user: `Project: ${project.name}\nObjective: ${project.objective ?? "-"}\nAudience: ${project.audience ?? "-"}\nDescription: ${project.description ?? "-"}\n${brief ? `Brief (JSON): ${JSON.stringify(brief.brief)}\n` : ""}${concept ? `Chosen concept (JSON): ${JSON.stringify(concept)}\n` : ""}${base ? `Current storyboard (JSON): ${JSON.stringify({ title: base.title, scenes: base.scenes })}\n` : ""}${i.direction ? `<request>\n${i.direction}\n</request>\n` : ""}Brand profile:\n${brand}\n\nFootage list:\n${footageList(footage)}`,
   });
   const v = await asUser(ctx, (sql) => validateScenes(sql, ctx.principal.orgId, data.scenes, "lenient"));
   if (Math.abs(v.total - duration) > duration * 0.2) v.warnings.push(`Total length is ${v.total}s against a target of ${duration}s`);
-  const saved = await saveStoryboard(ctx, { projectId: project.id, title: data.title, format, scenes: v.scenes, total: v.total, source: "ai", model, renderable: v.renderable });
+  const saved = await saveStoryboard(ctx, { projectId: project.id, title: data.title, format, scenes: v.scenes, total: v.total, source: "ai", model, renderable: v.renderable, brand: brandRow ? { id: (brandRow as { id: string }).id, version: (brandRow as { version: number }).version } : null });
   return {
     ...saved,
     project_id: project.id,

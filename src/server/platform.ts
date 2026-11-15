@@ -1,6 +1,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { serverEnv as env } from "@/env/server";
+import { createFixtureProvider } from "./ai/fixture";
 import { createOpenAiProvider } from "./ai/openai";
 import type { Platform } from "./context";
 import { createPgliteDb } from "./db/pglite";
@@ -52,9 +53,14 @@ export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateE
     storage = createLocalStorage({ dir: env.LOCAL_STORAGE_DIR, baseUrl: env.LOCAL_MEDIA_BASE_URL ?? `http://localhost:${env.MCP_HTTP_PORT}/media`, secret: signingSecret });
   }
 
-  const ai = env.OPENAI_API_KEY
-    ? createOpenAiProvider({ apiKey: env.OPENAI_API_KEY, baseUrl: env.OPENAI_BASE_URL, model: env.OPENAI_MODEL, timeoutMs: env.OPENAI_TIMEOUT_MS })
-    : null;
+  if (env.AI_PROVIDER === "fixture" && env.NODE_ENV === "production") throw new Error("AI_PROVIDER=fixture is for automated tests only");
+  const ai =
+    env.AI_PROVIDER === "fixture"
+      ? createFixtureProvider()
+      : env.OPENAI_API_KEY
+        ? createOpenAiProvider({ apiKey: env.OPENAI_API_KEY, baseUrl: env.OPENAI_BASE_URL, model: env.OPENAI_MODEL, timeoutMs: env.OPENAI_TIMEOUT_MS })
+        : null;
+  if (env.AI_PROVIDER === "fixture") log.warn("AI_PROVIDER=fixture: creative output is deterministic test data, not AI");
 
   return {
     db,

@@ -1,62 +1,88 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, Clapperboard, Pause, Play, Plus, Sparkles, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Clapperboard, Loader2, Pause, Play, Sparkles, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { MediaArt, PlaceholderTag } from "@/components/media/media-art";
-import { AiBadge, PillToggle } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { projectState, startProject, writeBrief, writeConcepts, writeStoryboard } from "@/app/(app)/_actions/creative";
+import { Thumb } from "@/components/app/media/thumb";
+import { RenderPanel } from "@/components/app/render/render-panel";
+import { AiBadge, Badge, PillToggle } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/choice";
-import { Modal, ModalClose } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import { Textarea } from "@/components/ui/input";
-import { Avatar, Eyebrow, SampleDataNote } from "@/components/ui/misc";
-import { ProgressBar, ProgressRing } from "@/components/ui/progress";
+import { Input, Textarea } from "@/components/ui/input";
+import { Eyebrow } from "@/components/ui/misc";
+import { Select } from "@/components/ui/select";
 import { SegmentedControl } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/toast";
-import { getMedia } from "@/content/media";
-import {
-  AUTOPILOT_CHANGES,
-  AUTOPILOT_DEFAULT_BRIEF,
-  AUTOPILOT_FOOTAGE,
-  AUTOPILOT_FORMATS,
-  AUTOPILOT_GOALS,
-  AUTOPILOT_LENGTHS,
-  AUTOPILOT_OPTIONS,
-  AUTOPILOT_STAGES,
-} from "@/content/sample/autopilot";
-import { SAMPLE_WORKSPACE, sampleUsageMeters } from "@/content/sample/workspace";
 import { renderCredits } from "@/lib/pricing";
+import { duration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /*
-  Autopilot (Phase 1 design, from design/explorations/Autopilot*.dc.html).
-  Mobile-first flow: Brief → Creating → Review. DESIGN PREVIEW: footage, progress
-  and options are sample data; nothing is uploaded, generated, charged or exported.
-  The brief can arrive from the dashboard as ?brief=…; ?step=review opens the review.
+  Autopilot on the real platform (Phase 1 design, mobile-first): Brief → Creating → Review.
+  Creating runs the shared creative services one step at a time; a stage shows as
+  running exactly while its request is in flight (no simulated percentages). Review
+  shows the saved concepts and storyboard; rendering goes through the server-quoted,
+  confirmed flow in RenderPanel. Storyboard previews are free.
 */
+
+export type AutopilotProps = {
+  ai: { configured: boolean; provider: string | null; fixture: boolean };
+  brands: { id: string; name: string; industry: string | null }[];
+  footage: { id: string; title: string; duration_seconds: number | null; thumbnail_url?: string | null }[];
+  credits: { available: number; label: string };
+  canEdit: boolean;
+  initial: { brief: string; mediaId: string | null; projectId: string | null };
+};
+
 type Step = "brief" | "creating" | "review";
 const STEPS: { id: Step; label: string }[] = [
   { id: "brief", label: "Brief" },
   { id: "creating", label: "Creating" },
   { id: "review", label: "Review" },
 ];
+const GOALS = ["Drive bookings", "Promote an offer", "Show the experience", "Seasonal update"] as const;
+const FORMAT_OPTIONS = [
+  { id: "9:16", hint: "Reels, TikTok, Stories" },
+  { id: "1:1", hint: "Feed posts" },
+  { id: "16:9", hint: "YouTube, website" },
+  { id: "4:5", hint: "Portrait feed" },
+] as const;
+const LENGTHS = [15, 30, 60] as const;
+const CHANGE_IDEAS = ["Make it shorter", "Warmer opening line", "Put the call to action earlier", "Less on-screen text"];
 
-export function AutopilotScreen({ exitHref = "/dashboard" }: { exitHref?: string }) {
-  const [step, setStep] = useState<Step>("brief");
-  const [brief, setBrief] = useState(AUTOPILOT_DEFAULT_BRIEF);
-  const [goal, setGoal] = useState<string>(AUTOPILOT_GOALS[0]);
-  const [formats, setFormats] = useState<string[]>(["9:16"]);
-  const [length, setLength] = useState<number>(30);
+type Format = (typeof FORMAT_OPTIONS)[number]["id"];
+type ProjectState = Extract<Awaited<ReturnType<typeof projectState>>, { ok: true }>["data"];
 
-  // One-time read of ?brief= and ?step= (keeps the page statically rendered).
-  useEffect(() => {
-    const q = new URLSearchParams(location.search);
-    const b = q.get("brief")?.trim();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL
-    if (b) setBrief(b.slice(0, 500));
-    if (q.get("step") === "review") setStep("review");
+export function AutopilotScreen(props: AutopilotProps) {
+  const router = useRouter();
+  const [step, setStep] = useState<Step>(props.initial.projectId ? "review" : "brief");
+  const [brief, setBrief] = useState(props.initial.brief);
+  const [goal, setGoal] = useState<string>(GOALS[0]);
+  const [audience, setAudience] = useState("");
+  const [brandId, setBrandId] = useState(props.brands[0]?.id ?? "");
+  const [media, setMedia] = useState<string[]>(props.initial.mediaId ? [props.initial.mediaId] : []);
+  const [formats, setFormats] = useState<Format[]>(["9:16"]);
+  const [length, setLength] = useState<number>(15);
+  const [variants, setVariants] = useState(3);
+  const [projectId, setProjectId] = useState<string | null>(props.initial.projectId);
+  const [state, setState] = useState<ProjectState | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(async (id: string) => {
+    const r = await projectState(id);
+    if (r.ok) setState(r.data);
+    else setLoadError(r.error.message);
   }, []);
+  useEffect(() => {
+    if (!props.initial.projectId) return;
+    let live = true;
+    projectState(props.initial.projectId).then((r) => live && (r.ok ? setState(r.data) : setLoadError(r.error.message)));
+    return () => {
+      live = false;
+    };
+  }, [props.initial.projectId]);
 
   const credits = renderCredits({ seconds: length, formats: formats.length });
 
@@ -64,61 +90,66 @@ export function AutopilotScreen({ exitHref = "/dashboard" }: { exitHref?: string
     <div className="flex min-h-dvh flex-col bg-bg text-ink">
       <header className="sticky top-0 z-30 border-b border-line bg-bg/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-[1180px] items-center gap-3 px-4 py-3 sm:px-6">
-          <Link
-            href={exitHref}
-            aria-label="Close Autopilot"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-line-strong bg-surface hover:bg-surface-muted"
-          >
+          <Link href="/dashboard" aria-label="Close Autopilot" className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-line-strong bg-surface hover:bg-surface-muted">
             <X className="size-4" aria-hidden />
           </Link>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Sparkles className="size-4 shrink-0 text-ai" aria-hidden />
             <span className="font-display text-base font-semibold">Autopilot</span>
+            {props.ai.fixture ? <Badge tone="warning">Test AI: fixture output, not real generation</Badge> : null}
           </div>
           <ol aria-label="Progress" className="flex items-center gap-1.5 font-mono text-[11px]">
             {STEPS.map((s, i) => {
               const idx = STEPS.findIndex((x) => x.id === step);
-              const state = i < idx ? "done" : i === idx ? "now" : "next";
+              const st = i < idx ? "done" : i === idx ? "now" : "next";
               return (
-                <li key={s.id} aria-current={state === "now" ? "step" : undefined} className="flex items-center gap-1.5">
+                <li key={s.id} aria-current={st === "now" ? "step" : undefined} className="flex items-center gap-1.5">
                   {i > 0 && <span aria-hidden className="h-px w-3 bg-line-strong sm:w-6" />}
-                  <span
-                    className={cn(
-                      "inline-flex h-6 items-center gap-1 rounded-pill px-2",
-                      state === "now" && "bg-ink text-bg",
-                      state === "done" && "bg-surface-muted text-ink",
-                      state === "next" && "text-ink-muted",
-                    )}
-                  >
-                    {state === "done" && <Check className="size-3" aria-hidden />}
-                    <span className={cn(state !== "now" && "sr-only sm:not-sr-only")}>{s.label}</span>
-                    <span className="sr-only">{state === "done" ? " (done)" : state === "next" ? " (next)" : ""}</span>
+                  <span className={cn("inline-flex h-6 items-center gap-1 rounded-pill px-2", st === "now" && "bg-ink text-bg", st === "done" && "bg-surface-muted text-ink", st === "next" && "text-ink-muted")}>
+                    {st === "done" && <Check className="size-3" aria-hidden />}
+                    <span className={cn(st !== "now" && "sr-only sm:not-sr-only")}>{s.label}</span>
+                    <span className="sr-only">{st === "done" ? " (done)" : st === "next" ? " (next)" : ""}</span>
                   </span>
                 </li>
               );
             })}
           </ol>
-          <SampleDataNote className="hidden lg:inline-flex" />
         </div>
       </header>
 
       <main id="main" className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col px-4 py-6 sm:px-6 lg:py-10">
         {step === "brief" && (
           <BriefStep
-            brief={brief}
-            setBrief={setBrief}
-            goal={goal}
-            setGoal={setGoal}
-            formats={formats}
-            setFormats={setFormats}
-            length={length}
-            setLength={setLength}
-            credits={credits}
+            {...props}
+            v={{ brief, goal, audience, brandId, media, formats, length, variants, credits }}
+            set={{ setBrief, setGoal, setAudience, setBrandId, setMedia, setFormats, setLength, setVariants }}
             onCreate={() => setStep("creating")}
           />
         )}
-        {step === "creating" && <CreatingStep onDone={() => setStep("review")} onBack={() => setStep("brief")} />}
-        {step === "review" && <ReviewStep credits={credits} formats={formats} length={length} onBack={() => setStep("brief")} />}
+        {step === "creating" && (
+          <CreatingStep
+            input={{ request: brief, objective: goal, audience, brand_id: brandId || undefined, media_ids: media, formats, duration_seconds: length, variants }}
+            onBack={() => setStep("brief")}
+            onDone={async (id) => {
+              setProjectId(id);
+              router.replace(`/autopilot?project=${id}`, { scroll: false });
+              await load(id);
+              setStep("review");
+            }}
+          />
+        )}
+        {step === "review" &&
+          (loadError ? (
+            <p role="alert" className="rounded-md bg-danger/10 px-4 py-3">
+              {loadError} <Link href="/autopilot" className="underline">Start a new video</Link>
+            </p>
+          ) : !state || !projectId ? (
+            <p role="status" className="flex items-center gap-2 text-ink-muted">
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden /> Loading your storyboard…
+            </p>
+          ) : (
+            <ReviewStep state={state} canEdit={props.canEdit} aiConfigured={props.ai.configured} reload={() => load(projectId)} onNew={() => (router.replace("/autopilot"), setState(null), setProjectId(null), setStep("brief"))} />
+          ))}
       </main>
     </div>
   );
@@ -126,28 +157,29 @@ export function AutopilotScreen({ exitHref = "/dashboard" }: { exitHref?: string
 
 /* ---- Step 1: Brief ---------------------------------------------------- */
 
-function BriefStep(props: {
-  brief: string;
-  setBrief: (v: string) => void;
-  goal: string;
-  setGoal: (v: string) => void;
-  formats: string[];
-  setFormats: (f: string[]) => void;
-  length: number;
-  setLength: (n: number) => void;
-  credits: number;
-  onCreate: () => void;
-}) {
-  const { brief, setBrief, goal, setGoal, formats, setFormats, length, setLength, credits, onCreate } = props;
-  const videosLeft = sampleUsageMeters().meters[0].value;
-  const canCreate = brief.trim().length > 0 && formats.length > 0;
+function BriefStep(
+  props: AutopilotProps & {
+    v: { brief: string; goal: string; audience: string; brandId: string; media: string[]; formats: Format[]; length: number; variants: number; credits: number };
+    set: { setBrief: (v: string) => void; setGoal: (v: string) => void; setAudience: (v: string) => void; setBrandId: (v: string) => void; setMedia: (v: string[]) => void; setFormats: (v: Format[]) => void; setLength: (v: number) => void; setVariants: (v: number) => void };
+    onCreate: () => void;
+  },
+) {
+  const { v, set } = props;
+  const [touched, setTouched] = useState(false);
+  const briefError = v.brief.trim().length < 10 ? "Describe the video in at least a few words (10+ characters)." : null;
+  const formatError = v.formats.length === 0 ? "Choose at least one format." : null;
+  const blocked = !props.ai.configured ? "AI generation isn't configured on this server yet." : !props.canEdit ? "Your role can't create videos in this workspace." : null;
+  const canCreate = !briefError && !formatError && !blocked;
+  const toggle = (id: string) => set.setMedia(v.media.includes(id) ? v.media.filter((x) => x !== id) : v.media.length >= 12 ? v.media : [...v.media, id]);
 
   return (
     <form
+      noValidate
       className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-0"
       onSubmit={(e) => {
         e.preventDefault();
-        if (canCreate) onCreate();
+        setTouched(true);
+        if (canCreate) props.onCreate();
       }}
     >
       <div className="flex min-w-0 flex-col gap-7">
@@ -159,109 +191,113 @@ function BriefStep(props: {
         </div>
 
         <section aria-labelledby="footage-h" className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="footage-h" className="text-sm font-semibold">
-              {AUTOPILOT_FOOTAGE.count} clips added
+              {v.media.length ? `${v.media.length} clip${v.media.length === 1 ? "" : "s"} selected` : "Footage"}
             </h2>
-            {/* Choosing footage arrives with the media library (Phase 3). */}
-            <Button variant="ghost" size="sm" disabled title="Choosing footage arrives with the media library">
-              <Plus aria-hidden />
-              Add more · soon
-            </Button>
+            <Link href="/library" className="text-sm text-link underline-offset-4 hover:underline">
+              Upload more
+            </Link>
           </div>
-          <ul className="grid grid-cols-6 gap-2" aria-label="Selected footage">
-            {AUTOPILOT_FOOTAGE.thumbs.map((id) => (
-              <li key={id} className="relative aspect-[4/5] overflow-hidden rounded-md">
-                <MediaArt asset={getMedia(id)} />
-              </li>
-            ))}
-            <li className="flex aspect-[4/5] items-center justify-center rounded-md bg-surface-muted font-mono text-xs text-ink-muted">
-              +{AUTOPILOT_FOOTAGE.count - AUTOPILOT_FOOTAGE.thumbs.length}
-            </li>
-          </ul>
+          {props.footage.length ? (
+            <>
+              <ul className="grid grid-cols-4 gap-2 sm:grid-cols-6" aria-label="Your analysed footage">
+                {props.footage.map((f) => {
+                  const on = v.media.includes(f.id);
+                  return (
+                    <li key={f.id}>
+                      <button type="button" aria-pressed={on} onClick={() => toggle(f.id)} className={cn("relative block w-full overflow-hidden rounded-md ring-offset-2 ring-offset-surface", on && "ring-2 ring-primary")} title={f.title}>
+                        <Thumb src={f.thumbnail_url} alt={f.title} ratio="4:5" className="rounded-md" />
+                        {on ? (
+                          <span className="absolute top-1 right-1 inline-flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="size-3" aria-hidden />
+                          </span>
+                        ) : null}
+                        <span className="sr-only">{f.title}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="text-xs text-ink-muted">{v.media.length ? "Autopilot will build from these clips first." : "None selected: Autopilot chooses from your whole analysed library."}</p>
+            </>
+          ) : (
+            <p className="text-sm text-ink-muted">
+              No analysed footage yet. <Link href="/library" className="text-link underline">Upload clips</Link> first, or continue and Autopilot will plan text-only scenes you can fill later.
+            </p>
+          )}
         </section>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium" id="brand-l">
-            Brand
-          </span>
-          <div aria-labelledby="brand-l" className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3">
-            <Avatar initials={SAMPLE_WORKSPACE.initials} label={SAMPLE_WORKSPACE.name} shape="square" className="size-10 bg-primary text-primary-foreground" />
-            <span className="flex min-w-0 flex-col">
-              <span className="font-semibold">{SAMPLE_WORKSPACE.name}</span>
-              <span className="text-xs text-ink-muted">Brand profile · fonts, colours, logo</span>
-            </span>
-          </div>
-        </div>
+        {props.brands.length ? (
+          <Field label="Brand">
+            <Select options={props.brands.map((b) => ({ value: b.id, label: b.name }))} value={v.brandId} onValueChange={set.setBrandId} />
+          </Field>
+        ) : (
+          <p className="text-sm text-ink-muted">
+            No brand profile yet. <Link href="/brands" className="text-link underline">Add one</Link> so videos use your voice and colours.
+          </p>
+        )}
 
         <fieldset className="flex flex-col gap-2.5">
           <legend className="mb-2.5 text-sm font-medium">Goal</legend>
           <div className="flex flex-wrap gap-2">
-            {AUTOPILOT_GOALS.map((g) => (
-              <PillToggle key={g} pressed={goal === g} onClick={() => setGoal(g)}>
+            {GOALS.map((g) => (
+              <PillToggle key={g} pressed={v.goal === g} onClick={() => set.setGoal(g)}>
                 {g}
               </PillToggle>
             ))}
           </div>
         </fieldset>
 
-        <Field label="Describe it" hint="One or two sentences: the moment, the mood, and what viewers should do.">
-          <Textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={3} required maxLength={500} />
+        <Field label="Describe it" hint="The moment, the mood, and what viewers should do." error={touched ? briefError : undefined}>
+          <Textarea value={v.brief} onChange={(e) => set.setBrief(e.target.value)} rows={3} required maxLength={2000} />
+        </Field>
+
+        <Field label="Audience (optional)" hint="Who should this reach? Leave blank to let the brief suggest one.">
+          <Input value={v.audience} onChange={(e) => set.setAudience(e.target.value)} maxLength={300} placeholder="e.g. Couples from Auckland planning a weekend away" />
         </Field>
 
         <div className="grid gap-7 sm:grid-cols-[1fr_auto]">
           <fieldset className="flex flex-col gap-3">
             <legend className="mb-3 text-sm font-medium">Formats</legend>
             <div className="flex flex-wrap gap-x-6 gap-y-3">
-              {AUTOPILOT_FORMATS.map((f) => (
-                <Checkbox
-                  key={f.id}
-                  label={f.label}
-                  hint={f.hint}
-                  checked={formats.includes(f.id)}
-                  onCheckedChange={(on) => setFormats(on ? [...formats, f.id] : formats.filter((x) => x !== f.id))}
-                />
+              {FORMAT_OPTIONS.map((f) => (
+                <Checkbox key={f.id} label={f.id} hint={f.hint} checked={v.formats.includes(f.id)} onCheckedChange={(on) => set.setFormats(on ? [...v.formats, f.id] : v.formats.filter((x) => x !== f.id))} />
               ))}
             </div>
-            {formats.length === 0 && <p className="text-xs font-medium text-danger">Choose at least one format.</p>}
+            {formatError ? <p className="text-xs font-medium text-danger">{formatError}</p> : null}
           </fieldset>
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium" id="length-l">
-              Length
-            </span>
-            <SegmentedControl
-              label="Length"
-              value={String(length)}
-              onValueChange={(v) => setLength(Number(v))}
-              options={AUTOPILOT_LENGTHS.map((l) => ({ value: String(l), label: `${l}s` }))}
-            />
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-3">
+              <span className="text-sm font-medium">Length</span>
+              <SegmentedControl label="Length" value={String(v.length)} onValueChange={(x) => set.setLength(Number(x))} options={LENGTHS.map((l) => ({ value: String(l), label: `${l}s` }))} />
+            </div>
+            <div className="flex flex-col gap-3">
+              <span className="text-sm font-medium">Concepts to compare</span>
+              <SegmentedControl label="Concepts to compare" value={String(v.variants)} onValueChange={(x) => set.setVariants(Number(x))} options={[1, 2, 3].map((n) => ({ value: String(n), label: String(n) }))} />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Summary: what you get and what it costs. Sticky on desktop, a bottom bar on phones. */}
       <aside aria-label="Summary" className="lg:sticky lg:top-24 lg:self-start">
         <div className="hidden flex-col gap-5 rounded-xl border border-line bg-surface p-5 lg:flex">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-            <MediaArt asset={getMedia("coast-sail")} />
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-media-veil/70 to-transparent" />
-            <p className="absolute inset-x-4 bottom-4 font-display text-xl leading-tight font-semibold text-on-media">
-              3 storyboard options, cut from your footage
-            </p>
-            <PlaceholderTag />
-          </div>
-          <CostLines credits={credits} formats={formats.length} length={length} videosLeft={videosLeft} />
-          <Button type="submit" variant="action" size="lg" disabled={!canCreate}>
-            Create 3 options <ArrowRight aria-hidden />
+          <p className="font-display text-xl leading-tight font-semibold">
+            {v.variants} concept{v.variants === 1 ? "" : "s"} and a storyboard, from your footage
+          </p>
+          <CostLines credits={v.credits} formats={v.formats.length} length={v.length} available={props.credits} />
+          {blocked ? <p className="rounded-md bg-surface-muted px-3 py-2 text-sm text-ink-muted">{blocked}</p> : null}
+          <Button type="submit" variant="action" size="lg" disabled={Boolean(blocked)}>
+            Create {v.variants === 1 ? "storyboard" : `${v.variants} concepts`} <ArrowRight aria-hidden />
           </Button>
         </div>
         <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] lg:hidden">
           <div className="mx-auto flex max-w-[1180px] items-center gap-3">
             <p className="min-w-0 flex-1 text-xs text-ink-muted">
-              Previews free · <span className="font-medium text-ink">{credits} credit{credits === 1 ? "" : "s"}</span> when you approve
+              Previews free · <span className="font-medium text-ink">{v.credits} credit{v.credits === 1 ? "" : "s"}</span> when you approve
             </p>
-            <Button type="submit" variant="action" disabled={!canCreate}>
-              Create 3 options <ArrowRight aria-hidden />
+            <Button type="submit" variant="action" disabled={Boolean(blocked)}>
+              Create <ArrowRight aria-hidden />
             </Button>
           </div>
         </div>
@@ -270,18 +306,18 @@ function BriefStep(props: {
   );
 }
 
-function CostLines({ credits, formats, length, videosLeft }: { credits: number; formats: number; length: number; videosLeft: string }) {
+function CostLines({ credits, formats, length, available }: { credits: number; formats: number; length: number; available: { available: number; label: string } }) {
   return (
     <dl className="flex flex-col gap-2.5 text-sm">
       <div className="flex justify-between gap-3">
-        <dt className="text-ink-muted">Storyboard previews</dt>
+        <dt className="text-ink-muted">Brief, concepts and storyboard</dt>
         <dd className="font-medium text-success">Free</dd>
       </div>
       <div className="flex justify-between gap-3">
         <dt className="text-ink-muted">
-          When you approve one
+          When you approve and render
           <span className="block font-mono text-[11px]">
-            1 video · {length}s · {formats} format{formats === 1 ? "" : "s"}
+            1 video · up to {length}s · {formats} format{formats === 1 ? "" : "s"}
           </span>
         </dt>
         <dd className="font-mono font-medium">
@@ -289,285 +325,326 @@ function CostLines({ credits, formats, length, videosLeft }: { credits: number; 
         </dd>
       </div>
       <div className="flex justify-between gap-3 border-t border-line pt-2.5">
-        <dt className="text-ink-muted">This month</dt>
-        <dd className="font-mono text-xs">{videosLeft}</dd>
+        <dt className="text-ink-muted">{available.label}</dt>
+        <dd className="font-mono text-xs">{available.available} available</dd>
       </div>
+      <p className="text-[11px] leading-relaxed text-ink-muted">The exact cost is confirmed from the final storyboard before anything renders.</p>
     </dl>
   );
 }
 
-/* ---- Step 2: Creating --------------------------------------------------- */
+/* ---- Step 2: Creating (real requests, one stage at a time) ---------------- */
 
-function CreatingStep({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
-  const [progress, setProgress] = useState(4);
+type StageId = "project" | "brief" | "concepts" | "storyboard";
+type StageState = "waiting" | "running" | "done" | "failed";
 
-  // Simulated progress for the design preview.
+function CreatingStep({ input, onBack, onDone }: { input: { request: string; objective: string; audience: string; brand_id?: string; media_ids: string[]; formats: Format[]; duration_seconds: number; variants: number }; onBack: () => void; onDone: (projectId: string) => void }) {
+  const stages: { id: StageId; label: string; done: string }[] = [
+    { id: "project", label: "Setting up your project", done: "Project saved" },
+    { id: "brief", label: "Understanding your brief and footage", done: "Brief written" },
+    { id: "concepts", label: `Developing ${input.variants} concept${input.variants === 1 ? "" : "s"}`, done: `${input.variants} concept${input.variants === 1 ? "" : "s"} ready` },
+    { id: "storyboard", label: "Building your storyboard", done: "Storyboard saved" },
+  ];
+  const [status, setStatus] = useState<Record<StageId, StageState>>({ project: "waiting", brief: "waiting", concepts: "waiting", storyboard: "waiting" });
+  const [error, setError] = useState<{ stage: StageId; message: string } | null>(null);
+  const [started, setStarted] = useState<number>(0);
+  const [now, setNow] = useState(0);
+  const ids = useRef<{ project?: string; brief?: string; concepts?: string }>({});
+  const ran = useRef(false);
+
+  const run = useCallback(async () => {
+    setError(null);
+    const step = async (id: StageId, fn: () => Promise<{ ok: true; data: unknown } | { ok: false; error: { message: string } }>) => {
+      setStatus((s) => ({ ...s, [id]: "running" }));
+      setStarted(Date.now());
+      const r = await fn();
+      if (!r.ok) {
+        setStatus((s) => ({ ...s, [id]: "failed" }));
+        setError({ stage: id, message: r.error.message });
+        throw new Error("stopped");
+      }
+      setStatus((s) => ({ ...s, [id]: "done" }));
+      return r.data as Record<string, unknown>;
+    };
+    try {
+      if (!ids.current.project) ids.current.project = (await step("project", () => startProject(input))).project_id as string;
+      if (!ids.current.brief) ids.current.brief = (await step("brief", () => writeBrief(ids.current.project!, input.request))).brief_id as string;
+      if (!ids.current.concepts) ids.current.concepts = (await step("concepts", () => writeConcepts(ids.current.brief!, input.variants))).concepts_id as string;
+      await step("storyboard", () => writeStoryboard({ project_id: ids.current.project!, brief_id: ids.current.brief, concepts_id: ids.current.concepts, concept_index: 0 }));
+      onDone(ids.current.project!);
+    } catch {
+      /* the failed stage is shown with a retry */
+    }
+  }, [input, onDone]);
+
   useEffect(() => {
-    const id = setInterval(() => setProgress((p) => Math.min(100, p + 1.5)), 110);
-    return () => clearInterval(id);
-  }, []);
+    if (ran.current) return;
+    ran.current = true;
+    void run();
+  }, [run]);
+  const running = Object.values(status).includes("running");
   useEffect(() => {
-    if (progress < 100) return;
-    const t = setTimeout(onDone, 500);
-    return () => clearTimeout(t);
-  }, [progress, onDone]);
-
-  const current = AUTOPILOT_STAGES.reduce((acc, s, i) => (progress >= s.at ? i : acc), 0);
+    if (!running) return;
+    const t = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(t);
+  }, [running]);
 
   return (
     <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col items-center justify-center gap-8 py-6 text-center">
-      <div className="relative grid size-64 place-items-center" aria-hidden>
-        <div className="rd-motion absolute inset-0 rounded-full border border-dashed border-line-strong" style={{ animation: "rd-spin 22s linear infinite" }}>
-          {["lake-kayak", "alpine-sunrise", "coast-sail"].map((id, i) => (
-            <div
-              key={id}
-              className="absolute size-16 overflow-hidden rounded-xl shadow-float"
-              style={{ left: `${50 + 50 * Math.cos((i * 2 * Math.PI) / 3)}%`, top: `${50 + 50 * Math.sin((i * 2 * Math.PI) / 3)}%`, transform: "translate(-50%, -50%)" }}
-            >
-              <MediaArt asset={getMedia(id as "lake-kayak")} />
-            </div>
-          ))}
-        </div>
-        <ProgressRing value={progress} label="Creating your options" size={150} stroke={10}>
-          <span className="flex flex-col">
-            <span className="font-display text-3xl font-semibold">{Math.round(progress)}%</span>
-            <span className="font-mono text-[10px] text-ink-muted uppercase">Stage {current + 1}/4</span>
-          </span>
-        </ProgressRing>
+      <div className="flex flex-col items-center gap-3">
+        {error ? <AlertTriangle className="size-10 text-danger" aria-hidden /> : <Loader2 className="size-10 animate-spin text-ai motion-reduce:animate-none" aria-hidden />}
+        <h1 className="font-display text-3xl font-semibold tracking-tight">{error ? "Something stopped" : "Building your storyboard"}</h1>
+        <p className="text-ink-muted">{error ? "Nothing was charged. You can try that step again." : "Each step is a real AI request using your brief, brand and footage details (never the footage itself). Usually under a minute."}</p>
       </div>
-
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Building your video</h1>
-        <p className="text-ink-muted">Usually under two minutes. You can leave this screen and we&apos;ll let you know when it&apos;s ready.</p>
-      </div>
-
-      <ProgressBar value={progress} label="Overall progress" tone="ai" />
-
-      <ol className="flex w-full flex-col gap-1 text-left" aria-label="Stages">
-        {AUTOPILOT_STAGES.map((s, i) => {
-          const state = i < current || progress >= 100 ? "done" : i === current ? "now" : "next";
+      <ol className="flex w-full flex-col gap-1 text-left" aria-label="Stages" aria-live="polite">
+        {stages.map((s) => {
+          const st = status[s.id];
           return (
-            <li key={s.label} className={cn("flex items-center gap-3 rounded-md px-3 py-2.5", state === "now" && "bg-surface")}>
-              <span
-                aria-hidden
-                className={cn(
-                  "inline-flex size-6 shrink-0 items-center justify-center rounded-full",
-                  state === "done" && "bg-ink text-bg",
-                  state === "now" && "bg-ai text-ai-foreground",
-                  state === "next" && "border-[1.5px] border-line-strong",
-                )}
-              >
-                {state === "done" && <Check className="size-3.5" />}
-                {state === "now" && <span className="size-1.5 rounded-full bg-current" />}
+            <li key={s.id} className={cn("flex items-center gap-3 rounded-md px-3 py-2.5", st === "running" && "bg-surface")}>
+              <span aria-hidden className={cn("inline-flex size-6 shrink-0 items-center justify-center rounded-full", st === "done" && "bg-ink text-bg", st === "running" && "bg-ai text-ai-foreground", st === "failed" && "bg-danger text-danger-foreground", st === "waiting" && "border-[1.5px] border-line-strong")}>
+                {st === "done" ? <Check className="size-3.5" /> : st === "failed" ? <X className="size-3.5" /> : st === "running" ? <span className="size-1.5 rounded-full bg-current" /> : null}
               </span>
-              <span className={cn("flex-1 text-sm", state === "now" && "font-semibold", state === "next" && "text-ink-muted")}>
-                {state === "done" ? s.done : s.label}
-                <span className="sr-only"> ({state === "done" ? "done" : state === "now" ? "in progress" : "waiting"})</span>
+              <span className={cn("flex-1 text-sm", st === "running" && "font-semibold", st === "waiting" && "text-ink-muted")}>
+                {st === "done" ? s.done : s.label}
+                <span className="sr-only"> ({st === "running" ? "in progress" : st})</span>
               </span>
-              <span className="font-mono text-[11px] text-ink-muted">{state === "next" ? "—" : s.meta}</span>
+              <span className="font-mono text-[11px] text-ink-muted">{st === "running" && now > started ? `${Math.max(0, Math.round((now - started) / 1000))}s` : ""}</span>
             </li>
           );
         })}
       </ol>
-
-      <div className="flex flex-col items-center gap-2">
-        <p className="font-mono text-[11px] text-ink-muted">Design preview: progress is simulated, nothing is generated.</p>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft aria-hidden />
-            Back to brief
-          </Button>
-          <Button variant="secondary" size="sm" onClick={onDone}>
-            Skip to results
-          </Button>
+      {error ? (
+        <div className="flex w-full flex-col gap-3">
+          <p role="alert" className="rounded-md bg-danger/10 px-3.5 py-2.5 text-left text-sm">
+            {error.message}
+          </p>
+          <div className="flex justify-center gap-2">
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft aria-hidden /> Back to brief
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => void run()}>
+              Try again
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <Button variant="ghost" size="sm" onClick={onBack} disabled={running}>
+          <ArrowLeft aria-hidden /> Back to brief
+        </Button>
+      )}
     </div>
   );
 }
 
 /* ---- Step 3: Review ----------------------------------------------------- */
 
-function ReviewStep({ credits, formats, length, onBack }: { credits: number; formats: string[]; length: number; onBack: () => void }) {
-  const [selected, setSelected] = useState(0);
-  const [changes, setChanges] = useState<string[]>([]);
-  const [playing, setPlaying] = useState(false);
-  const [pos, setPos] = useState(0);
-  const option = AUTOPILOT_OPTIONS[selected];
+type Scene = { scene_number: number; duration_seconds: number; purpose: string | null; on_screen_text: string | null; voiceover: string | null; visual_description: string | null; asset_id: string | null; asset_title?: string; transition: string };
+type Concept = { title: string; creative_angle: string; hook: string; narrative: string; call_to_action: string };
 
-  useEffect(() => {
-    if (!playing) return;
-    const id = setInterval(() => setPos((p) => (p >= 100 ? 0 : p + 0.5)), 50);
-    return () => clearInterval(id);
-  }, [playing]);
+function ReviewStep({ state, canEdit, aiConfigured, reload, onNew }: { state: ProjectState; canEdit: boolean; aiConfigured: boolean; reload: () => Promise<void>; onNew: () => void }) {
+  const { project, thumbnails } = state;
+  const sb = project.storyboard;
+  const scenes = (sb?.scenes ?? []) as Scene[];
+  const concepts = ((project.latest_concepts?.concepts ?? []) as Concept[]).slice(0, 5);
+  const brief = project.latest_briefs[0]?.brief as { key_message?: string; call_to_action?: string; audience?: string; tone?: string; assumptions?: { field: string; assumption: string }[]; missing_information?: string[] } | undefined;
+  const [concept, setConcept] = useState(0);
+  const [change, setChange] = useState("");
+  const [busy, setBusy] = useState<"concept" | "change" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const lastRender = project.renders[0] as { job_id: string; status: string; stage: string | null; progress_percent: number; error: { message: string; retryable: boolean } | null } | undefined;
+  const renderable = scenes.length > 0 && scenes.every((s) => s.asset_id || s.on_screen_text);
+  const total = scenes.reduce((a, s) => a + s.duration_seconds, 0);
 
-  const videosLeft = sampleUsageMeters().meters[0].value;
-  const formatLabel = formats.join(" + ") || "9:16";
+  const rebuild = async (kind: "concept" | "change") => {
+    setBusy(kind);
+    setError(null);
+    const r =
+      kind === "concept"
+        ? await writeStoryboard({ project_id: project.id, brief_id: project.latest_briefs[0]?.id, concepts_id: project.latest_concepts?.id, concept_index: concept })
+        : await writeStoryboard({ project_id: project.id, base_storyboard_id: sb?.id, direction: change });
+    if (!r.ok) setError(r.error.message);
+    else {
+      setChange("");
+      await reload();
+    }
+    setBusy(null);
+  };
+
+  if (!sb) {
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <p>This project has no storyboard yet.</p>
+        <Button onClick={onNew}>Start a new video</Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid flex-1 gap-8 pb-28 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start lg:pb-0">
-      {/* Player */}
-      <div className="relative mx-auto aspect-[9/16] w-full max-w-[420px] overflow-hidden rounded-2xl bg-media-veil lg:sticky lg:top-24">
-        <MediaArt asset={getMedia(option.media)} />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-media-veil/30 via-transparent to-media-veil/60" />
-        <span className="absolute top-4 left-4 rounded-pill bg-media-veil/55 px-2.5 py-1 font-mono text-[10px] text-on-media">
-          OPTION {selected + 1} · 0:{String(length).padStart(2, "0")} · {formats[0] ?? "9:16"}
-        </span>
-        <PlaceholderTag className="top-4 right-4 left-auto" />
-        <p className="absolute inset-x-6 bottom-[22%] font-display text-[clamp(28px,4vw,40px)] leading-[1.02] font-bold tracking-tight text-on-media [text-shadow:0_2px_14px_rgb(0_0_0/0.4)]">
-          {option.hook}
-        </p>
-        <button
-          type="button"
-          onClick={() => setPlaying((p) => !p)}
-          aria-label={playing ? "Pause preview" : "Play preview"}
-          className="absolute top-1/2 left-1/2 inline-flex size-16 -translate-1/2 items-center justify-center rounded-full bg-on-media/90 text-media-veil shadow-float"
-        >
-          {playing ? <Pause className="size-6 fill-current" aria-hidden /> : <Play className="ml-1 size-6 fill-current" aria-hidden />}
-        </button>
-        <div className="absolute inset-x-5 bottom-5 h-1 overflow-hidden rounded-pill bg-on-media/30" aria-hidden>
-          <div className="h-full bg-ai" style={{ width: `${pos}%` }} />
-        </div>
-      </div>
+    <div className="grid flex-1 gap-8 pb-10 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
+      <StoryboardPlayer scenes={scenes} thumbnails={thumbnails} format={sb.format} />
 
       <div className="flex min-w-0 flex-col gap-7">
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Eyebrow>Step 3 of 3 · Review</Eyebrow>
-            <AiBadge size="sm">3 options</AiBadge>
+            <AiBadge size="sm">Storyboard v{sb.version}</AiBadge>
           </div>
-          <h1 className="font-display text-[clamp(30px,3.6vw,44px)] leading-none font-semibold tracking-display">
-            Pick your <em className="font-accent font-normal">favourite.</em>
-          </h1>
-          <p className="text-ink-muted">Each option uses your footage and the Lakeside Lodge brand. Previews are free.</p>
+          <h1 className="font-display text-[clamp(30px,3.6vw,44px)] leading-none font-semibold tracking-display">{sb.title}</h1>
+          <p className="text-ink-muted">
+            {sb.format} · {duration(total)} · {scenes.length} scenes{project.brand ? ` · ${project.brand.name} brand` : ""}. Previews are free; nothing renders until you confirm the credits.
+          </p>
         </div>
 
-        <div role="radiogroup" aria-label="Choose an option" className="grid grid-cols-3 gap-3">
-          {AUTOPILOT_OPTIONS.map((o, i) => (
-            <button
-              key={o.id}
-              type="button"
-              role="radio"
-              aria-checked={i === selected}
-              onClick={() => {
-                setSelected(i);
-                setPos(0);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-                  e.preventDefault();
-                  setSelected((selected + 1) % AUTOPILOT_OPTIONS.length);
-                } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setSelected((selected + AUTOPILOT_OPTIONS.length - 1) % AUTOPILOT_OPTIONS.length);
-                }
-              }}
-              tabIndex={i === selected ? 0 : -1}
-              className={cn(
-                "flex flex-col gap-2 rounded-xl border bg-surface p-2 text-left transition-colors",
-                i === selected ? "border-ink ring-2 ring-ink" : "border-line hover:border-line-strong",
-              )}
-            >
-              <span className="relative aspect-[4/5] overflow-hidden rounded-lg">
-                <MediaArt asset={getMedia(o.media)} />
-              </span>
-              <span className="px-1 pb-1">
-                <span className="block text-sm font-semibold">
-                  {i + 1} · {o.name}
-                </span>
-                <span className="hidden text-xs text-ink-muted sm:block">{o.mood}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <fieldset className="flex flex-col gap-2.5">
-          <legend className="mb-2.5 text-sm font-medium">Ask for changes</legend>
-          <div className="flex flex-wrap gap-2">
-            {AUTOPILOT_CHANGES.map((c) => (
-              <PillToggle key={c} size="sm" pressed={changes.includes(c)} onClick={() => setChanges((xs) => (xs.includes(c) ? xs.filter((x) => x !== c) : [...xs, c]))}>
-                {c}
-              </PillToggle>
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="hidden flex-col gap-3 lg:flex">
-          <ReviewActions credits={credits} formatLabel={formatLabel} videosLeft={videosLeft} optionName={option.name} changes={changes} index={selected} />
-          <Button variant="ghost" size="sm" className="self-start" onClick={onBack}>
-            <ArrowLeft aria-hidden />
-            Edit the brief
-          </Button>
-        </div>
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] lg:hidden">
-        <ReviewActions credits={credits} formatLabel={formatLabel} videosLeft={videosLeft} optionName={option.name} changes={changes} index={selected} compact />
-      </div>
-    </div>
-  );
-}
-
-function ReviewActions(props: { credits: number; formatLabel: string; videosLeft: string; optionName: string; changes: string[]; index: number; compact?: boolean }) {
-  const { credits, formatLabel, videosLeft, optionName, changes, index, compact } = props;
-  const plural = credits === 1 ? "" : "s";
-  return (
-    <div className={cn("flex flex-col gap-2.5", compact && "mx-auto max-w-[1180px]")}>
-      <Modal
-        trigger={
-          <Button variant="action" size={compact ? "md" : "lg"} className="w-full">
-            Approve and export · {credits} credit{plural}
-          </Button>
-        }
-        title={`Export option ${index + 1} · ${optionName}?`}
-        description={`Uses ${credits} video credit${plural} (${formatLabel}). ${videosLeft} this month.`}
-        footer={
-          <>
-            <ModalClose asChild>
-              <Button variant="ghost">Cancel</Button>
-            </ModalClose>
-            <ModalClose asChild>
-              <Button
-                variant="action"
-                onClick={() => toast({ title: "Design preview", description: "Nothing was exported or charged. Rendering arrives in Phase 4.", tone: "ai" })}
-              >
-                Export · {credits} credit{plural}
+        {concepts.length > 1 ? (
+          <section aria-labelledby="concepts-h" className="flex flex-col gap-3">
+            <h2 id="concepts-h" className="text-sm font-medium">
+              Concepts
+            </h2>
+            <div role="radiogroup" aria-label="Choose a concept" className="grid gap-3 sm:grid-cols-3">
+              {concepts.map((c, i) => (
+                <button key={i} type="button" role="radio" aria-checked={i === concept} onClick={() => setConcept(i)} className={cn("flex flex-col gap-1 rounded-xl border bg-surface p-3 text-left text-sm", i === concept ? "border-ink ring-2 ring-ink" : "border-line hover:border-line-strong")}>
+                  <span className="font-semibold">
+                    {i + 1} · {c.title}
+                  </span>
+                  <span className="text-xs text-ink-muted">{c.creative_angle}</span>
+                  <span className="text-xs">&ldquo;{c.hook}&rdquo;</span>
+                </button>
+              ))}
+            </div>
+            {canEdit && aiConfigured ? (
+              <Button variant="secondary" size="sm" className="w-fit" loading={busy === "concept"} onClick={() => rebuild("concept")}>
+                Build storyboard for concept {concept + 1} · free
               </Button>
-            </ModalClose>
-          </>
-        }
-      >
-        <ul className="flex flex-col gap-2 text-sm">
-          <li className="flex justify-between">
-            <span className="text-ink-muted">Formats</span>
-            <span className="font-mono">{formatLabel}</span>
-          </li>
-          <li className="flex justify-between">
-            <span className="text-ink-muted">Minor revisions</span>
-            <span>Up to 3 included</span>
-          </li>
-          <li className="flex justify-between">
-            <span className="text-ink-muted">If a render fails on our side</span>
-            <span>Free re-render</span>
-          </li>
-        </ul>
-      </Modal>
-      <div className="grid grid-cols-2 gap-2.5">
-        <Button
-          variant="secondary"
-          disabled={changes.length === 0}
-          onClick={() => toast({ title: "Design preview", description: `Requested: ${changes.join(", ")}. Re-cutting arrives in Phase 5.`, tone: "ai" })}
-        >
-          Request changes
-        </Button>
-        <Button asChild variant="secondary">
-          <Link href="/studio">
-            <Clapperboard aria-hidden />
-            Open in Studio
-          </Link>
-        </Button>
+            ) : null}
+          </section>
+        ) : null}
+
+        <section aria-labelledby="scenes-h" className="flex flex-col gap-2">
+          <h2 id="scenes-h" className="text-sm font-medium">
+            Scenes
+          </h2>
+          <ol className="flex flex-col divide-y divide-line rounded-xl border border-line bg-surface">
+            {scenes.map((s) => (
+              <li key={s.scene_number} className="flex gap-3 p-3">
+                <Thumb src={s.asset_id ? thumbnails[s.asset_id] : null} alt="" ratio="16:9" className="w-24 shrink-0" />
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-sm">
+                  <span className="font-mono text-[11px] text-ink-muted">
+                    SCENE {s.scene_number} · {s.duration_seconds}s · {s.asset_title ?? (s.asset_id ? "clip" : "brand card")} · {s.transition}
+                  </span>
+                  {s.on_screen_text ? <span className="font-semibold">&ldquo;{s.on_screen_text}&rdquo;</span> : null}
+                  {s.visual_description ? <span className="text-ink-muted">{s.visual_description}</span> : null}
+                  {s.voiceover ? <span className="text-xs">Voiceover (script only, not recorded): {s.voiceover}</span> : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {brief ? (
+          <details className="rounded-xl border border-line bg-surface p-4 text-sm">
+            <summary className="cursor-pointer font-medium">The brief behind it</summary>
+            <dl className="mt-3 flex flex-col gap-1.5">
+              {brief.key_message ? <Row k="Key message" v={brief.key_message} /> : null}
+              {brief.audience ? <Row k="Audience" v={brief.audience} /> : null}
+              {brief.tone ? <Row k="Tone" v={brief.tone} /> : null}
+              {brief.call_to_action ? <Row k="Call to action" v={brief.call_to_action} /> : null}
+            </dl>
+            {brief.assumptions?.length ? (
+              <p className="mt-3 text-ink-muted">Assumed: {brief.assumptions.map((a) => a.assumption).join("; ")}</p>
+            ) : null}
+            {brief.missing_information?.length ? <p className="mt-1 text-ink-muted">Worth telling us: {brief.missing_information.join("; ")}</p> : null}
+          </details>
+        ) : null}
+
+        {canEdit && aiConfigured ? (
+          <section aria-labelledby="changes-h" className="flex flex-col gap-2.5">
+            <h2 id="changes-h" className="text-sm font-medium">
+              Ask for changes
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {CHANGE_IDEAS.map((c) => (
+                <PillToggle key={c} size="sm" pressed={change === c} onClick={() => setChange(change === c ? "" : c)}>
+                  {c}
+                </PillToggle>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input aria-label="Describe the change" value={change} onChange={(e) => setChange(e.target.value)} maxLength={500} placeholder="e.g. Open on the kayak, end on the lodge" />
+              <Button variant="secondary" disabled={change.trim().length < 3} loading={busy === "change"} onClick={() => rebuild("change")}>
+                Revise · free
+              </Button>
+            </div>
+            <p className="text-xs text-ink-muted">Revisions are saved as new storyboard versions; earlier versions stay in Studio.</p>
+          </section>
+        ) : null}
+        {error ? (
+          <p role="alert" className="rounded-md bg-danger/10 px-3.5 py-2.5 text-sm">
+            {error}
+          </p>
+        ) : null}
+
+        <div className="flex flex-col gap-3">
+          <RenderPanel key={sb.id} projectId={project.id} storyboardId={sb.id} renderable={renderable} canRender={canEdit} initialJob={lastRender && (lastRender.status === "queued" || lastRender.status === "running") ? lastRender : null} onFinished={reload} />
+          <div className="grid grid-cols-2 gap-2.5">
+            <Button asChild variant="secondary">
+              <Link href={`/studio?project=${project.id}`}>
+                <Clapperboard aria-hidden /> Open in Studio
+              </Link>
+            </Button>
+            <Button variant="secondary" onClick={onNew}>
+              New video
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+function Row({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex gap-3">
+      <dt className="w-32 shrink-0 text-ink-muted">{k}</dt>
+      <dd>{v}</dd>
+    </div>
+  );
+}
+
+/* A storyboard preview (an animatic of keyframes and on-screen text), clearly not the rendered video. */
+export function StoryboardPlayer({ scenes, thumbnails, format }: { scenes: Scene[]; thumbnails: Record<string, string | null>; format: string }) {
+  const [i, setI] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const scene = scenes[Math.min(i, scenes.length - 1)];
+  useEffect(() => {
+    if (!playing || !scene) return;
+    const t = setTimeout(() => (i + 1 < scenes.length ? setI(i + 1) : (setPlaying(false), setI(0))), scene.duration_seconds * 1000);
+    return () => clearTimeout(t);
+  }, [playing, i, scene, scenes.length]);
+  const aspect = useMemo(() => ({ "9:16": "aspect-[9/16]", "1:1": "aspect-square", "16:9": "aspect-video", "4:5": "aspect-[4/5]" })[format] ?? "aspect-[9/16]", [format]);
+  if (!scene) return null;
+  const src = scene.asset_id ? thumbnails[scene.asset_id] : null;
+  return (
+    <div className={cn("relative mx-auto w-full max-w-[420px] overflow-hidden rounded-2xl bg-primary lg:sticky lg:top-24", aspect)}>
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element -- signed keyframe URL
+        <img src={src} alt="" className="absolute inset-0 size-full object-cover" />
+      ) : null}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-media-veil/30 via-transparent to-media-veil/60" />
+      <span className="absolute top-4 left-4 rounded-pill bg-media-veil/55 px-2.5 py-1 font-mono text-[10px] text-on-media">
+        STORYBOARD PREVIEW · SCENE {scene.scene_number}/{scenes.length} · {format}
+      </span>
+      {scene.on_screen_text ? (
+        <p className="absolute inset-x-6 bottom-[22%] font-display text-[clamp(24px,3.5vw,36px)] leading-[1.05] font-bold tracking-tight text-on-media [text-shadow:0_2px_14px_rgb(0_0_0/0.4)]">{scene.on_screen_text}</p>
+      ) : null}
+      <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause storyboard preview" : "Play storyboard preview"} className="absolute top-1/2 left-1/2 inline-flex size-16 -translate-1/2 items-center justify-center rounded-full bg-on-media/90 text-media-veil shadow-float">
+        {playing ? <Pause className="size-6 fill-current" aria-hidden /> : <Play className="ml-1 size-6 fill-current" aria-hidden />}
+      </button>
+      <div className="absolute inset-x-5 bottom-5 flex gap-1" aria-hidden>
+        {scenes.map((s, k) => (
+          <span key={k} className={cn("h-1 rounded-pill", k <= i ? "bg-ai" : "bg-on-media/30")} style={{ flex: s.duration_seconds }} />
+        ))}
+      </div>
+      <p className="absolute inset-x-0 bottom-8 text-center font-mono text-[10px] text-on-media/80">Keyframes only · the rendered MP4 appears after you approve</p>
+    </div>
+  );
+}
