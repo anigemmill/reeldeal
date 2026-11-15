@@ -35,7 +35,7 @@ export async function getMyWorkspace(ctx: Ctx) {
       created_at: iso(data.org.created_at),
       ai_media_analysis_consent: data.org.ai_media_analysis_consent,
     },
-    connection: { authenticated_via: ctx.principal.via === "pat" ? "personal access token" : "OAuth" },
+    connection: { authenticated_via: ctx.principal.via === "pat" ? "personal access token" : ctx.principal.via === "oauth" ? "OAuth" : "web session" },
     permissions: permissionsFor(ctx.principal),
     plan: plan
       ? { id: plan.id, name: plan.name, video_credits_per_period: plan.videoCredits.amount, brand_profiles: plan.brandProfiles ?? null, users: plan.users ?? null }

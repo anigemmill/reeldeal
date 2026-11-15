@@ -19,6 +19,15 @@ export const BrandInput = z.object({
   typography: z.object({ headings: z.string().max(80).optional(), body: z.string().max(80).optional(), notes: z.string().max(500).optional() }).optional(),
   guidelines: z.string().trim().max(10000).optional(),
   restrictions: z.array(z.string().trim().min(1).max(300)).max(20).optional(),
+  website: z
+    .string()
+    .trim()
+    .max(300)
+    .transform((v) => (v && !/^https?:\/\//i.test(v) ? `https://${v}` : v))
+    .pipe(z.union([z.literal(""), z.url({ protocol: /^https?$/ })]))
+    .optional(),
+  /** An image already uploaded to this workspace's library. */
+  logo_media_id: z.uuid().nullable().optional(),
 });
 export type BrandInput = z.infer<typeof BrandInput>;
 
@@ -34,6 +43,7 @@ type BrandRow = {
   logo_media_id: string | null;
   guidelines: string | null;
   restrictions: string[];
+  website: string | null;
   version: number;
   created_at: string;
   updated_at: string;
@@ -55,12 +65,13 @@ function present(b: BrandRow) {
     ["logo_media_id", b.logo_media_id],
     ["guidelines", b.guidelines],
     ["restrictions", b.restrictions],
+    ["website", b.website],
   ];
   for (const [k, v] of fields) if (!isEmpty(v)) out[k] = v;
   return out;
 }
 
-const COLS = "id, name, description, industry, audiences, voice, colours, typography, logo_media_id, guidelines, restrictions, version, created_at, updated_at";
+const COLS = "id, name, description, industry, audiences, voice, colours, typography, logo_media_id, guidelines, restrictions, website, version, created_at, updated_at";
 
 export async function listBrands(ctx: Ctx) {
   const rows = await asUser(ctx, (sql) => sql.query<BrandRow>(`select ${COLS} from public.brand_profiles where org_id = $1 order by name`, [ctx.principal.orgId]));
@@ -87,11 +98,12 @@ export async function createBrand(ctx: Ctx, input: BrandInput) {
   requireScope(ctx.principal, "mcp:write");
   requireRole(ctx.principal, "editor");
   const b = parseInput(BrandInput, input);
+  if (b.logo_media_id) await assertLogo(ctx, b.logo_media_id);
   try {
     const [row] = await asUser(ctx, (sql) =>
       sql.query<BrandRow>(
-        `insert into public.brand_profiles (org_id, name, description, industry, audiences, voice, colours, typography, guidelines, restrictions, created_by)
-         values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8::text::jsonb, $9, $10, $11) returning ${COLS}`,
+        `insert into public.brand_profiles (org_id, name, description, industry, audiences, voice, colours, typography, guidelines, restrictions, created_by, website, logo_media_id)
+         values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8::text::jsonb, $9, $10, $11, $12, $13) returning ${COLS}`,
         [
           ctx.principal.orgId,
           b.name,
@@ -104,6 +116,8 @@ export async function createBrand(ctx: Ctx, input: BrandInput) {
           b.guidelines ?? null,
           b.restrictions ?? [],
           ctx.principal.userId,
+          b.website || null,
+          b.logo_media_id ?? null,
         ],
       ),
     );
@@ -118,6 +132,7 @@ export async function updateBrand(ctx: Ctx, id: string, input: Partial<BrandInpu
   requireScope(ctx.principal, "mcp:write");
   requireRole(ctx.principal, "editor");
   const b = parseInput(BrandInput.partial(), input);
+  if (b.logo_media_id) await assertLogo(ctx, b.logo_media_id);
   const candidates: [string, unknown, string?][] = [
     ["name", b.name],
     ["description", b.description],
@@ -128,6 +143,8 @@ export async function updateBrand(ctx: Ctx, id: string, input: Partial<BrandInpu
     ["typography", b.typography && JSON.stringify(b.typography), "::text::jsonb"],
     ["guidelines", b.guidelines],
     ["restrictions", b.restrictions],
+    ["website", b.website === undefined ? undefined : b.website || null],
+    ["logo_media_id", b.logo_media_id],
   ];
   const sets = candidates.filter(([, v]) => v !== undefined);
   if (sets.length === 0) throw invalid("Nothing to update");
@@ -146,4 +163,23 @@ export async function updateBrand(ctx: Ctx, id: string, input: Partial<BrandInpu
   }
   if (!row) throw notFound("Brand profile");
   return present(row);
+}
+
+/** A logo must be an image in this workspace's own library. */
+async function assertLogo(ctx: Ctx, mediaId: string) {
+  const [m] = await asUser(ctx, (sql) => sql.query<{ kind: string; status: string }>("select kind, status from public.media_assets where org_id = $1 and id = $2", [ctx.principal.orgId, mediaId]));
+  if (!m) throw notFound("Logo image");
+  if (m.kind !== "image") throw invalid("The logo must be an image (PNG, JPEG or WebP)");
+  if (m.status === "awaiting_upload") throw invalid("Finish uploading the logo first");
+}
+
+/** Saved versions of a brand profile, newest first (written by a database trigger on every change). */
+export async function listBrandVersions(ctx: Ctx, brandId: string) {
+  const rows = await asUser(ctx, (sql) =>
+    sql.query<{ version: number; created_at: string; snapshot: { name: string; updated_at: string } }>(
+      "select version, created_at, snapshot from public.brand_profile_versions where org_id = $1 and brand_id = $2 order by version desc limit 50",
+      [ctx.principal.orgId, brandId],
+    ),
+  );
+  return { versions: rows.map((r) => ({ version: r.version, name: r.snapshot.name, saved_at: iso(r.created_at) })) };
 }

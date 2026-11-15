@@ -9,14 +9,26 @@ import type { NextConfig } from "next";
 */
 const isDev = process.env.NODE_ENV !== "production";
 
+// Browsers upload to and play from private storage through signed URLs, so its origin
+// must be allowed (R2 by default, or R2_ENDPOINT for a jurisdiction or the local stack).
+const storageOrigin = (() => {
+  const raw = process.env.R2_ENDPOINT || (process.env.R2_ACCOUNT_ID ? `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : "");
+  try {
+    return raw ? new URL(raw).origin : "";
+  } catch {
+    return "";
+  }
+})();
+const storage = storageOrigin ? ` ${storageOrigin}` : "";
+
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "media-src 'self' blob:",
+  `img-src 'self' data: blob:${storage}`,
+  `media-src 'self' blob:${storage}`,
   "font-src 'self'",
-  `connect-src 'self'${isDev ? " ws:" : ""}`,
+  `connect-src 'self'${storage}${isDev ? " ws:" : ""}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -14,7 +14,8 @@ export type Principal = {
   orgId: string;
   role: MemberRole;
   scopes: Scope[];
-  via: "pat" | "oauth";
+  /** pat/oauth: MCP clients. session: the customer web app (verified Supabase Auth session). */
+  via: "pat" | "oauth" | "session";
   tokenId?: string;
   clientId?: string;
 };

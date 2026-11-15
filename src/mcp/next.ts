@@ -1,7 +1,7 @@
 import "server-only";
 import { serverEnv as env } from "@/env/server";
 import type { Platform } from "@/server/context";
-import { createPlatform } from "@/server/platform";
+import { getPlatform } from "@/server/app/platform";
 import { handleMcpHttp, protectedResourceMetadata, type HttpConfig } from "./http";
 
 /*
@@ -16,7 +16,6 @@ import { handleMcpHttp, protectedResourceMetadata, type HttpConfig } from "./htt
   configured it answers 503 for every MCP request.
 */
 const PATS_ALLOWED = env.NODE_ENV !== "production";
-let platform: Promise<Platform> | null = null;
 
 export function httpConfig(req: Request): HttpConfig {
   const resourceUrl = env.MCP_PUBLIC_URL ?? new URL("/api/mcp", req.url).toString();
@@ -37,12 +36,10 @@ export async function handleNextMcp(req: Request): Promise<Response> {
   if (!PATS_ALLOWED && !(env.SUPABASE_JWT_ISSUER && env.SUPABASE_JWKS_URL)) {
     return Response.json({ error: "Remote MCP is disabled on this deployment until OAuth sign-in is configured. Use the local STDIO server." }, { status: 503 });
   }
-  platform ??= createPlatform({ autoMigrateEmbedded: false });
   let p: Platform;
   try {
-    p = await platform;
+    p = await getPlatform();
   } catch (e) {
-    platform = null; // retry initialisation on the next request
     console.error(`MCP endpoint configuration error: ${(e as Error).message}`);
     return Response.json({ error: "The MCP endpoint is not correctly configured on this deployment." }, { status: 503 });
   }
