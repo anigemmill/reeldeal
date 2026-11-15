@@ -86,3 +86,27 @@ by production builds.
 | `npm test` | Service, MCP, privilege and reliability tests on embedded Postgres (AI mocked) |
 | `npm run test:e2e` | The whole customer journey in a real browser on the local stack (fixture AI), plus axe on signed-in pages |
 | `npm run test:a11y` | All themes on the designed screens (review routes) and the public account pages |
+
+## When things go wrong
+
+| Situation | What the customer sees and can do |
+|---|---|
+| Network drops during an upload | The file is marked failed with the reason; **Retry** resends only the missing parts |
+| Page closed or reloaded mid-upload | The file shows **Upload interrupted**; open it and **Remove unfinished upload**, then upload again |
+| A file isn't a real video | **Analysis failed** with the reason; nothing else is affected |
+| AI request fails | The stage shows the error, nothing is charged; **Try again** from that stage, or go back with the brief kept |
+| Render fails on our side | "You were not charged"; **Retry free** (credits held again, charged only on success) |
+| Footage missing from storage | The render names the clip and says to replace it in Studio; no pointless retry; not charged |
+| Not enough credits | The quote says so and the Render button is disabled |
+| Confirm clicked twice | One render, one charge (the server-signed quote is single-use) |
+| Session expired | Sent to sign in with "Your session ended", then back to the page |
+| Worker stops mid-job | Another worker picks the job up after the heartbeat timeout; still charged once |
+
+## Render output
+
+Each format is 1080p (9:16 1080×1920, 1:1 1080×1080, 16:9 1920×1080, 4:5 1080×1350),
+H.264 at 30 fps capped at 10 Mbit/s, AAC 48 kHz stereo, fast-start. Clips are centre-cropped
+to fill the frame and keep their own sound; brand cards use the brand's first colour with
+large centred text and are silent. "Cut" joins directly, "fade" fades in from black,
+"dissolve" cross-fades picture and sound while keeping each scene's length.
+`src/server/workers/render-quality.test.ts` checks these properties on a real render.
