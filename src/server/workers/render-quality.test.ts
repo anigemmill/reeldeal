@@ -109,7 +109,7 @@ describe("image thumbnails", () => {
     await t.p.db.system((sql) => sql.query("insert into public.media_assets (id, org_id, title, kind, mime_type, storage_key, status) values ($1, $2, 'Big image', 'image', 'image/png', $3, 'uploaded')", [id, t.demo.ids.orgA, key]));
     await requestAnalysis(aroha, id);
     expect((await createWorker(t.p).runOnce())?.status).toBe("succeeded");
-    const a = (await getMediaAnalysis(aroha, id)) as { status: string; analysis: { technical: { width: number; height: number } } };
+    const a = (await getMediaAnalysis(aroha, id)) as unknown as { status: string; analysis: { technical: { width: number; height: number } } };
     expect(a).toMatchObject({ status: "analysed", analysis: { technical: { width: 3000, height: 2000 } } });
     const url = (await mediaThumbnails(aroha, [id]))[id]!;
     expect(url).toContain("/analysis/");
