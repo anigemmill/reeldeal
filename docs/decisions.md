@@ -240,3 +240,18 @@ How it is wired: `docs/app.md`. Decisions:
   routes need a session); signed-in pages are checked with axe inside `npm run test:e2e`.
 - **Bug found by the browser tests and fixed**: AI footage candidates could include a clip
   whose analysis had failed. Candidates are now analysed clips only.
+
+## Hardening round (after mission 3)
+- **Render output reviewed frame by frame** and fixed: clip sound kept (was always silent),
+  real cross-dissolves that keep scene lengths (was fade-from-black), larger brand-card text,
+  10 Mbit/s cap (one render was 28 Mbit/s), AI on-screen text lengthened to be readable.
+  `render-quality.test.ts` inspects the MP4 itself.
+- **Images get thumbnails** through the analysis job (dimensions + 480px JPEG), so the
+  library never loads large originals for tiles. Images are not scored or charged.
+- **Missing footage is not "retry free"**: a render whose source is gone from storage fails
+  with the clip's name and the fix, and offers no retry (it could never succeed).
+- **Interrupted uploads** (page closed mid-upload) are labelled and can be removed; network
+  failures during upload are retried for the missing parts only.
+- **Indexes** for the web app's hot paths (migration `20261116000002`), and one usage lookup
+  per request shared by navigation and page.
+- **Phones**: grids use `minmax(0, 1fr)` so long names wrap instead of widening the page.
