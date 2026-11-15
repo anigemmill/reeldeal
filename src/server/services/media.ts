@@ -49,7 +49,7 @@ type MediaRow = {
   id: string; title: string; description: string | null; kind: string; mime_type: string; size_bytes: string | number | null;
   duration_seconds: string | number | null; width: number | null; height: number | null; orientation: string | null; status: string;
   storage_key: string; original_filename: string | null; tags: string[]; ai_tags: string[]; usage_rights: string | null; brand_id: string | null;
-  created_at: string; updated_at: string; relevance?: number | null; quality_score?: number | null; analysed?: boolean;
+  created_at: string; updated_at: string; relevance?: number | null; quality_score?: number | null; analysed?: boolean; thumb_key?: string | null;
 };
 
 function summary(m: MediaRow) {
@@ -68,10 +68,19 @@ function summary(m: MediaRow) {
     analysed: Boolean(m.analysed),
     quality_score: num(m.quality_score),
     relevance: m.relevance === undefined || m.relevance === null ? null : Math.round(Number(m.relevance) * 1000) / 1000,
+    size_bytes: num(m.size_bytes),
+    created_at: iso(m.created_at),
   };
 }
 
-export async function searchMedia(ctx: Ctx, raw: SearchInput) {
+/** Short-lived signed thumbnail: the first analysed keyframe of a video, or the image itself. */
+async function thumbnailUrl(ctx: Ctx, m: Pick<MediaRow, "kind" | "status" | "storage_key" | "thumb_key">) {
+  const key = m.kind === "image" && (m.status === "uploaded" || m.status === "ready") ? m.storage_key : m.thumb_key;
+  if (!key) return null;
+  return (await ctx.storage.signedGetUrl(ownedKey(key, ctx.principal.orgId), { ttlSeconds: ctx.signedUrlTtlSeconds })).url;
+}
+
+export async function searchMedia(ctx: Ctx, raw: SearchInput, opts: { includeThumbnails?: boolean } = {}) {
   const f = parseInput(SearchInput, raw);
   const params: unknown[] = [ctx.principal.orgId];
   const where = ["m.org_id = $1"];
@@ -100,9 +109,9 @@ export async function searchMedia(ctx: Ctx, raw: SearchInput) {
   const limit = f.limit ?? 20;
   const rows = await asUser(ctx, (sql) =>
     sql.query<MediaRow>(
-      `select m.*, ${rank} as relevance, a.quality_score, (a.id is not null) as analysed
+      `select m.*, ${rank} as relevance, a.quality_score, (a.id is not null) as analysed, a.thumb_key
          from public.media_assets m
-         left join lateral (select ma.id, (ma.quality ->> 'score')::numeric as quality_score from public.media_analysis ma
+         left join lateral (select ma.id, (ma.quality ->> 'score')::numeric as quality_score, ma.scenes -> 0 ->> 'thumbnail_key' as thumb_key from public.media_analysis ma
                              where ma.media_id = m.id order by ma.created_at desc limit 1) a on true
         where ${where.join(" and ")}
         order by ${order}
@@ -111,7 +120,7 @@ export async function searchMedia(ctx: Ctx, raw: SearchInput) {
     ),
   );
   return {
-    results: rows.slice(0, limit).map(summary),
+    results: await Promise.all(rows.slice(0, limit).map(async (m) => ({ ...summary(m), ...(opts.includeThumbnails ? { thumbnail_url: await thumbnailUrl(ctx, m) } : {}) }))),
     has_more: rows.length > limit,
     next_offset: rows.length > limit ? (f.offset ?? 0) + limit : null,
     search_method: f.query ? "full-text (title, tags, AI tags, description)" : "filters only",
@@ -367,4 +376,60 @@ export async function getMediaAnalysis(ctx: Ctx, id: string, opts: { includeThum
       ai: row.ai ?? { status: "not run", reason: "AI description runs only when the workspace has consented to AI media analysis and AI is configured." },
     },
   };
+}
+
+/** Thumbnails for specific media ids in this workspace (missing or foreign ids are skipped). */
+export async function mediaThumbnails(ctx: Ctx, ids: string[]): Promise<Record<string, string | null>> {
+  const unique = [...new Set(ids)].slice(0, 100);
+  if (!unique.length) return {};
+  const rows = await asUser(ctx, (sql) =>
+    sql.query<MediaRow>(
+      `select m.id, m.kind, m.status, m.storage_key, (select ma.scenes -> 0 ->> 'thumbnail_key' from public.media_analysis ma where ma.media_id = m.id order by ma.created_at desc limit 1) as thumb_key
+         from public.media_assets m where m.org_id = $1 and m.id = any($2::uuid[])`,
+      [ctx.principal.orgId, unique],
+    ),
+  );
+  return Object.fromEntries(await Promise.all(rows.map(async (m) => [m.id, await thumbnailUrl(ctx, m)] as const)));
+}
+
+/**
+ * Recent uploads with their processing state: what the library and dashboard show
+ * as "processing". Status comes from the asset and its latest analysis job, never guessed.
+ */
+export async function listMediaActivity(ctx: Ctx, opts: { limit?: number } = {}) {
+  const rows = await asUser(ctx, (sql) =>
+    sql.query<{ id: string; title: string; kind: string; status: string; created_at: string; job_status: string | null; job_stage: string | null; job_progress: string | null; job_error: { message: string; retryable?: boolean } | null }>(
+      `select m.id, m.title, m.kind, m.status, m.created_at, j.status as job_status, j.stage as job_stage, j.progress as job_progress, j.error as job_error
+         from public.media_assets m
+         left join lateral (select status, stage, progress, error from public.jobs where media_id = m.id and kind = 'media_analysis' order by created_at desc limit 1) j on true
+        where m.org_id = $1 and (m.status <> 'ready' or m.updated_at > now() - interval '2 days')
+        order by m.updated_at desc limit $2`,
+      [ctx.principal.orgId, Math.min(opts.limit ?? 8, 30)],
+    ),
+  );
+  return {
+    items: rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      kind: r.kind,
+      status: r.status,
+      created_at: iso(r.created_at),
+      analysis: r.job_status ? { status: r.job_status, stage: r.job_stage, progress_percent: num(r.job_progress), error: r.job_error?.message ?? null, retryable: r.job_error?.retryable ?? null } : null,
+    })),
+  };
+}
+
+/**
+ * Cancel an upload that has not been completed: the asset is marked failed and any
+ * multipart upload is aborted so its parts are discarded. Completed uploads are never touched.
+ */
+export async function cancelMediaUpload(ctx: Ctx, id: string) {
+  requireScope(ctx.principal, "mcp:write");
+  requireRole(ctx.principal, "editor");
+  const m = await loadMedia(ctx, id);
+  if (m.status !== "awaiting_upload") throw new AppError("conflict", `This upload is already ${m.status} and can't be cancelled`);
+  const [mp] = await ctx.db.system((sys) => sys.query<{ upload_id: string }>("select upload_id from public.media_uploads where media_id = $1 and org_id = $2 and completed_at is null", [id, ctx.principal.orgId]));
+  if (mp && ctx.storage.multipart) await ctx.storage.multipart.abort(ownedKey(m.storage_key, ctx.principal.orgId), mp.upload_id);
+  await ctx.db.system((sys) => sys.query("update public.media_assets set status = 'failed' where org_id = $1 and id = $2 and status = 'awaiting_upload'", [ctx.principal.orgId, id]));
+  return { media_id: id, status: "failed" as const, cancelled: true };
 }

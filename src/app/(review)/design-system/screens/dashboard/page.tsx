@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app/app-shell";
-import { DashboardScreen } from "@/components/app/dashboard/dashboard-screen";
+import { DashboardPreview } from "@/components/app/dashboard/dashboard-preview";
 
 export const metadata: Metadata = { title: "Screen · Dashboard" };
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Screen · Dashboard" };
 export default function DashboardReviewPage() {
   return (
     <AppShell>
-      <DashboardScreen />
+      <DashboardPreview />
     </AppShell>
   );
 }

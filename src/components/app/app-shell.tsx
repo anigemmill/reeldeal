@@ -4,18 +4,19 @@ import { Menu, X } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useState, type ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import type { NavData } from "@/server/app/view";
 import { AppNav } from "./app-nav";
 
 /*
   App layout: fixed sidebar from 1024px, a top bar with a drawer below that.
   Studio does not use this shell (full-screen focus mode).
 */
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, nav }: { children: ReactNode; nav?: NavData }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="flex min-h-dvh bg-bg">
       <aside className="sticky top-0 hidden h-dvh w-62 shrink-0 border-r border-line lg:block">
-        <AppNav />
+        <AppNav nav={nav} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -36,7 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Dialog.Close aria-label="Close navigation" className="absolute top-3.5 right-3 inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted">
                   <X className="size-4" aria-hidden />
                 </Dialog.Close>
-                <AppNav className="overflow-y-auto" />
+                <AppNav className="overflow-y-auto" nav={nav} />
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>

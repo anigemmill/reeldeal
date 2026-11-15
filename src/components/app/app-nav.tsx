@@ -1,12 +1,15 @@
 "use client";
 
-import { Clapperboard, Download, FolderOpen, Home, LayoutGrid, LayoutTemplate, Plus, Settings, Shield, Sparkles } from "lucide-react";
+import { Clapperboard, Download, FolderOpen, Home, LayoutGrid, LayoutTemplate, LogOut, Plus, Settings, Shield, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/misc";
 import { SAMPLE_WORKSPACE, sampleUsageMeters } from "@/content/sample/workspace";
+import type { NavData } from "@/server/app/view";
+import { signOut } from "@/app/(app)/(auth)/actions";
+import { switchWorkspace } from "@/app/(app)/_actions/workspace";
 import { cn } from "@/lib/utils";
 
 /*
@@ -17,19 +20,33 @@ const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
   { label: "Autopilot", href: "/autopilot", icon: Sparkles },
   { label: "Studio", href: "/studio", icon: Clapperboard },
-  { label: "Library", icon: LayoutGrid },
-  { label: "Projects", icon: FolderOpen },
-  { label: "Brands", icon: Shield },
+  { label: "Library", href: "/library", icon: LayoutGrid },
+  { label: "Projects", href: "/projects", icon: FolderOpen },
+  { label: "Brands", href: "/brands", icon: Shield },
   { label: "Templates", icon: LayoutTemplate },
-  { label: "Exports", icon: Download },
+  { label: "Exports", href: "/exports", icon: Download },
 ] as const;
 
 const meterFill = ["bg-primary", "bg-primary/70", "bg-primary/45"];
 
-export function AppNav({ className }: { className?: string }) {
-  const pathname = usePathname();
+/** Sample chrome for the design review pages only; the product passes real NavData. */
+function sampleNav(): NavData {
   const { planName, meters } = sampleUsageMeters();
-  const ws = SAMPLE_WORKSPACE;
+  return {
+    workspace: { name: SAMPLE_WORKSPACE.name, initials: SAMPLE_WORKSPACE.initials, kind: SAMPLE_WORKSPACE.kind },
+    user: { name: SAMPLE_WORKSPACE.user.name, initials: SAMPLE_WORKSPACE.user.initials, email: null },
+    planName,
+    meters,
+    usageLabel: "Sample usage",
+    workspaces: [],
+  };
+}
+
+export function AppNav({ className, nav }: { className?: string; nav?: NavData }) {
+  const pathname = usePathname();
+  const data = nav ?? sampleNav();
+  const { planName, meters } = data;
+  const ws = data.workspace;
 
   return (
     <nav aria-label="App" className={cn("flex h-full flex-col gap-4.5 bg-surface px-3.5 py-4.5 text-sm text-ink", className)}>
@@ -37,7 +54,6 @@ export function AppNav({ className }: { className?: string }) {
         <Logo size="sm" />
       </Link>
 
-      {/* Workspace switching arrives with organisations (Phase 3). */}
       <div className="flex items-center gap-2.5 rounded-md border border-line bg-surface-muted px-2.5 py-2">
         <Avatar initials={ws.initials} label={ws.name} shape="square" className="bg-primary text-primary-foreground" />
         <span className="flex min-w-0 flex-col">
@@ -45,6 +61,17 @@ export function AppNav({ className }: { className?: string }) {
           <span className="text-xs text-ink-muted">{ws.kind}</span>
         </span>
       </div>
+      {data.workspaces.length > 1 ? (
+        <form action={switchWorkspace} className="-mt-2 flex gap-1.5">
+          <label className="sr-only" htmlFor="ws-switch">Switch workspace</label>
+          <select id="ws-switch" name="org_id" defaultValue={data.workspaces.find((w) => w.current)?.id} className="h-9 min-w-0 flex-1 rounded-md border border-line bg-surface px-2 text-xs">
+            {data.workspaces.map((w) => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+          <Button type="submit" size="sm" variant="secondary">Switch</Button>
+        </form>
+      ) : null}
 
       <Button asChild variant="action" className="w-full">
         <Link href="/autopilot">
@@ -89,7 +116,7 @@ export function AppNav({ className }: { className?: string }) {
       <div className="mt-auto flex flex-col gap-3 rounded-lg bg-surface-muted p-3.5">
         <div className="flex items-center justify-between">
           <span className="font-semibold">{planName} plan</span>
-          <span className="text-xs text-ink-muted">Sample usage</span>
+          <span className="text-xs text-ink-muted">{data.usageLabel}</span>
         </div>
         {meters.map((m, i) => (
           <div key={m.id}>
@@ -105,8 +132,15 @@ export function AppNav({ className }: { className?: string }) {
       </div>
 
       <div className="flex items-center gap-2.5 px-1.5">
-        <Avatar initials={ws.user.initials} label={ws.user.name} />
-        <span className="flex-1 truncate text-[13px]">{ws.user.name}</span>
+        <Avatar initials={data.user.initials} label={data.user.name} />
+        <span className="flex-1 truncate text-[13px]" title={data.user.email ?? undefined}>{data.user.name}</span>
+        {nav ? (
+          <form action={signOut}>
+            <button type="submit" aria-label="Sign out" className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink">
+              <LogOut className="size-[18px]" strokeWidth={1.8} aria-hidden />
+            </button>
+          </form>
+        ) : null}
         <Link href="/settings/appearance" aria-label="Settings" className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink">
           <Settings className="size-[18px]" strokeWidth={1.8} aria-hidden />
         </Link>

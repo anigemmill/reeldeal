@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { BRIEF_SUGGESTIONS } from "@/content/sample/dashboard";
 
 /*
-  Brief box on the dashboard. A plain GET form to /autopilot?brief=…, so the
-  Autopilot screen (Checkpoint 3) receives the brief. Nothing is generated here.
+  Brief box on the dashboard. A plain GET form to /autopilot?brief=…, so Autopilot
+  opens with the brief prefilled. Nothing is generated or charged here.
 */
-export function AutopilotPrompt() {
+export function AutopilotPrompt({ suggestions = BRIEF_SUGGESTIONS }: { suggestions?: readonly string[] }) {
   const id = useId();
   const [brief, setBrief] = useState("");
   return (
@@ -31,7 +31,7 @@ export function AutopilotPrompt() {
         </Button>
       </div>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Example briefs">
-        {BRIEF_SUGGESTIONS.map((s) => (
+        {suggestions.map((s) => (
           <button
             key={s}
             type="button"

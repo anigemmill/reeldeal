@@ -25,7 +25,7 @@ export type ProjectInput = z.infer<typeof ProjectInput>;
 type ProjectRow = {
   id: string; name: string; status: string; objective: string | null; audience: string | null; description: string | null; platform: string | null;
   formats: string[]; duration_seconds: number | null; brand_id: string | null; brand_name?: string | null; created_at: string; updated_at: string;
-  media_count?: number; storyboard_count?: number;
+  media_count?: number; storyboard_count?: number; cover_media_id?: string | null; latest_format?: string | null;
 };
 
 export async function listProjects(ctx: Ctx, opts: { status?: string; limit?: number; offset?: number } = {}) {
@@ -37,7 +37,9 @@ export async function listProjects(ctx: Ctx, opts: { status?: string; limit?: nu
     sql.query<ProjectRow>(
       `select p.*, b.name as brand_name,
               (select count(*) from public.project_media pm where pm.project_id = p.id)::int as media_count,
-              (select count(*) from public.storyboards s where s.project_id = p.id)::int as storyboard_count
+              (select count(*) from public.storyboards s where s.project_id = p.id)::int as storyboard_count,
+              (select pm.media_id from public.project_media pm where pm.project_id = p.id order by pm.added_at limit 1) as cover_media_id,
+              (select s.format from public.storyboards s where s.project_id = p.id order by s.version desc limit 1) as latest_format
          from public.projects p left join public.brand_profiles b on b.id = p.brand_id
         where ${where} order by p.updated_at desc limit ${limit + 1} offset ${opts.offset ?? 0}`,
       params,
@@ -47,6 +49,7 @@ export async function listProjects(ctx: Ctx, opts: { status?: string; limit?: nu
     projects: rows.slice(0, limit).map((p) => ({
       id: p.id, name: p.name, status: p.status, brand: p.brand_id ? { id: p.brand_id, name: p.brand_name } : null,
       formats: p.formats, duration_seconds: p.duration_seconds, media_count: p.media_count, storyboard_count: p.storyboard_count, updated_at: iso(p.updated_at),
+      cover_media_id: p.cover_media_id ?? null, latest_format: p.latest_format ?? null,
     })),
     has_more: rows.length > limit,
   };
