@@ -1,7 +1,10 @@
 import raw from "../../../config/pricing.json";
 import { formatPricingIssues, pricingSchema, type Plan, type PricingConfig } from "./schema";
 
+import type { Billing } from "./links";
+
 export type { Plan, PricingConfig, Wallet } from "./schema";
+export { signupHref, type Billing } from "./links";
 
 /*
   Typed access to config/pricing.json. Pricing is never hard-coded elsewhere.
@@ -29,6 +32,20 @@ export function getPlan(id: string): Plan | undefined {
 export function getRecommendedPlan(): Plan {
   // Existence is guaranteed by the schema's cross-field checks.
   return getPlan(pricing.recommendedPlan)!;
+}
+
+export type PlanChoice = { plan: Plan; billing: Billing };
+
+/**
+ * The paid, self-serve plan someone picked on the pricing page (?plan=…&billing=…),
+ * or null for anything else: unknown ids, Free and Enterprise (which is sales-led).
+ * Inputs are untrusted (query string, form data, user metadata).
+ */
+export function parsePlanChoice(plan: unknown, billing: unknown): PlanChoice | null {
+  if (typeof plan !== "string") return null;
+  const p = getPlan(plan);
+  if (!p || p.priceMonthly === null || p.priceMonthly === 0) return null;
+  return { plan: p, billing: billing === "annual" ? "annual" : "monthly" };
 }
 
 /** Credits for an activity in config/pricing.json creditCosts, by id (e.g. "video-60"). */

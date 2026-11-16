@@ -40,12 +40,18 @@ export function SignInForm({ next, banner }: { next: string; banner?: string }) 
   );
 }
 
-export function SignUpForm() {
+export function SignUpForm({ plan }: { plan?: { id: string; billing: "monthly" | "annual" } }) {
   const [state, action, pending] = useActionState(signUp, undefined);
   if (state?.notice) return <FormMessage tone="notice">{state.notice}</FormMessage>;
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
       <Messages state={state} />
+      {plan ? (
+        <>
+          <input type="hidden" name="plan" value={plan.id} />
+          <input type="hidden" name="billing" value={plan.billing} />
+        </>
+      ) : null}
       <Field label="Your name" error={state?.fieldErrors?.name}>
         <Input name="name" autoComplete="name" required defaultValue={state?.values?.name} />
       </Field>
@@ -58,7 +64,7 @@ export function SignUpForm() {
       <Button type="submit" variant="primary" size="lg" loading={pending}>
         {pending ? "Creating your account…" : "Create account"}
       </Button>
-      <p className="text-xs leading-relaxed text-ink-muted">New accounts start on the Free plan. No card needed.</p>
+      {plan ? null : <p className="text-xs leading-relaxed text-ink-muted">New accounts start on the Free plan. No card needed.</p>}
     </form>
   );
 }
