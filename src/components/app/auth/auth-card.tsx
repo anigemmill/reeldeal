@@ -25,6 +25,31 @@ export function AuthCard({ title, accent, intro, children, footer }: { title: st
   );
 }
 
+/**
+ * The paid plan someone picked on the pricing page. There is no payment system yet,
+ * so every workspace starts on Free; this says so plainly and keeps the choice visible.
+ */
+export function PlanChoiceNote({ planName, billing, freeVideos, changeHref }: { planName: string; billing: "monthly" | "annual"; freeVideos: number; changeHref?: string }) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-lg border border-line bg-surface-muted px-4 py-3 text-sm">
+      <p className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <span>
+          You picked <strong className="font-semibold">{planName}</strong>, billed {billing === "annual" ? "annually" : "monthly"}.
+        </span>
+        {changeHref ? (
+          <Link href={changeHref} className="text-link underline-offset-4 hover:underline">
+            Change plan
+          </Link>
+        ) : null}
+      </p>
+      <p className="leading-relaxed text-ink-muted">
+        Paid plans can&apos;t be bought online yet. Your workspace starts on Free with {freeVideos} videos, and we&apos;ve saved your choice for when
+        upgrades open.
+      </p>
+    </div>
+  );
+}
+
 export function FormMessage({ tone, children }: { tone: "error" | "notice"; children: ReactNode }) {
   return (
     <p role={tone === "error" ? "alert" : "status"} className={tone === "error" ? "rounded-md border border-danger/40 bg-danger/10 px-3.5 py-2.5 text-sm text-ink" : "rounded-md border border-success/40 bg-success/10 px-3.5 py-2.5 text-sm text-ink"}>

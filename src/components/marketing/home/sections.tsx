@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Container, Eyebrow } from "@/components/ui/misc";
 import { INDUSTRIES, STEPS, TEASER_PLANS } from "@/content/home";
 import { getMedia } from "@/content/media";
-import { getPlan, pricing } from "@/lib/pricing";
+import { getPlan, pricing, signupHref } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 /* Static homepage sections (design/website/W-Home.dc.html). */
@@ -283,7 +283,7 @@ export function PricingTeaser() {
                     <span className="text-sm">videos a month</span>
                   </div>
                   <Button asChild variant={recommended ? "action" : "primary"} shape="pill" size="lg" className="mt-auto font-semibold">
-                    <Link href="/pricing">Choose {plan.name}</Link>
+                    <Link href={signupHref(plan.id)}>Choose {plan.name}</Link>
                   </Button>
                 </div>
               </div>

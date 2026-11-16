@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { publicEnv } from "@/env/public";
+import { parsePlanChoice } from "@/lib/pricing";
 import { serverEnv } from "@/env/server";
 import { getPlatform } from "@/server/app/platform";
 import { failure } from "@/server/app/result";
@@ -58,11 +59,14 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fieldErrors.email = "Enter a valid email address.";
   if (password.length < 8) fieldErrors.password = "Use at least 8 characters.";
   if (Object.keys(fieldErrors).length) return { fieldErrors, values: { name, email } };
+  const choice = parsePlanChoice(form.get("plan"), form.get("billing"));
   const supabase = await supabaseServer();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: name }, emailRedirectTo: `${await siteUrl()}/auth/callback?next=/onboarding` },
+    // The plan picked on the pricing page is kept on the account (it survives email confirmation).
+    // It is a record of intent only: every workspace starts on Free until paid plans can be bought.
+    options: { data: { full_name: name, ...(choice ? { selected_plan: choice.plan.id, selected_billing: choice.billing } : {}) }, emailRedirectTo: `${await siteUrl()}/auth/callback?next=/onboarding` },
   });
   if (error) return { error: authMessage(error), values: { name, email } };
   // Projects that require email confirmation return no session: say so instead of pretending.

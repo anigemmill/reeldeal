@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import raw from "../../../config/pricing.json";
-import { creditCost, getPlan, getPlans, getRecommendedPlan, pricing, renderCredits } from "./index";
+import { creditCost, getPlan, getPlans, getRecommendedPlan, parsePlanChoice, pricing, renderCredits, signupHref } from "./index";
 import { pricingSchema } from "./schema";
 
 // Deliberately untyped so tests can break the config in ways the types forbid.
@@ -94,5 +94,27 @@ describe("pricing schema", () => {
     c.plans[0].priceMonthly = "49";
     c.gstIncluded = "yes";
     expect(messages(c).length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("plan choice from the pricing page", () => {
+  const paid = getPlans().find((p) => p.priceMonthly !== null && p.priceMonthly > 0)!;
+
+  it("builds sign-up links that carry the plan and billing period", () => {
+    expect(signupHref()).toBe("/signup");
+    expect(signupHref("free", "annual")).toBe("/signup");
+    expect(signupHref(paid.id)).toBe(`/signup?plan=${paid.id}`);
+    expect(signupHref(paid.id, "annual")).toBe(`/signup?plan=${paid.id}&billing=annual`);
+  });
+
+  it("accepts only paid self-serve plans and defaults to monthly", () => {
+    expect(parsePlanChoice(paid.id, undefined)).toEqual({ plan: paid, billing: "monthly" });
+    expect(parsePlanChoice(paid.id, "annual")?.billing).toBe("annual");
+    expect(parsePlanChoice(paid.id, "weekly")?.billing).toBe("monthly");
+    expect(parsePlanChoice("free", "monthly")).toBeNull();
+    expect(parsePlanChoice("enterprise", "monthly")).toBeNull();
+    expect(parsePlanChoice("no-such-plan", "monthly")).toBeNull();
+    expect(parsePlanChoice(["creator"], "monthly")).toBeNull();
+    expect(parsePlanChoice(undefined, undefined)).toBeNull();
   });
 });
