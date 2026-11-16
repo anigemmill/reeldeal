@@ -36,6 +36,8 @@ export const serverSchema = z
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     /** "1" shows /design-system and the sample-data app routes in production. */
     REELDEAL_DESIGN_REVIEW: z.enum(["0", "1"]).optional(),
+    /** Set by Vercel: the project's production domain (no scheme). Fallback for the site's absolute URL. */
+    VERCEL_PROJECT_PRODUCTION_URL: optionalString,
     /** Bypasses Row Level Security. Server-side jobs only; never in browser code. */
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
     R2_ACCOUNT_ID: optionalString,

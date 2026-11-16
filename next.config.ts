@@ -56,6 +56,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // The website links to /login and /signup (docs/sitemap.md); the auth pages live at /sign-in and /sign-up.
+  async redirects() {
+    return [
+      { source: "/login", destination: "/sign-in", permanent: false },
+      { source: "/signup", destination: "/sign-up", permanent: false },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

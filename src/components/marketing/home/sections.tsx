@@ -1,6 +1,6 @@
 import { ArrowRight, Search } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Accent, SectionEyebrow } from "@/components/marketing/shared";
 import { MediaArt, PlaceholderTag } from "@/components/media/media-art";
 import { Button } from "@/components/ui/button";
 import { Container, Eyebrow } from "@/components/ui/misc";
@@ -10,21 +10,6 @@ import { getPlan, pricing } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 /* Static homepage sections (design/website/W-Home.dc.html). */
-
-function Accent({ children, underline }: { children: ReactNode; underline?: boolean }) {
-  return (
-    <em className={cn("font-accent font-normal", underline && "underline decoration-ai decoration-[0.07em] underline-offset-[0.14em]")}>{children}</em>
-  );
-}
-
-function SectionEyebrow({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <Eyebrow className={cn("mb-4 flex items-center gap-2.5 text-xs", className)}>
-      <span aria-hidden className="size-[7px] rounded-full bg-ai" />
-      {children}
-    </Eyebrow>
-  );
-}
 
 /* ---- How it works: numbered index on the primary colour ---------------- */
 

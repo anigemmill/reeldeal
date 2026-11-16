@@ -1,5 +1,4 @@
-import { SiteFooter } from "@/components/marketing/site-footer";
-import { SiteHeader } from "@/components/marketing/site-header";
+import { MarketingPage } from "@/components/marketing/shared";
 import { ArcHero } from "./arc-hero";
 import { PromptWall } from "./prompt-wall";
 import { Bento, HowItWorks, PricingTeaser, Tourism } from "./sections";
@@ -10,17 +9,13 @@ import { Bento, HowItWorks, PricingTeaser, Tourism } from "./sections";
 */
 export function HomeScreen() {
   return (
-    <div className="overflow-x-clip bg-bg text-ink">
-      <SiteHeader />
-      <main id="main">
-        <ArcHero />
-        <PromptWall />
-        <HowItWorks />
-        <Bento />
-        <Tourism />
-        <PricingTeaser />
-      </main>
-      <SiteFooter />
-    </div>
+    <MarketingPage>
+      <ArcHero />
+      <PromptWall />
+      <HowItWorks />
+      <Bento />
+      <Tourism />
+      <PricingTeaser />
+    </MarketingPage>
   );
 }
