@@ -96,6 +96,12 @@
 @utility bg-glow-hero { background-image: var(--rd-glow-hero); }
 /* Theme-aware: brand gradient in Crossroads, palette-derived elsewhere. */
 @utility bg-grad-panel { background-image: var(--rd-grad-panel); }
+/* Third-party platform words in the homepage hero (tokens.css "Third-party platform colours"). */
+@utility bg-platform-instagram { background-image: var(--rd-platform-instagram); }
+@utility bg-platform-meta { background-image: var(--rd-platform-meta); }
+@utility text-on-platform { color: var(--rd-on-platform); }
+@utility font-platform-instagram { font-family: var(--rd-font-platform-instagram); }
+@utility font-platform-meta { font-family: var(--rd-font-platform-meta); }
 
 /* Marquee and caret motion (homepage). Disabled for reduced motion. */
 @keyframes rd-marquee-up { from { transform: translateY(0); } to { transform: translateY(-50%); } }

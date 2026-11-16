@@ -255,3 +255,13 @@ How it is wired: `docs/app.md`. Decisions:
 - **Indexes** for the web app's hot paths (migration `20261116000002`), and one usage lookup
   per request shared by navigation and page.
 - **Phones**: grids use `minmax(0, 1fr)` so long names wrap instead of widening the page.
+
+## Website pages and hero (2026-11-16)
+- **Hero platform words.** "Reels" sits on Instagram's gradient and "Ads" on Meta's blue
+  gradient, in white (owner's choice, Option A of the hero mockup). Colours are fixed
+  tokens (`--rd-platform-*`), not themed. Instagram Sans and Meta's Optimistic are not
+  publicly licensed, so Lexend and Figtree stand in. These are plain words, not the
+  platforms' logos. Before launch, check both companies' brand guidelines: they restrict
+  third-party use of their colours and lettering that implies endorsement.
+- This is an exception to "orange has one job": the Instagram gradient contains orange,
+  kept to the tile's lower-left corner so white type sits on pink and purple.

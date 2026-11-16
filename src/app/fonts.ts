@@ -1,8 +1,10 @@
 import {
   DM_Sans,
+  Figtree,
   Geist_Mono,
   Instrument_Serif,
   Inter,
+  Lexend,
   Manrope,
   Sora,
   Space_Grotesk,
@@ -39,6 +41,13 @@ export const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   display: "swap",
 });
+
+// Homepage hero platform words (docs/decisions.md): stand-ins for Instagram Sans and
+// Meta's Optimistic, which are not publicly licensed. One weight each.
+export const lexend = Lexend({ subsets: ["latin"], weight: "600", variable: "--font-lexend", display: "swap" });
+export const figtree = Figtree({ subsets: ["latin"], weight: "700", variable: "--font-figtree", display: "swap" });
+/** Only where the homepage hero renders: the public site and the design review. */
+export const platformFontVariables = [lexend, figtree].map((f) => f.variable).join(" ");
 
 /** Marketing site: brand type only (combination A). */
 export const brandFontVariables = [spaceGrotesk, inter, geistMono, instrumentSerif]

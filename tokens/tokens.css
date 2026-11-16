@@ -365,3 +365,18 @@
   --rd-font-display: var(--font-manrope, "Manrope"), system-ui, sans-serif;
   --rd-font-body: var(--font-manrope, "Manrope"), system-ui, sans-serif;
 }
+
+/*
+  Third-party platform colours: the homepage hero names Instagram Reels and Meta ads
+  in their platforms' own colours (docs/decisions.md, 2026-11-16). Fixed values, not
+  themed: they belong to the platforms, not to any Reeldeal palette. The Instagram
+  gradient keeps yellow and orange in the lower-left corner so white type sits on
+  pink, magenta and purple (3:1 or better for large text).
+*/
+:root {
+  --rd-platform-instagram: radial-gradient(130% 150% at 0% 120%, #FFD600 0%, #FF7A00 14%, #FF0169 38%, #D300C5 64%, #7638FA 100%);
+  --rd-platform-meta: linear-gradient(100deg, #0064E0 0%, #0082FB 100%);
+  --rd-on-platform: #FFFFFF;
+  --rd-font-platform-instagram: var(--font-lexend), var(--rd-font-display);
+  --rd-font-platform-meta: var(--font-figtree), var(--rd-font-display);
+}
