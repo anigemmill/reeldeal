@@ -77,8 +77,6 @@ export async function createWorkspace(p: Platform, userId: string, raw: Workspac
   const orgId = await p.db.system(async (sql) => {
     // Serialise per user so a double submit cannot create two workspaces.
     await sql.query("select pg_advisory_xact_lock(hashtext($1))", [`workspace:${userId}`]);
-    const [user] = await sql.query<{ id: string }>("select id from auth.users where id = $1", [userId]);
-    if (!user) throw new AppError("unauthenticated", "Your account was not found. Sign in again.");
     const [{ n }] = await sql.query<{ n: number }>("select count(*)::int as n from public.memberships where user_id = $1 and role = 'owner'", [userId]);
     const [same] = await sql.query<{ id: string }>(
       "select o.id from public.organisations o join public.memberships m on m.org_id = o.id where m.user_id = $1 and m.role = 'owner' and o.name = $2 and o.created_at > now() - interval '1 minute'",
@@ -91,6 +89,11 @@ export async function createWorkspace(p: Platform, userId: string, raw: Workspac
     await sql.query("insert into public.memberships (org_id, user_id, role) values ($1, $2, 'owner')", [org.id, userId]);
     await ensureGrant(sql, org.id);
     return org.id;
+  }).catch((e: { code?: string }) => {
+    // The membership's foreign key to auth.users is the account check: the web app's
+    // database role cannot read auth.users (migration 20261117000001).
+    if (e?.code === "23503") throw new AppError("unauthenticated", "Your account was not found. Sign in again.");
+    throw e;
   });
   if (i.display_name) await saveProfile(p, userId, i.display_name);
   const ctx: Ctx = { ...p, principal: { userId, orgId, role: "owner", scopes: [...SCOPES], via: "session" } };

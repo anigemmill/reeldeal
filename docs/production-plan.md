@@ -1,6 +1,6 @@
 # Production accounts and backend: audit and roadmap
 
-Status: **Stage 1 (audit and architecture), awaiting owner review.** No application code, database or
+Status: **Stage 1 approved (2026-11-16); Stage 2 in progress.** Decisions are recorded in section 12. No application code, database or
 infrastructure was changed while writing it. The only live checks were read-only (2026-11-16):
 
 - Supabase: listed projects, tables, migrations and security advisors.
@@ -242,7 +242,7 @@ functions, and the existing tests cover them. It is in Stage 2 so everything aft
 
 | # | Severity | Finding | Fix (stage) |
 |---|---|---|---|
-| S1 | **High** | **Open redirect in `/auth/callback`.** `next=/\evil.com` passes the check (`startsWith("/") && !startsWith("//")`), and `new URL("/\\evil.com", origin)` resolves to `https://evil.com/` (verified). The result is a phishing redirect from a genuine Reeldeal email link. The sign-in action already rejects `/\` | One shared `safeNext` helper with an allow-list of app paths, plus a test (Stage 3, first commit, or sooner if you approve) |
+| S1 | **Fixed** (was High) | **Open redirect in `/auth/callback`.** `next=/\evil.com` passes the check (`startsWith("/") && !startsWith("//")`), and `new URL("/\\evil.com", origin)` resolves to `https://evil.com/` (verified). The result is a phishing redirect from a genuine Reeldeal email link. The sign-in action already rejects `/\` | One shared `safeNext` helper with an allow-list of app paths, plus a test (Stage 3, first commit, or sooner if you approve) |
 | S2 | High (defence in depth) | The server's database credential is the table owner (4.4) | Dedicated roles (Stage 2) |
 | S3 | Medium | **No rate limiting on web server actions.** AI brief, concepts and storyboard each cost OpenAI money per click. The MCP limiter is in-memory, so each serverless instance has its own count | Postgres-backed limiter for AI, uploads, invitations and sign-in adjacent actions. Per-organisation daily AI cap from `pricing.json`. OpenAI project budget as a backstop (Stage 6) |
 | S4 | Medium | **Storage allowance not enforced.** Uploads up to 20 GB are accepted whatever the plan's `storageGB`. The presigned PUT can't cap size; completion records it | Check the quota when the upload is created (declared size) and again at completion (actual size). Over quota: refuse and delete (Stage 6) |
@@ -250,7 +250,7 @@ functions, and the existing tests cover them. It is in Stage 2 so everything aft
 | S6 | Medium | **Password change without re-authentication** (any session can call `updatePassword`) | Settings asks for the current password (or Supabase's reauthenticate nonce). Turn on "Secure password change" and "Secure email change" (Stage 3) |
 | S7 | Medium | **Default Supabase mailer** (not deliverable to customers) | Custom SMTP (Stage 2) |
 | S8 | Low–Medium | CSP still allows inline scripts | Nonce-based CSP now that app pages render per request (Stage 7) |
-| S9 | Low | `reeldeal_meta.migrations` has RLS disabled (advisor: critical) | Revoke anon and authenticated on the schema, then enable RLS. Migration for your review (Stage 2) |
+| S9 | Low (measured: no access for anon or authenticated) | `reeldeal_meta.migrations` has RLS disabled (advisor: critical) | Revoke anon and authenticated on the schema, then enable RLS. Migration for your review (Stage 2) |
 | S10 | Low | No audit trail for sensitive actions | `audit_events` (Stage 5) |
 | S11 | Low | Password policy is 8 characters minimum, enforced client-side and through Supabase defaults | Set the same in Supabase. Enable leaked-password protection (Pro plan) (Stage 2) |
 | S12 | Low | No account deletion or data export | Stage 5 (workspace deletion) and Stage 7 (account deletion) |
@@ -445,3 +445,18 @@ Estimates are focused build sessions (about half a day each). Owner time is list
 - **Unconfirmed brand name.** Anything verified externally (Google consent screen, email sender domain,
   OAuth client) may have to be redone if the name changes.
 - **AI cost.** Until S3 lands, a signed-in user can trigger unlimited AI calls. Keep an OpenAI budget limit from day one.
+
+## 12. Owner decisions (2026-11-16)
+
+| # | Decision |
+|---|---|
+| D1 | Approved. One workspace per client organisation; no further workspace layer. Agencies use the existing switcher |
+| D2 | Approved **for preparation only**. Migration `20261117000001` is written and tested; review in `docs/review/migration-20261117000001-restricted-runtime-roles.md`. Not applied live |
+| D3 | Approved. One owner per workspace; admins manage the workspace and team; secure ownership transfer |
+| D4 | Resend. Preparation and DNS plan in `docs/email-resend.md`. No DNS changes without approval |
+| D5 | Google sign-in deferred until the name and domain are final |
+| D6 | Build the token page (create, scopes, expiry, revoke). Full OAuth before any public MCP access; the development endpoint stays private |
+| D7 | Approved. Screenshots for review before wiring. Autopilot, Studio and dashboard are not redesigned |
+| D8 | Approved and done: `src/lib/safe-redirect.ts`, used by `/auth/callback` and the sign-in action, with regression tests |
+| D9 | Sentry before a real customer pilot (not blocking development) |
+| D10 | Approved. Verification required before onboarding, with a verification screen and resend |

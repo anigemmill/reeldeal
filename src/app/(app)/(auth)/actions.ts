@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { publicEnv } from "@/env/public";
 import { parsePlanChoice } from "@/lib/pricing";
+import { safeNextPath } from "@/lib/safe-redirect";
 import { serverEnv } from "@/env/server";
 import { getPlatform } from "@/server/app/platform";
 import { failure } from "@/server/app/result";
@@ -17,10 +18,7 @@ import { createWorkspace } from "@/server/services/account";
 */
 export type FormState = { error?: string; fieldErrors?: Record<string, string>; notice?: string; values?: Record<string, string> } | undefined;
 
-const safeNext = (v: FormDataEntryValue | null) => {
-  const s = typeof v === "string" ? v : "";
-  return s.startsWith("/") && !s.startsWith("//") && !s.startsWith("/\\") ? s : "/dashboard";
-};
+const safeNext = (v: FormDataEntryValue | null) => safeNextPath(v);
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const siteUrl = async () => publicEnv.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
