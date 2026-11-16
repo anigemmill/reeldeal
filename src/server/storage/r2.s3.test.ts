@@ -2,9 +2,10 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { AwsClient } from "aws4fetch";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Ctx } from "../context";
-import { completeMediaUpload, createMediaUpload, getMediaAnalysis, requestAnalysis } from "../services/media";
+import { cancelMediaUpload, completeMediaUpload, createMediaUpload, getMediaAnalysis, requestAnalysis } from "../services/media";
 import { createTestPlatform } from "../testing";
 import { createWorker } from "../workers/runner";
 import { createR2Storage } from "./r2";
@@ -16,6 +17,11 @@ import { mediaKey } from "./types";
     npm run stack:up && npm run test:storage
   Against real R2, set TEST_S3_ENDPOINT to https://<account>.r2.cloudflarestorage.com
   and a throwaway test bucket. Skipped (not passed) otherwise.
+
+  Clean-up: every object this file writes sits under an organisation id generated
+  randomly for this run. afterAll deletes everything under those prefixes (and aborts
+  any multipart uploads left open there), so nothing else in the bucket is touched.
+  Network timings assume real R2, not just a local server, hence the long timeouts.
 */
 const env = process.env;
 const endpoint = env.TEST_S3_ENDPOINT;
@@ -29,6 +35,36 @@ const cfg = {
 const orgA = randomUUID();
 const orgB = randomUUID();
 const dir = mkdtempSync(join(tmpdir(), "rd-s3-"));
+const NET = 60_000;
+
+/* Test-only clean-up. Storage deliberately has no delete: originals are never removed by app code. */
+const runOrgs = new Set<string>([orgA, orgB]);
+async function cleanupRunOrgs() {
+  if (!endpoint) return;
+  const c = new AwsClient({ accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey, service: "s3", region: "auto" });
+  const bucket = `${endpoint.replace(/\/$/, "")}/${encodeURIComponent(cfg.bucket)}`;
+  const tags = (text: string, tag: string) => [...text.matchAll(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "g"))].map((m) => m[1]);
+  const path = (key: string) => key.split("/").map(encodeURIComponent).join("/");
+  for (const org of runOrgs) {
+    if (!/^[0-9a-f-]{36}$/.test(org)) continue;
+    const prefix = `org/${org}/`;
+    const uploads = await (await c.fetch(`${bucket}?uploads&prefix=${encodeURIComponent(prefix)}`)).text();
+    for (const u of tags(uploads, "Upload")) await c.fetch(`${bucket}/${path(tags(u, "Key")[0])}?uploadId=${encodeURIComponent(tags(u, "UploadId")[0])}`, { method: "DELETE" });
+    for (let token = ""; ; ) {
+      const res = await c.fetch(`${bucket}?list-type=2&prefix=${encodeURIComponent(prefix)}${token ? `&continuation-token=${encodeURIComponent(token)}` : ""}`);
+      const text = await res.text();
+      if (!res.ok) throw new Error(`Test clean-up could not list ${prefix} (${res.status})`);
+      for (const key of tags(text, "Key")) {
+        if (!key.startsWith(prefix)) continue;
+        const del = await c.fetch(`${bucket}/${path(key)}`, { method: "DELETE" });
+        if (!del.ok && del.status !== 404) throw new Error(`Test clean-up could not delete an object (${del.status})`);
+      }
+      token = tags(text, "NextContinuationToken")[0] ?? "";
+      if (!token) break;
+    }
+  }
+}
+afterAll(cleanupRunOrgs, NET);
 
 describe.skipIf(!endpoint)("R2 storage driver on an S3-compatible server", () => {
   const s = createR2Storage(cfg);
@@ -83,7 +119,56 @@ describe.skipIf(!endpoint)("R2 storage driver on an S3-compatible server", () =>
     expect((await s.head(key))?.size).toBe(data.length);
     await s.downloadToFile(key, join(dir, "back"));
     expect(readFileSync(join(dir, "back")).equals(data)).toBe(true);
-  });
+  }, NET);
+
+  it("aborts a multipart upload and discards its parts", async () => {
+    const key = mediaKey(orgA, randomUUID(), "mp4");
+    const { uploadId } = await s.multipart!.create(key, "video/mp4");
+    const part1 = (await s.multipart!.signPart(key, uploadId, 1, 300)).url;
+    expect((await fetch(part1, { method: "PUT", body: randomBytes(1024) })).status).toBe(200);
+    await s.multipart!.abort(key, uploadId);
+    // The upload is gone: its parts cannot be listed, extended or completed, and no object appears.
+    await expect(s.multipart!.listParts(key, uploadId)).rejects.toThrow(/404/);
+    const part2 = (await s.multipart!.signPart(key, uploadId, 2, 300)).url;
+    expect((await fetch(part2, { method: "PUT", body: randomBytes(1024) })).status).toBe(404);
+    await expect(s.multipart!.complete(key, uploadId, [{ partNumber: 1, etag: '"x"', size: 1024 }])).rejects.toThrow(/failed \(4\d\d\)/);
+    expect(await s.head(key)).toBeNull();
+    // Aborting twice is harmless.
+    await expect(s.multipart!.abort(key, uploadId)).resolves.toBeUndefined();
+  }, NET);
+
+  it("keeps nothing from a part whose connection drops mid-transfer, and accepts the retry", async () => {
+    const key = mediaKey(orgA, randomUUID(), "mp4");
+    const part = 5 * 1024 * 1024;
+    const data = randomBytes(part + 999);
+    const { uploadId } = await s.multipart!.create(key, "video/mp4");
+    const url1 = (await s.multipart!.signPart(key, uploadId, 1, 300)).url;
+
+    // Send 1 MiB of a declared 5 MiB part, then cut the connection.
+    const ctrl = new AbortController();
+    let sent = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(c) {
+        if (sent >= 1024 * 1024) return new Promise<void>(() => setTimeout(() => ctrl.abort(), 500));
+        const chunk = data.subarray(sent, sent + 256 * 1024);
+        sent += chunk.length;
+        c.enqueue(chunk);
+      },
+    });
+    const dropped = await fetch(url1, { method: "PUT", body, headers: { "content-length": String(part) }, signal: ctrl.signal, duplex: "half" } as RequestInit).catch((e: Error) => e);
+    expect(dropped).toBeInstanceOf(Error);
+    expect((await s.multipart!.listParts(key, uploadId)).map((p) => p.partNumber)).toEqual([]);
+    expect(await s.head(key)).toBeNull();
+
+    // Retrying the same part number with a fresh URL works, and the result is intact.
+    for (const n of [1, 2]) {
+      const url = (await s.multipart!.signPart(key, uploadId, n, 300)).url;
+      expect((await fetch(url, { method: "PUT", body: data.subarray((n - 1) * part, n * part) })).status).toBe(200);
+    }
+    await s.multipart!.complete(key, uploadId, await s.multipart!.listParts(key, uploadId));
+    await s.downloadToFile(key, join(dir, "retried"));
+    expect(readFileSync(join(dir, "retried")).equals(data)).toBe(true);
+  }, NET);
 });
 
 describe.skipIf(!endpoint)("large uploads through the media service on S3-compatible storage", () => {
@@ -94,6 +179,7 @@ describe.skipIf(!endpoint)("large uploads through the media service on S3-compat
     t = await createTestPlatform({ storage: createR2Storage(cfg), clips: 1 });
     aroha = await t.ctxFor(t.demo.tokens.aroha_owner_full);
     dev = await t.ctxFor(t.demo.tokens.dev_harbour_full);
+    runOrgs.add(t.demo.ids.orgA).add(t.demo.ids.orgB);
     // ~150 MB real H.264 footage (synthetic test pattern, noise and a high bitrate so it crosses the multipart threshold).
     file = join(dir, "large.mp4");
     const { execFileSync } = await import("node:child_process");
@@ -116,6 +202,12 @@ describe.skipIf(!endpoint)("large uploads through the media service on S3-compat
 
     // Upload all but the first part; completion must not succeed.
     await Promise.all(up.upload.parts.slice(1).map(send));
+    // A first part of the wrong size (a truncated retry) is reported again, not accepted.
+    const p1 = up.upload.parts[0];
+    expect((await fetch(p1.url, { method: "PUT", body: bytes.subarray(0, 5 * 1024 * 1024) })).status).toBe(200);
+    const short = (await completeMediaUpload(aroha, up.media_id)) as { status: string; missing_parts: { part_number: number }[] };
+    expect(short.status).toBe("awaiting_upload");
+    expect(short.missing_parts.map((p) => p.part_number)).toEqual([1]);
     // Another organisation cannot complete (or even see) the upload.
     expect(((await completeMediaUpload(dev, up.media_id).catch((e) => e)) as { code: string }).code).toBe("not_found");
     const partial = (await completeMediaUpload(aroha, up.media_id)) as { status: string; missing_parts: { part_number: number; url: string; byte_start: number; byte_end_inclusive: number }[] };
@@ -136,6 +228,19 @@ describe.skipIf(!endpoint)("large uploads through the media service on S3-compat
     expect(a.analysis.technical).toMatchObject({ width: 1920, height: 1080 });
     expect(a.analysis.technical.duration_seconds).toBeCloseTo(12, 0);
   }, 300_000);
+
+  it("cancels an unfinished large upload: parts are discarded and the asset is marked failed", async () => {
+    const up = (await createMediaUpload(aroha, { title: "Abandoned", filename: "a.mp4", content_type: "video/mp4", size_bytes: 200 * 1024 * 1024 })) as {
+      media_id: string; upload: { method: string; parts: { part_number: number; url: string }[] };
+    };
+    expect(up.upload.method).toBe("multipart");
+    expect((await fetch(up.upload.parts[0].url, { method: "PUT", body: randomBytes(1024 * 1024) })).status).toBe(200);
+    expect(((await cancelMediaUpload(dev, up.media_id).catch((e) => e)) as { code: string }).code).toBe("not_found");
+    expect(await cancelMediaUpload(aroha, up.media_id)).toMatchObject({ status: "failed", cancelled: true });
+    // The multipart upload no longer exists in storage, so the remaining links are dead.
+    expect((await fetch(up.upload.parts[1].url, { method: "PUT", body: randomBytes(1024) })).status).toBe(404);
+    expect(((await completeMediaUpload(aroha, up.media_id).catch((e) => e)) as { code: string }).code).toBe("conflict");
+  }, NET);
 
   it("uses a single conditional PUT below the multipart threshold", async () => {
     const up = (await createMediaUpload(aroha, { title: "Small", filename: "s.mp4", content_type: "video/mp4", size_bytes: 1000 })) as { upload: { method: string; headers: Record<string, string> } };
