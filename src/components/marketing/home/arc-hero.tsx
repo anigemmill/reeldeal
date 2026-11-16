@@ -59,8 +59,13 @@ export function ArcHero() {
           finished
         </em>{" "}
         for{" "}
-        <span className="inline-block -rotate-2 rounded-[0.24em] bg-primary px-[0.28em] text-primary-foreground">Reels</span>{" "}
-        <span className="inline-block rotate-[1.5deg] rounded-[0.24em] bg-tint px-[0.28em] text-on-tint">Ads</span>{" "}
+        {/* Platform words in their platforms' colours (docs/decisions.md). Not logos: plain words, stand-in typefaces. */}
+        <span className="inline-block -rotate-2 rounded-[0.24em] bg-platform-instagram px-[0.28em] font-platform-instagram tracking-[-0.035em] text-on-platform">
+          Reels
+        </span>{" "}
+        <span className="inline-block rotate-[1.5deg] rounded-[0.24em] bg-platform-meta px-[0.28em] font-platform-meta tracking-[-0.03em] text-on-platform">
+          Ads
+        </span>{" "}
         <span className="inline-block rounded-[0.24em] border-2 border-ink bg-surface px-[0.28em]">Websites</span>
       </h1>
 

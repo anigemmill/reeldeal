@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { siteUrl } from "@/lib/site-url";
-import { brandFontVariables } from "../fonts";
+import { brandFontVariables, platformFontVariables } from "../fonts";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 */
 export default function MarketingRootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${brandFontVariables} mode-workspace antialiased`}>
+    <html lang="en" className={`${brandFontVariables} ${platformFontVariables} mode-workspace antialiased`}>
       <body className="min-h-dvh bg-bg text-ink">{children}</body>
     </html>
   );

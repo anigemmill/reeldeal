@@ -3,7 +3,7 @@ import { ReviewToolbar } from "@/components/review/review-toolbar";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DEFAULT_THEME, themeClassName } from "@/lib/theme";
-import { allFontVariables } from "../fonts";
+import { allFontVariables, platformFontVariables } from "../fonts";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 /* Root layout for the internal design review pages (hidden in production, see src/proxy.ts). */
 export default function ReviewRootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${allFontVariables} ${themeClassName(DEFAULT_THEME)} antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${allFontVariables} ${platformFontVariables} ${themeClassName(DEFAULT_THEME)} antialiased`} suppressHydrationWarning>
       <body className="min-h-dvh bg-bg text-ink">
         <TooltipProvider>
           <ReviewToolbar />
