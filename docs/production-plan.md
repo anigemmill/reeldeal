@@ -53,7 +53,21 @@ below is either read-only or **awaiting your approval**.
 
 ### Test results (local unless stated)
 
-MISSION5_RESULTS
+| Check | Database / services | Result |
+|---|---|---|
+| Unit and integration suite (`npm test`) | PGlite | 307 passed, 10 skipped (need live credentials) |
+| Same suite | `supabase/postgres:17.6.1.166` | 309 passed, 8 skipped |
+| Credit rollover (`credit-rollover.test.ts`) | both | 12/12 |
+| Team and invitations (`team.test.ts`, incl. preview) | both | 26/26 |
+| Rate limits incl. abuse scenarios | both | 15/15 |
+| Browser journey (`npm run test:e2e`), with 1118 and 1119 applied locally | Local stack: Supabase Postgres, Supabase Auth v2.180.0, MinIO, mail catcher | **106/106**, incl. 13 new invitation checks |
+| Rollback 1118, then re-apply 1118 and 1119 | Local Supabase image | Clean |
+| Rollback 1119, then re-apply | Local Supabase image | Clean (table and ledger kinds removed, then restored) |
+| Migration safety check | n/a | 10 migrations additive (constraint replacements reviewed) |
+| Typecheck, lint, secret scan, token and pricing validation, production build | n/a | Pass |
+| Accessibility (axe) on the production build | n/a | Running at the time of writing; result in the final report |
+| Invitation tokens absent from server logs | Local dev server | Found in **development** server-action logging; fixed (`logging.serverFunctions: false`), re-checked: 0 occurrences |
+| Real browser upload to R2 | **Live** `reeldeal-dev-media` | Blocked by CORS as expected; nothing written. Full test waits for approval |
 
 ### Remaining blockers before the first real customer journey
 
