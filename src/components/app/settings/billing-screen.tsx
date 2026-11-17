@@ -69,7 +69,7 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
     { label: "Storage", value: `${u.storageGBUsed} of ${p.storageGB ?? "∞"} GB`, detail: "Originals and exports (previews don't count)", pct: p.storageGB ? (u.storageGBUsed / p.storageGB) * 100 : 0 },
     { label: "Brand profiles", value: `${u.brandsUsed} of ${p.brands ?? "∞"}`, detail: "", pct: p.brands ? (u.brandsUsed / p.brands) * 100 : 0 },
     { label: "Seats", value: `${u.seatsUsed} of ${p.users ?? "∞"}`, detail: "Members and pending invitations", pct: p.users ? (u.seatsUsed / p.users) * 100 : 0 },
-  ];
+  ].map((m, i) => ({ ...m, full: i === 0 ? u.videoCreditsAvailable <= 0 && p.videoCredits > 0 : m.pct >= 100 }));
 
   return (
     <SettingsFrame current="billing" items={settingsItems} title="Usage and billing" intro="Your plan, what you've used this month, and how you pay." actions={live ? undefined : <SampleBadge />}>
@@ -110,7 +110,7 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
             <li>{p.analysisMinutes} min of media analysis</li>
             <li>{p.storageGB?.toLocaleString("en-NZ")} GB storage</li>
             <li>
-              {p.users} seats · {p.brands} brand profiles
+              {p.users} {p.users === 1 ? "seat" : "seats"} · {p.brands} brand {p.brands === 1 ? "profile" : "profiles"}
             </li>
           </ul>
           <p className="text-sm">
@@ -178,8 +178,14 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
                 <span className="font-semibold">{m.label}</span>
                 <span className="font-mono text-sm">{m.value}</span>
               </p>
-              <ProgressBar label={`${m.label} used`} value={m.pct} size="sm" tone={m.pct > 90 ? "ai" : "primary"} />
-              {m.detail ? <p className="text-xs text-ink-muted">{m.detail}</p> : null}
+              {/* Always blue: orange is reserved for the main action and AI activity (brand rule). A full allowance is said in words. */}
+              <ProgressBar label={`${m.label} used`} value={m.pct} size="sm" tone="primary" />
+              {m.full || m.detail ? (
+                <p className="text-xs text-ink-muted">
+                  {m.full ? <strong className="font-semibold text-ink">Limit reached. </strong> : null}
+                  {m.detail}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>

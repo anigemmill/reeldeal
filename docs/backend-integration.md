@@ -85,6 +85,7 @@ None are redesigns; each is a small adjustment or a missing state.
 | U9 | Workspace | Deletion text says "14-day grace period [TO CONFIRM]" | Decide retention (D-W1), then build deletion |
 | U10 | Onboarding | The stepper counts "Account" as step 1 even for people who arrive verified from an invitation | Invited people skip the stepper entirely (the backend supports this) |
 | U11 | Onboarding | No "Finish setup later" message on the dashboard for skipped steps | A dismissible dashboard card driven by `getOnboardingState` |
+| U13 | Billing (**fixed**) | Allowance meters turned orange above 90%, against the brand rule (orange only for the main action and AI); "1 seats" | Meters stay blue; a full allowance says "Limit reached." in words; singular wording |
 | U12 | All new screens | Loading and error states exist only via the route's `PageLoading` and toasts | Reuse `PageLoading`; inline errors in dialogs (as on the account page) |
 
 Keyboard and screen-reader checks pass on every screen and dialog in the accessibility suite
