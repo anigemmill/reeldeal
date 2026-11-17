@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { publicEnv } from "@/env/public";
 import { parsePlanChoice } from "@/lib/pricing";
@@ -11,6 +11,7 @@ import { failure } from "@/server/app/result";
 import { RESEND_COOLDOWN_COOKIE, RESEND_COOLDOWN_SECONDS, VERIFY_EMAIL_COOKIE } from "@/server/app/auth-cookies";
 import { ORG_COOKIE, getSessionUser } from "@/server/app/session";
 import { authConfigured, supabaseServer } from "@/server/app/supabase";
+import { checkAuthRateLimit, clientIp, type AuthAction } from "@/server/auth/rate-limit";
 import { createWorkspace } from "@/server/services/account";
 
 /*
@@ -37,6 +38,14 @@ function authMessage(e: { message?: string; code?: string; status?: number }) {
 
 const notConfigured = { error: "Accounts aren't available on this server yet: Supabase Auth is not configured." };
 
+/** App-side limits per visitor IP and per email, before Supabase Auth is called (src/server/auth/rate-limit.ts). */
+async function tooMany(action: AuthAction, email: string | null): Promise<boolean> {
+  const p = await getPlatform().catch(() => null);
+  if (!p) return false; // no database: Supabase Auth's own limits still apply
+  return !(await checkAuthRateLimit(p, action, { ip: clientIp(await headers()), email })).ok;
+}
+const slowDown = "Too many attempts. Wait a few minutes and try again.";
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const cookieBase = () => ({ httpOnly: true, sameSite: "lax" as const, path: "/", secure: serverEnv.NODE_ENV === "production" });
 const callbackUrl = async (flow: "signup" | "recovery" | "email_change") => `${await siteUrl()}/auth/callback?flow=${flow}`;
@@ -49,6 +58,7 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   const email = str(form, "email");
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Enter your email and password.", values: { email } };
+  if (await tooMany("sign_in", email)) return { error: slowDown, values: { email } };
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error && (error.code === "email_not_confirmed" || /not confirmed/i.test(error.message))) {
@@ -70,6 +80,7 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   if (password.length < 8) fieldErrors.password = "Use at least 8 characters.";
   if (form.get("terms") !== "accepted") fieldErrors.terms = "Agree to the Terms of Service and Privacy Policy to continue.";
   if (Object.keys(fieldErrors).length) return { fieldErrors, values: { name, email } };
+  if (await tooMany("sign_up", email)) return { error: slowDown, values: { name, email } };
   const choice = parsePlanChoice(form.get("plan"), form.get("billing"));
   const supabase = await supabaseServer();
   const { data, error } = await supabase.auth.signUp({
@@ -123,6 +134,7 @@ export async function resendVerification(_: FormState, form: FormData): Promise<
   const last = Number(store.get(RESEND_COOLDOWN_COOKIE)?.value ?? 0);
   const wait = Math.ceil((last + RESEND_COOLDOWN_SECONDS * 1000 - Date.now()) / 1000);
   if (wait > 0) return { error: `Please wait ${wait} seconds before sending another link.`, values: { email } };
+  if (await tooMany("resend", email)) return { error: slowDown, values: { email } };
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: await callbackUrl("signup") } });
   if (error && (error.status === 429 || error.code?.startsWith("over_"))) return { error: "We sent a link to this address less than a minute ago. Wait a moment, then try again.", values: { email } };
@@ -136,6 +148,7 @@ export async function requestPasswordReset(_: FormState, form: FormData): Promis
   if (!authConfigured) return notConfigured;
   const email = str(form, "email");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { fieldErrors: { email: "Enter a valid email address." }, values: { email } };
+  if (await tooMany("password_reset", email)) return { error: slowDown, values: { email } };
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: await callbackUrl("recovery") });
   if (error && (error.status === 429 || (error.status ?? 0) >= 500)) return { error: authMessage(error), values: { email } };
