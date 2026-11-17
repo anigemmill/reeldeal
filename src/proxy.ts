@@ -14,7 +14,7 @@ import { publicEnv } from "@/env/public";
   Pages still verify the user themselves (src/server/app/session.ts); this is not the
   only check.
 */
-const APP_PREFIXES = ["/dashboard", "/autopilot", "/studio", "/settings", "/library", "/brands", "/projects", "/exports", "/onboarding"];
+export const APP_PREFIXES = ["/dashboard", "/autopilot", "/studio", "/settings", "/library", "/brands", "/projects", "/exports", "/onboarding"];
 const AUTH_PAGES = ["/sign-in", "/sign-up"];
 
 const matches = (path: string, prefixes: string[]) => prefixes.some((p) => path === p || path.startsWith(`${p}/`));
