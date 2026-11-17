@@ -7,17 +7,9 @@
 */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { destructiveStatements } from "../src/server/db/migration-rules";
 
 const DIR = "supabase/migrations";
-const DESTRUCTIVE: [string, RegExp][] = [
-  ["DROP", /\bdrop\s+(table|schema|column|type|view|materialized\s+view|function|index|policy|trigger|database|extension)\b/i],
-  ["TRUNCATE", /\btruncate\b/i],
-  ["DELETE", /\bdelete\s+from\b/i],
-  ["UPDATE of rows", /\bupdate\s+(public|auth|private|storage)\.\w+\s+set\b/i],
-  ["column type change", /\balter\s+column\s+\w+\s+(set\s+data\s+)?type\b/i],
-  ["RENAME", /\brename\s+(to|column)\b/i],
-  ["RLS disabled", /\b(disable|no\s+force)\s+row\s+level\s+security\b/i],
-];
 const problems: string[] = [];
 const files = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort();
 let last = "";
@@ -25,11 +17,7 @@ for (const f of files) {
   if (!/^\d{14}_[a-z0-9_]+\.sql$/.test(f)) problems.push(`${f}: name must be <14-digit timestamp>_<snake_case>.sql (Supabase CLI format)`);
   if (f <= last) problems.push(`${f}: out of order`);
   last = f;
-  readFileSync(join(DIR, f), "utf8").split("\n").forEach((line, i) => {
-    const code = line.replace(/--.*$/, "");
-    if (/--\s*reviewed:\s*destructive/i.test(line)) return;
-    for (const [what, re] of DESTRUCTIVE) if (re.test(code)) problems.push(`${f}:${i + 1}  ${what}: ${line.trim()}`);
-  });
+  for (const p of destructiveStatements(readFileSync(join(DIR, f), "utf8"))) problems.push(`${f}:${p.line}  ${p.rule}: ${p.text}`);
 }
 if (problems.length) {
   console.error(`✗ ${problems.length} migration problem(s):\n${problems.map((p) => `  ${p}`).join("\n")}`);
