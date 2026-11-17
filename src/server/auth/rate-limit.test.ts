@@ -72,3 +72,55 @@ describe("auth rate limits", () => {
     expect(r).toEqual({ a: false, b: false });
   });
 });
+
+describe("abuse scenarios (sign-in counts failures only)", () => {
+  const peek = (ip: string | null, email: string) => checkAuthRateLimit(p, "sign_in", { ip, email }, "peek");
+  const fail = (ip: string | null, email: string) => checkAuthRateLimit(p, "sign_in", { ip, email }, "fail");
+
+  it("a shared office IP: 200 successful sign-ins in a row are never slowed", async () => {
+    for (let i = 0; i < 200; i++) expect((await peek("203.0.113.200", `staff${i % 40}@office.example`)).ok).toBe(true);
+  });
+
+  it("…and a few colleagues mistyping passwords don't lock the office out", async () => {
+    for (let i = 0; i < 12; i++) await fail("203.0.113.201", `typo${i}@office.example`);
+    expect((await peek("203.0.113.201", "careful@office.example")).ok).toBe(true);
+  });
+
+  it("repeated failed sign-ins on one account are stopped, from any IP", async () => {
+    const [max] = AUTH_LIMITS.sign_in.email;
+    for (let i = 0; i < max; i++) {
+      expect((await peek(`198.51.100.${i}`, "target@example.test")).ok).toBe(true);
+      await fail(`198.51.100.${i}`, "target@example.test");
+    }
+    expect(await peek("198.51.100.250", "target@example.test")).toEqual({ ok: false, reason: "email" });
+  });
+
+  it("one IP guessing across many accounts is stopped (credential stuffing)", async () => {
+    const [max] = AUTH_LIMITS.sign_in.ip;
+    for (let i = 0; i < max; i++) await fail("192.0.2.90", `stuffed${i}@example.test`);
+    expect(await peek("192.0.2.90", "fresh@example.test")).toEqual({ ok: false, reason: "ip" });
+  });
+
+  it("peeking never counts", async () => {
+    for (let i = 0; i < 50; i++) await peek("192.0.2.91", "peek@example.test");
+    const [row] = await p.db.system((sql) => sql.query<{ n: number }>("select count(*)::int as n from private.rate_limits where key = $1", [keyFor(p.signingSecret, "sign_in", "email", "peek@example.test")]));
+    expect(row.n).toBe(0);
+  });
+
+  it("sign-up abuse: one address can't be signed up over and over, one IP can't mass-register", async () => {
+    const [perEmail] = AUTH_LIMITS.sign_up.email;
+    for (let i = 0; i < perEmail; i++) expect((await hit("sign_up", `203.0.113.${100 + i}`, "spam-target@example.test")).ok).toBe(true);
+    expect((await hit("sign_up", "203.0.113.150", "spam-target@example.test")).reason).toBe("email");
+    const [perIp] = AUTH_LIMITS.sign_up.ip;
+    for (let i = 0; i < perIp; i++) await hit("sign_up", "192.0.2.92", `bulk${i}@example.test`);
+    expect((await hit("sign_up", "192.0.2.92", "bulk-next@example.test")).reason).toBe("ip");
+  });
+
+  it("reset and resend abuse are limited per address (no mailbox flooding)", async () => {
+    for (const action of ["password_reset", "resend"] as const) {
+      const [max] = AUTH_LIMITS[action].email;
+      for (let i = 0; i < max; i++) expect((await hit(action, `198.51.100.${200 + i}`, `flood-${action}@example.test`)).ok).toBe(true);
+      expect((await hit(action, "198.51.100.254", `flood-${action}@example.test`)).reason).toBe("email");
+    }
+  });
+});

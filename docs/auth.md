@@ -38,11 +38,15 @@ little against a single attacker. So:
 
    | Action | Per visitor IP | Per email |
    |---|---|---|
-   | Sign-in | 30 / 5 min | 10 / 15 min |
+   | Sign-in (**failed attempts only**) | 30 / 5 min | 10 / 15 min |
    | Sign-up | 10 / hour | 3 / hour |
    | Password reset | 10 / hour | 3 / hour |
    | Resend confirmation | 10 / hour | 5 / hour |
 
+   - Sign-in checks the counters first without counting, then counts only a wrong password. An
+     office or campus sharing one IP is never slowed by its own successful sign-ins (tested: 200 in a
+     row), and a few typos don't lock the office out. Sign-up, reset and resend count every attempt,
+     because each one sends an email.
    - Loopback (local development) skips the IP check; email limits still apply.
    - If the database is unreachable the check fails open (logged), and Supabase's limits remain.
    - Tested in `rate-limit.test.ts` and used in the browser suite.
@@ -53,7 +57,7 @@ little against a single attacker. So:
    `Sb-Forwarded-For` header, honoured only when `GOTRUE_SECURITY_SB_FORWARDED_FOR_ENABLED` is on. It
    isn't confirmed whether hosted Supabase supports or enables it. Ask Supabase support before relying
    on it. If supported, the server would send the platform-provided IP. Clients must never be able to
-   set it directly.
+   set it directly. The question to send is in `docs/review/supabase-support-question.md`.
 
 No Redis or other service is needed: the counters are one small table with one function.
 

@@ -147,10 +147,19 @@ begin
   return n <= p_limit;
 end $$;
 revoke all on function private.rate_limit_hit(text, int, int) from public;
+
+/** Read a key without counting: true if fewer than p_limit hits in the current window (sign-in counts failures only). */
+create or replace function private.rate_limit_peek(p_key text, p_limit int, p_window_seconds int) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select coalesce((select r.hits < p_limit or r.window_start < now() - make_interval(secs => p_window_seconds)
+                     from private.rate_limits r where r.key = p_key), true)
+$$;
+revoke all on function private.rate_limit_peek(text, int, int) from public;
 do $$ begin
   if exists (select 1 from pg_roles where rolname = 'reeldeal_web') then
     grant usage on schema private to reeldeal_web;
     grant execute on function private.rate_limit_hit(text, int, int) to reeldeal_web;
+    grant execute on function private.rate_limit_peek(text, int, int) to reeldeal_web;
   end if;
 end $$;
 
@@ -246,6 +255,35 @@ language sql stable security definer set search_path = '' as $$
    where i.accepted_at is null and i.revoked_at is null and i.expires_at > now()
      and not exists (select 1 from public.memberships m where m.org_id = i.org_id and m.user_id = auth.uid())
 $$;
+
+/**
+ * What the invitation page shows before someone accepts: only to a signed-in user whose
+ * CONFIRMED email matches the invitation. Anyone else learns nothing beyond "not for this
+ * account" (the token is 256-bit random, so this can't be used to probe for invitations).
+ */
+create or replace function private.invitation_preview(p_token_hash text)
+returns table (status text, org_name text, role public.member_role, invited_by_name text, expires_at timestamptz)
+language plpgsql stable security definer set search_path = '' as $$
+declare inv public.invitations; my_email text; confirmed timestamptz;
+begin
+  if auth.uid() is null then return; end if;
+  select * into inv from public.invitations where token_hash = p_token_hash;
+  if not found then return query select 'not_found'::text, null::text, null::public.member_role, null::text, null::timestamptz; return; end if;
+  select lower(u.email), u.email_confirmed_at into my_email, confirmed from auth.users u where u.id = auth.uid();
+  if confirmed is null or my_email is distinct from inv.email then
+    return query select 'other_account'::text, null::text, null::public.member_role, null::text, null::timestamptz; return;
+  end if;
+  return query
+    select case
+             when inv.accepted_by = auth.uid() or exists (select 1 from public.memberships m where m.org_id = inv.org_id and m.user_id = auth.uid()) then 'member'
+             when inv.revoked_at is not null then 'revoked'
+             when inv.accepted_at is not null then 'used'
+             when inv.expires_at <= now() then 'expired'
+             else 'open' end,
+           o.name, inv.role, coalesce(p.display_name, 'A teammate'), inv.expires_at
+      from public.organisations o left join public.profiles p on p.user_id = inv.invited_by
+     where o.id = inv.org_id;
+end $$;
 
 /**
  * Accept an invitation, by the token from the emailed link or by id (onboarding's Join
@@ -361,7 +399,7 @@ begin
   foreach f in array array[
     'private.audit(uuid, text, uuid, jsonb)', 'private.my_role(uuid)',
     'private.create_invitation(uuid, text, public.member_role, text, int)', 'private.revoke_invitation(uuid)',
-    'private.my_invitations()', 'private.accept_invitation(text, uuid)', 'private.change_member_role(uuid, uuid, public.member_role)',
+    'private.my_invitations()', 'private.invitation_preview(text)', 'private.accept_invitation(text, uuid)', 'private.change_member_role(uuid, uuid, public.member_role)',
     'private.remove_member(uuid, uuid)', 'private.leave_workspace(uuid)', 'private.transfer_ownership(uuid, uuid)', 'private.team_members(uuid)'] loop
     execute format('revoke all on function %s from public', f);
     if f not like 'private.audit(%' then execute format('grant execute on function %s to authenticated', f); end if;

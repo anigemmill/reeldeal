@@ -17,9 +17,13 @@ import type { Platform } from "../context";
 */
 export type AuthAction = "sign_in" | "sign_up" | "password_reset" | "resend";
 
-/** Attempts per window. Per-IP limits allow a busy office or campus behind one IP. */
+/**
+  Attempts per window. Sign-in counts FAILED attempts only (peek first, count on a wrong
+  password), so a busy office or campus behind one IP is never slowed by its own successful
+  sign-ins. Sign-up, reset and resend count every attempt: each one sends an email.
+*/
 export const AUTH_LIMITS: Record<AuthAction, { ip: [number, number]; email: [number, number] }> = {
-  sign_in: { ip: [30, 300], email: [10, 900] }, // 30 / 5 min per IP; 10 / 15 min per account
+  sign_in: { ip: [30, 300], email: [10, 900] }, // 30 failures / 5 min per IP; 10 failures / 15 min per account
   sign_up: { ip: [10, 3600], email: [3, 3600] },
   password_reset: { ip: [10, 3600], email: [3, 3600] },
   resend: { ip: [10, 3600], email: [5, 3600] },
@@ -30,8 +34,16 @@ export const isLoopback = (ip: string) => ip === "::1" || ip.startsWith("127.") 
 export const keyFor = (secret: string, action: AuthAction, kind: "ip" | "email", value: string) =>
   `${action}:${kind}:${createHmac("sha256", secret).update(value.trim().toLowerCase()).digest("base64url").slice(0, 32)}`;
 
-/** Count this attempt. Returns { ok: false } when any applicable limit is exceeded. */
-export async function checkAuthRateLimit(p: Platform, action: AuthAction, who: { ip: string | null; email?: string | null }): Promise<{ ok: boolean; reason?: "ip" | "email" }> {
+/**
+  "hit" counts this attempt and checks it; "peek" only checks (sign-in, before trying the
+  password); "fail" counts a failed sign-in afterwards. Returns { ok: false } when a limit is exceeded.
+*/
+export async function checkAuthRateLimit(
+  p: Platform,
+  action: AuthAction,
+  who: { ip: string | null; email?: string | null },
+  mode: "hit" | "peek" | "fail" = "hit",
+): Promise<{ ok: boolean; reason?: "ip" | "email" }> {
   const lim = AUTH_LIMITS[action];
   const checks: ["ip" | "email", string, [number, number]][] = [];
   // Loopback is local development and tests (production always has the visitor's address).
@@ -39,8 +51,10 @@ export async function checkAuthRateLimit(p: Platform, action: AuthAction, who: {
   if (who.email) checks.push(["email", who.email, lim.email]);
   try {
     for (const [kind, value, [max, seconds]] of checks) {
-      const [r] = await p.db.system((sql) => sql.query<{ ok: boolean }>("select private.rate_limit_hit($1, $2, $3) as ok", [keyFor(p.signingSecret, action, kind, value), max, seconds]));
-      if (!r?.ok) return { ok: false, reason: kind };
+      const fn = mode === "peek" ? "private.rate_limit_peek" : "private.rate_limit_hit";
+      const [r] = await p.db.system((sql) => sql.query<{ ok: boolean }>(`select ${fn}($1, $2, $3) as ok`, [keyFor(p.signingSecret, action, kind, value), max, seconds]));
+      // A failure is always recorded against both keys, so keep going.
+      if (!r?.ok && mode !== "fail") return { ok: false, reason: kind };
     }
     return { ok: true };
   } catch (e) {

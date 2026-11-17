@@ -23,12 +23,14 @@ drop function if exists private.leave_workspace(uuid); -- reviewed: destructive
 drop function if exists private.remove_member(uuid, uuid); -- reviewed: destructive
 drop function if exists private.change_member_role(uuid, uuid, public.member_role); -- reviewed: destructive
 drop function if exists private.accept_invitation(text, uuid); -- reviewed: destructive
+drop function if exists private.invitation_preview(text); -- reviewed: destructive
 drop function if exists private.my_invitations(); -- reviewed: destructive
 drop function if exists private.revoke_invitation(uuid); -- reviewed: destructive
 drop function if exists private.create_invitation(uuid, text, public.member_role, text, int); -- reviewed: destructive
 drop function if exists private.my_role(uuid); -- reviewed: destructive
 drop function if exists private.audit(uuid, text, uuid, jsonb); -- reviewed: destructive
 drop function if exists private.rate_limit_hit(text, int, int); -- reviewed: destructive
+drop function if exists private.rate_limit_peek(text, int, int); -- reviewed: destructive
 
 drop table if exists private.rate_limits; -- reviewed: destructive
 drop table if exists public.billing_accounts; -- reviewed: destructive

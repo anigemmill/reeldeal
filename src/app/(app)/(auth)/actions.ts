@@ -39,10 +39,10 @@ function authMessage(e: { message?: string; code?: string; status?: number }) {
 const notConfigured = { error: "Accounts aren't available on this server yet: Supabase Auth is not configured." };
 
 /** App-side limits per visitor IP and per email, before Supabase Auth is called (src/server/auth/rate-limit.ts). */
-async function tooMany(action: AuthAction, email: string | null): Promise<boolean> {
+async function tooMany(action: AuthAction, email: string | null, mode: "hit" | "peek" | "fail" = "hit"): Promise<boolean> {
   const p = await getPlatform().catch(() => null);
   if (!p) return false; // no database: Supabase Auth's own limits still apply
-  return !(await checkAuthRateLimit(p, action, { ip: clientIp(await headers()), email })).ok;
+  return !(await checkAuthRateLimit(p, action, { ip: clientIp(await headers()), email }, mode)).ok;
 }
 const slowDown = "Too many attempts. Wait a few minutes and try again.";
 
@@ -58,9 +58,11 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   const email = str(form, "email");
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Enter your email and password.", values: { email } };
-  if (await tooMany("sign_in", email)) return { error: slowDown, values: { email } };
+  // Only failed sign-ins count (an office sharing one IP isn't slowed by successful ones).
+  if (await tooMany("sign_in", email, "peek")) return { error: slowDown, values: { email } };
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error && (error.code === "invalid_credentials" || /invalid login/i.test(error.message))) await tooMany("sign_in", email, "fail");
   if (error && (error.code === "email_not_confirmed" || /not confirmed/i.test(error.message))) {
     await rememberPendingEmail(email);
     redirect("/verify-email?reason=unconfirmed");
