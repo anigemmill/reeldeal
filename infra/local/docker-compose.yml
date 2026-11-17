@@ -31,7 +31,12 @@ services:
       GOTRUE_SITE_URL: http://localhost:3000
       GOTRUE_DISABLE_SIGNUP: "false"
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
-      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      # Same as production should be (docs/email-resend.md): confirm email before sign-in (D10),
+      # secure email change (both addresses confirm). The current password for a password
+      # change is checked by the app (src/app/(app)/_actions/account.ts): this GoTrue version
+      # does not enforce GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_CURRENT_PASSWORD.
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: "true"
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
@@ -49,6 +54,13 @@ services:
       GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      # The production templates (token_hash links that work on any device). Fetched when mail is sent.
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://gateway/templates/confirmation.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://gateway/templates/recovery.html
+      GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: http://gateway/templates/email_change.html
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: Confirm your Reeldeal email
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: Reset your Reeldeal password
+      GOTRUE_MAILER_SUBJECTS_EMAIL_CHANGE: Confirm your new Reeldeal email
     ports: ["127.0.0.1:9999:9999"]
   gateway:
     # Same URL layout as a Supabase project (https://<ref>.supabase.co/auth/v1/...), so
@@ -57,6 +69,7 @@ services:
     depends_on: [auth]
     volumes:
       - ./gateway.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../../supabase/templates:/usr/share/nginx/templates:ro
     ports: ["127.0.0.1:54321:80"]
   mail:
     # Catches outgoing auth emails locally. Inbox: http://localhost:8025

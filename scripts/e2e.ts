@@ -60,14 +60,43 @@ async function axe(page: Page, label: string) {
 }
 
 const settle = (page: Page) => page.waitForTimeout(1200);
-async function signUp(ctx: BrowserContext, name: string, email: string, business: string) {
+
+/** The newest Supabase Auth link emailed to `to` after `since` (ms), from the local mail catcher. */
+async function mailLink(to: string, since: number, subject?: RegExp): Promise<string> {
+  for (let i = 0; i < 40; i++) {
+    const list = (await (await fetch(`${MAIL}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`)).json()) as { messages: { ID: string; Created: string; Subject: string }[] };
+    const m = (list.messages ?? []).filter((x) => new Date(x.Created).getTime() >= since - 1000 && (!subject || subject.test(x.Subject))).sort((a, b) => +new Date(b.Created) - +new Date(a.Created))[0];
+    if (m) {
+      const msg = (await (await fetch(`${MAIL}/api/v1/message/${m.ID}`)).json()) as { HTML: string; Text: string };
+      const link = (/(https?:\/\/[^\s"'<>]+(?:verify|auth\/callback)[^\s"'<>]+)/.exec(msg.Text || msg.HTML)?.[1] ?? "").replace(/&amp;/g, "&");
+      if (link) return link;
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return "";
+}
+const mailCount = async (to: string) => ((await (await fetch(`${MAIL}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`)).json()) as { messages: unknown[] }).messages?.length ?? 0;
+
+/** Sign up, confirm the email through the emailed link (D10), and stop on onboarding. Returns the page and the link. */
+async function signUpAndVerify(ctx: BrowserContext, name: string, email: string) {
   const page = await ctx.newPage();
+  const since = Date.now();
   await page.goto(`${BASE}/sign-up`);
   await page.getByLabel("Your name").fill(name);
   await page.getByLabel("Work email").fill(email);
   await page.getByLabel("Password").fill("correct-horse-battery");
+  await page.getByRole("checkbox", { name: /I agree to the Terms of Service/ }).check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await page.waitForURL("**/onboarding", { timeout: 30000 });
+  await page.waitForURL("**/verify-email", { timeout: 30000 });
+  const link = await mailLink(email, since, /confirm/i);
+  if (!link) throw new Error(`no confirmation email for ${email}`);
+  await page.goto(link);
+  await page.waitForURL("**/onboarding?verified=1", { timeout: 30000 });
+  return { page, link };
+}
+
+async function signUp(ctx: BrowserContext, name: string, email: string, business: string) {
+  const { page } = await signUpAndVerify(ctx, name, email);
   await settle(page);
   await page.getByLabel("Business name").fill(business);
   await page.getByLabel("Industry").click();
@@ -109,9 +138,80 @@ async function main() {
     await page.getByRole("button", { name: "Create account" }).click();
     await page.getByText("Enter your name.").waitFor({ timeout: 10000 });
     check("Sign-up validates required fields", true);
+    check("Sign-up requires agreeing to the Terms and Privacy Policy", await page.getByText("Agree to the Terms of Service and Privacy Policy to continue.").isVisible());
     await page.close();
 
-    page = await signUp(A, "Ana Example", emailA, "E2E Lakeside");
+    /* Email verification (D10) */
+    const V = await browser.newContext({ reducedMotion: "reduce" });
+    const vp = await V.newPage();
+    const since = Date.now();
+    await vp.goto(`${BASE}/sign-up`);
+    await vp.getByLabel("Your name").fill("Ana Example");
+    await vp.getByLabel("Work email").fill(emailA);
+    await vp.getByLabel("Password").fill("correct-horse-battery");
+    await vp.getByRole("checkbox", { name: /I agree to the Terms of Service/ }).check();
+    await vp.getByRole("button", { name: "Create account" }).click();
+    await vp.waitForURL("**/verify-email", { timeout: 30000 });
+    check("Sign-up shows the verification screen with the address", (await vp.getByRole("heading", { level: 1 }).innerText()).includes("inbox") && (await vp.locator("main:visible").innerText()).includes(emailA));
+    check("Resend waits a minute after sign-up", /Send a new link in \d+s/.test(await vp.getByRole("button", { name: /Send a new link/ }).innerText()) && (await vp.getByRole("button", { name: /Send a new link/ }).isDisabled()));
+    await axe(vp, "/verify-email");
+    await vp.goto(`${BASE}/dashboard`);
+    check("An unconfirmed account cannot open the app", vp.url().includes("/sign-in"));
+    await settle(vp);
+    await vp.getByLabel("Email").fill(emailA);
+    await vp.getByLabel("Password").fill("correct-horse-battery");
+    await vp.getByRole("button", { name: "Sign in" }).click();
+    await vp.waitForURL("**/verify-email?reason=unconfirmed", { timeout: 15000 });
+    check("Signing in before confirming leads back to verification", (await vp.locator("main:visible").innerText()).includes("isn't confirmed yet"));
+    const firstLink = await mailLink(emailA, since, /confirm/i);
+    check("The confirmation email arrives", Boolean(firstLink));
+    // A different browser (no cooldown cookie) can ask for a new link by address.
+    const W = await browser.newContext();
+    const wp = await W.newPage();
+    const before = await mailCount(emailA);
+    await wp.goto(`${BASE}/verify-email?link=invalid`);
+    await settle(wp);
+    check("An expired or used link shows its own state", (await wp.getByRole("heading", { level: 1 }).innerText()).includes("expired"));
+    await axe(wp, "/verify-email?link=invalid");
+    await wp.getByLabel("Email you signed up with").fill(emailA);
+    await wp.getByRole("button", { name: "Send a new link" }).click();
+    // Supabase Auth itself allows one confirmation email per address per minute, whichever browser asks.
+    await wp.getByText(/less than a minute ago/).waitFor({ timeout: 15000 });
+    check("A second link within a minute is refused with a clear message", true);
+    await wp.waitForTimeout(Math.max(0, since + 62_000 - Date.now()));
+    await wp.getByRole("button", { name: "Send a new link" }).click();
+    await wp.getByText(/We've sent a new confirmation link/).waitFor({ timeout: 15000 });
+    let after = before;
+    for (let i = 0; i < 20 && after <= before; i++) {
+      await wp.waitForTimeout(500);
+      after = await mailCount(emailA);
+    }
+    check("Resend sends a new confirmation email", after > before);
+    check("Resend then waits before sending again", await wp.getByRole("button", { name: /Send a new link in/ }).isDisabled());
+    await W.close();
+    const latest = await mailLink(emailA, Date.now() - 15000, /confirm/i);
+    await vp.goto(latest);
+    await vp.waitForURL("**/onboarding?verified=1", { timeout: 20000 });
+    check("A confirmation link requested in another browser still works (token-hash template)", (await vp.locator("main:visible").innerText()).includes("Email confirmed"));
+    await vp.goto(latest);
+    await vp.waitForURL("**/onboarding?verified=already", { timeout: 20000 });
+    check("Opening a used link again says the email is already confirmed", (await vp.locator("main:visible").innerText()).includes("already confirmed"));
+    const U = await browser.newContext();
+    const up = await U.newPage();
+    await up.goto(latest);
+    await up.waitForURL("**/verify-email?link=invalid", { timeout: 20000 });
+    check("A used link in a signed-out browser shows the expired state", true);
+    await U.close();
+    await settle(vp);
+    await vp.getByLabel("Business name").fill("E2E Lakeside");
+    await vp.getByLabel("Industry").click();
+    await vp.getByRole("option", { name: "Accommodation" }).click();
+    await vp.getByRole("button", { name: "Create workspace" }).click();
+    await vp.waitForURL("**/dashboard**", { timeout: 30000 });
+    await A.addCookies(await V.cookies());
+    await V.close();
+    page = await A.newPage();
+    await page.goto(`${BASE}/dashboard`);
     check("Register and complete onboarding lands on the dashboard", page.url().includes("/dashboard"));
     const eyebrow = await page.getByText(/E2E Lakeside · Free plan/i).first().waitFor({ timeout: 15000 }).then(() => true, () => false);
     check("Dashboard shows the new workspace and plan", eyebrow);
@@ -150,17 +250,10 @@ async function main() {
     await rp.goto(`${BASE}/forgot-password`);
     await settle(rp);
     await rp.getByLabel("Email").fill(emailA);
+    const resetSince = Date.now();
     await rp.getByRole("button", { name: "Send reset link" }).click();
     await rp.getByText(/we've sent a link/).waitFor({ timeout: 10000 });
-    let link = "";
-    for (let i = 0; i < 20 && !link; i++) {
-      const list = (await (await fetch(`${MAIL}/api/v1/search?query=${encodeURIComponent(`to:${emailA}`)}`)).json()) as { messages: { ID: string }[] };
-      if (list.messages?.[0]) {
-        const msg = (await (await fetch(`${MAIL}/api/v1/message/${list.messages[0].ID}`)).json()) as { HTML: string; Text: string };
-        link = (/(https?:\/\/[^\s"'<>]+verify[^\s"'<>]+)/.exec(msg.Text || msg.HTML)?.[1] ?? "").replace(/&amp;/g, "&");
-      }
-      if (!link) await rp.waitForTimeout(500);
-    }
+    const link = await mailLink(emailA, resetSince, /reset/i);
     check("Password reset email is sent", Boolean(link));
     await rp.goto(link);
     await rp.waitForURL("**/reset-password", { timeout: 15000 });
@@ -190,6 +283,104 @@ async function main() {
     await page.waitForURL("**/library**", { timeout: 15000 });
   });
 
+  /* ---- account settings, email change, sign out everywhere (own user) ---- */
+  await run("account settings", async () => {
+    const emailC = `e2e-c-${stamp}@reeldeal.local`;
+    const emailC2 = `e2e-c2-${stamp}@reeldeal.local`;
+    const C = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
+    const cp = await signUp(C, "Cam Example", emailC, "E2E Account Co");
+    await cp.goto(`${BASE}/settings`);
+    await cp.waitForURL("**/settings/account");
+    check("Settings opens on Account", (await cp.getByRole("heading", { level: 1 }).innerText()) === "Account");
+    check("Account shows the verified email and workspace role", /Verified/.test(await cp.locator("main:visible").innerText()) && /E2E Account Co/.test(await cp.locator("main:visible").innerText()) && /owner/i.test(await cp.locator("main:visible").innerText()));
+    await axe(cp, "/settings/account");
+
+    await cp.getByLabel("Name", { exact: true }).fill("Cameron Example");
+    await cp.getByRole("button", { name: "Save name" }).click();
+    await cp.getByText("Name saved.").waitFor({ timeout: 10000 });
+    await cp.reload();
+    check("Name change is saved and shown in the app", (await cp.getByRole("navigation", { name: "App" }).innerText()).includes("Cameron Example"));
+
+    // Password: current password is required and checked by Supabase Auth.
+    const Other = await browser.newContext();
+    const op = await Other.newPage();
+    await op.goto(`${BASE}/sign-in`);
+    await settle(op);
+    await op.getByLabel("Email").fill(emailC);
+    await op.getByLabel("Password").fill("correct-horse-battery");
+    await op.getByRole("button", { name: "Sign in" }).click();
+    await op.waitForURL("**/dashboard**", { timeout: 15000 });
+    await cp.getByLabel("Current password").fill("not-my-password");
+    await cp.getByLabel("New password", { exact: true }).fill("brand-new-horse-battery");
+    await cp.getByLabel("Confirm new password").fill("brand-new-horse-battery");
+    await cp.getByRole("button", { name: "Change password" }).click();
+    await cp.getByText("That isn't your current password.").waitFor({ timeout: 10000 });
+    check("Password change refuses a wrong current password", true);
+    await cp.getByLabel("Current password").fill("correct-horse-battery");
+    await cp.getByLabel("New password", { exact: true }).fill("brand-new-horse-battery");
+    await cp.getByLabel("Confirm new password").fill("brand-new-horse-battery");
+    await cp.getByRole("button", { name: "Change password" }).click();
+    await cp.getByText(/Password changed/).waitFor({ timeout: 10000 });
+    check("Password change with the current password succeeds", true);
+    await op.goto(`${BASE}/library`);
+    check("Changing the password signs out other browsers", op.url().includes("/sign-in"));
+    await cp.goto(`${BASE}/library`);
+    check("…but keeps this browser signed in", cp.url().endsWith("/library"));
+
+    // Email change: links go to both addresses; the change happens after both are confirmed.
+    await cp.goto(`${BASE}/settings/account`);
+    const changeSince = Date.now();
+    await cp.getByLabel("New email address").fill(emailC2);
+    await cp.getByRole("button", { name: "Change email" }).click();
+    await cp.getByText(/Check both inboxes/).waitFor({ timeout: 15000 });
+    const oldLink = await mailLink(emailC, changeSince);
+    const newLink = await mailLink(emailC2, changeSince);
+    check("Email change sends a confirmation to both addresses", Boolean(oldLink && newLink));
+    await cp.reload();
+    check("The pending change is shown", (await cp.locator("main:visible").innerText()).includes(`changing to ${emailC2}`));
+    await cp.goto(oldLink);
+    await cp.waitForURL("**/settings/account?email=*", { timeout: 20000 });
+    const firstStatus = new URL(cp.url()).searchParams.get("email");
+    await cp.goto(newLink);
+    await cp.waitForURL("**/settings/account?email=*", { timeout: 20000 });
+    await cp.goto(`${BASE}/settings/account`);
+    const main = await cp.locator("main:visible").innerText();
+    check("After both confirmations the email is changed", main.includes(emailC2) && !main.includes("changing to"), `first link → ${firstStatus}`);
+
+    // Sign out everywhere.
+    const Third = await browser.newContext();
+    const tp = await Third.newPage();
+    await tp.goto(`${BASE}/sign-in`);
+    await settle(tp);
+    await tp.getByLabel("Email").fill(emailC2);
+    await tp.getByLabel("Password").fill("brand-new-horse-battery");
+    await tp.getByRole("button", { name: "Sign in" }).click();
+    await tp.waitForURL("**/dashboard**", { timeout: 15000 });
+    check("Sign in with the new email and password", true);
+    await cp.getByRole("button", { name: "Sign out everywhere" }).click();
+    await cp.getByRole("dialog").getByRole("button", { name: "Sign out everywhere" }).click();
+    await cp.waitForURL("**/sign-in?signed_out=everywhere", { timeout: 15000 });
+    check("Sign out everywhere signs out this browser", (await cp.locator("main:visible").innerText()).includes("signed out on every device"));
+    await tp.goto(`${BASE}/dashboard`);
+    check("…and every other browser", tp.url().includes("/sign-in"));
+    await cp.goto(`${BASE}/settings/account`);
+    check("Protected pages stay closed after signing out", cp.url().includes("/sign-in"));
+    await Promise.all([C.close(), Other.close(), Third.close()]);
+  });
+
+  /* ---- legal pages ---- */
+  await run("legal pages", async () => {
+    const L = await browser.newContext();
+    const lp = await L.newPage();
+    for (const [path, heading] of [["/terms", "Terms of Service."], ["/privacy", "Privacy Policy."]] as const) {
+      await lp.goto(`${BASE}${path}`);
+      const text = (await lp.locator("main:visible").textContent()) ?? ""; // textContent: the label is CSS-uppercased
+      check(`${path} exists, is marked as a draft placeholder and is not indexed`, (await lp.getByRole("heading", { level: 1 }).innerText()).replace(/\s+/g, " ").includes(heading) && text.includes("Draft: placeholders only") && /noindex/.test((await lp.locator('meta[name="robots"]').getAttribute("content")) ?? ""));
+      await axe(lp, path);
+    }
+    await L.close();
+  });
+
   /* ---- media library ---- */
   await run("media", async () => {
     await page.goto(`${BASE}/library`);
@@ -217,8 +408,18 @@ async function main() {
     check("Search finds footage by title", /drone ridge/.test(s) && !/lake morning/.test(s));
     await page.getByRole("searchbox").fill("");
     await page.waitForTimeout(1000);
+    // Regression: opening details used a server navigation that briefly removed the <title>.
+    await page.evaluate(() => {
+      const w = window as unknown as { __titleGaps: number };
+      w.__titleGaps = 0;
+      new MutationObserver(() => {
+        if (!document.title) w.__titleGaps++;
+      }).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+    });
     await page.getByRole("button", { name: /^lake morning/ }).first().click();
     await page.getByRole("dialog").getByText(/Quality \d+\/100/).waitFor({ timeout: 15000 });
+    check("Media details keep the page title while opening", (await page.evaluate(() => (window as unknown as { __titleGaps: number }).__titleGaps)) === 0 && /Library/.test(await page.title()));
+    check("Media details have a shareable link", /[?&]media=/.test(page.url()));
     check("Asset details show real metadata and analysis", /1280×720/.test(await page.getByRole("dialog").innerText()));
     await axe(page, "/library media detail");
     await page.keyboard.press("Escape");
@@ -229,6 +430,13 @@ async function main() {
     await page.keyboard.press("Enter");
     check("Keyboard: Enter on a library item opens its details", await page.getByRole("dialog").isVisible({ timeout: 5000 }));
     await page.keyboard.press("Escape");
+    // Wait for the dialog to close: it returns focus to the item that opened it (correct
+    // behaviour), which would otherwise take focus back from the Upload button.
+    await page.getByRole("dialog").waitFor({ state: "detached", timeout: 5000 });
+    check(
+      "Keyboard: closing details returns focus to the item",
+      await page.waitForFunction(() => /lake morning/i.test(document.activeElement?.textContent ?? ""), null, { timeout: 2000 }).then(() => true, () => false),
+    );
     await page.getByRole("button", { name: "Upload" }).focus();
     const [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 5000 }), page.keyboard.press("Enter")]);
     check("Keyboard: Upload opens the file chooser", chooser.isMultiple());
@@ -238,7 +446,7 @@ async function main() {
   await run("brand", async () => {
     await page.goto(`${BASE}/brands`);
     await settle(page);
-    await page.locator("main").getByRole("link", { name: /E2E Lakeside/ }).click();
+    await page.locator("main:visible").getByRole("link", { name: /E2E Lakeside/ }).click();
     await page.waitForURL("**/brands/*");
     brandA = page.url().split("/brands/")[1]!;
     await settle(page);
@@ -330,7 +538,7 @@ async function main() {
     await page.waitForTimeout(2500);
     await page.getByRole("button", { name: /Create 3 concepts/ }).first().click();
     await page.getByRole("alert").filter({ hasText: /AI service didn.t respond/ }).waitFor({ timeout: 30000 });
-    check("A failed AI request shows a clear error and stops (nothing charged)", /Nothing was charged/.test(await page.locator("main").innerText()));
+    check("A failed AI request shows a clear error and stops (nothing charged)", /Nothing was charged/.test(await page.locator("main:visible").innerText()));
     check("The failed stage offers Try again", await page.getByRole("button", { name: "Try again" }).isVisible());
     await page.getByRole("button", { name: "Back to brief" }).click();
     check("Going back keeps the brief text", (await page.getByLabel("Describe it").inputValue()).includes("Spring offer for families"));
@@ -366,7 +574,7 @@ async function main() {
     await page.getByRole("button", { name: "Approve and render" }).click();
     await page.getByRole("dialog").getByRole("button", { name: /Render · / }).click();
     await page.getByText(/The render failed\. You were not charged\./).waitFor({ timeout: 120000 });
-    const failText = await page.locator("main").innerText();
+    const failText = await page.locator("main:visible").innerText();
     check("A render with footage missing from storage names the clip and the fix", /"doomed clip" is missing from storage\. Replace it in Studio/.test(failText));
     check("…and doesn't offer a retry that can't succeed", !(await page.getByRole("button", { name: "Retry free" }).isVisible()));
     check("…and is not charged", (await creditsText()) === before, before);
@@ -399,7 +607,7 @@ async function main() {
     const pb = await signUp(B, "Ben Other", emailB, "Other Cafe");
     await pb.goto(`${BASE}/library`);
     await settle(pb);
-    check("Another workspace's library is empty", /library is empty/i.test(await pb.locator("main").innerText()));
+    check("Another workspace's library is empty", /library is empty/i.test(await pb.locator("main:visible").innerText()));
     // Pages stream inside Suspense, so not-found arrives as the page content (and data never leaks).
     const notFoundShown = async () => /This isn.t available|could not be found/i.test(await pb.locator("body").innerText());
     await pb.goto(`${BASE}/studio?project=${projectA}`);
@@ -410,10 +618,10 @@ async function main() {
     check("Opening another workspace's brand shows not found", await notFoundShown());
     await pb.goto(`${BASE}/autopilot?project=${projectA}`);
     await settle(pb);
-    check("Another workspace's project can't be loaded in Autopilot", /Project not found|not found/i.test(await pb.locator("main").innerText()));
+    check("Another workspace's project can't be loaded in Autopilot", /Project not found|not found/i.test(await pb.locator("main:visible").innerText()));
     await pb.goto(`${BASE}/exports`);
     await settle(pb);
-    check("Another workspace sees no exports", /No exports yet/.test(await pb.locator("main").innerText()));
+    check("Another workspace sees no exports", /No exports yet/.test(await pb.locator("main:visible").innerText()));
     await pb.goto(`${BASE}/dashboard`);
     await settle(pb);
     check("Credit balances are separate (the new workspace still has 2 of 2)", /Videos\s*2 of 2 left/.test(await pb.getByLabel("Usage").first().innerText()));

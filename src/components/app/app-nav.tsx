@@ -141,7 +141,7 @@ export function AppNav({ className, nav }: { className?: string; nav?: NavData }
             </button>
           </form>
         ) : null}
-        <Link href="/settings/appearance" aria-label="Settings" className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink">
+        <Link href="/settings/account" aria-label="Settings" className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink">
           <Settings className="size-[18px]" strokeWidth={1.8} aria-hidden />
         </Link>
       </div>
