@@ -265,3 +265,64 @@ How it is wired: `docs/app.md`. Decisions:
   third-party use of their colours and lettering that implies endorsement.
 - This is an exception to "orange has one job": the Instagram gradient contains orange,
   kept to the tile's lower-left corner so white type sits on pink and purple.
+
+## Stage 3: authentication and customer experience designs (2026-11-17)
+- **Email verification is required** (D10) in the proxy, pages and server actions, whatever the project's
+  setting. Unverified users see `/verify-email` (resend with a one-minute cooldown; neutral replies).
+- **Auth emails use token-hash links** (`supabase/templates/`), not Supabase's default PKCE links, which
+  only work in the requesting browser: confirming on a phone after signing up on a laptop failed.
+- **The app checks the current password** before a password change (throwaway sign-in, session revoked).
+  Supabase Auth v2.180 accepts but ignores `current_password`; we still send it.
+- **Secure email change**: both addresses must confirm. The settings page shows the pending address from
+  Supabase Auth; the callback reports "one of two confirmed" until both are.
+- **Sign out everywhere** revokes every session (`scope: global`) after a confirmation dialog. A password
+  change signs out other sessions (`scope: others`).
+- **Settings navigation** is shared (`SettingsFrame`, `PRODUCT_SETTINGS`): unbuilt areas show "soon" and are
+  not links.
+- **Legal pages are placeholders**: section structure only, every body bracketed, a draft notice on
+  screen, `noindex`. No legal wording was written.
+- **Stage 3 designs are real components on sample data** (`src/components/app/settings/*-screen.tsx`,
+  `onboarding-flow.tsx`), shown only on `/design-system/screens/*` and labelled. Wiring them later replaces
+  the sample data, not the components. `npm run review:shots` regenerates the screenshot pack.
+- **Shallow URL updates** (`history.replaceState`) for the library's `?media=` and Autopilot's `?project=`:
+  `router.replace` re-rendered the page on the server and briefly removed the document title.
+- **Local stack mirrors production auth settings**: confirmation required, secure email change, the repo's
+  email templates served to the local auth server.
+
+## Mission 4: infrastructure readiness and customer backend (2026-11-18)
+- **R2 verified live** with the environment's scoped token (12 real-bucket tests, clean-up confirmed).
+  CORS for the app origin is missing; applying it is a live change and waits for approval.
+- **Membership changes only through SECURITY DEFINER functions** (migration 20261118000001), each
+  checking `auth.uid()` and writing an audit event. Users keep no write grants on `memberships`.
+  The plan's seat limit comes from `config/pricing.json`, passed by the service.
+- **Invitation acceptance requires the caller's confirmed email to match.** The emailed token only
+  points at the invitation; the same error for every mismatch (no probing).
+- **Ownership transfer:** the app checks the owner's password and the typed workspace name; the
+  database checks owner, target role (admin or editor) and target confirmed email; one-owner unique index.
+- **Access tokens are bound to their environment** (`api_tokens.environment`): production refuses
+  development tokens. The web page may create tokens only from a signed-in session, with an expiry.
+- **App-side auth rate limits in Postgres** (per visitor IP and per email, HMAC keys), because
+  Supabase sees the app server's IPs. Supabase's limits stay on. No Redis.
+- **First brand created under a lock**, and brand-limit checks are transactional (fixes a double-submit
+  duplicate and a limit race found by tests).
+- **Real billing pages never show sample values** (`toBillingScreenData`, tested). Without a
+  `billing_accounts` record the screen says billing isn't set up.
+- **The migration safety check ignores function bodies** (they don't run at migration time); `DO`
+  blocks are still checked.
+
+## Mission 5 (2026-11-17)
+
+- **R2 CORS is PUT-only from named origins.** Browsers only upload to storage. Downloads are
+  navigations and previews are media tags, so GET, HEAD and exposed headers aren't needed. Each
+  new origin (preview, production) is added with its own approval.
+- **Invitation tokens travel in the URL fragment** (`/invite#…`), never the path or query, so they
+  can't reach server logs, analytics or Referer headers. The page posts the token to a server action.
+- **The invitation preview shows details only to the invited, confirmed address.** Everyone else gets
+  "different address" or "not found".
+- **Credit rollover is a month-close in the ledger** (rollover and expiry rows; one close per month,
+  enforced by unique indexes), not a balance column. Carry = min(left over, the month's own grant,
+  the current allocation). Periods stay calendar months until Stripe (D-B2).
+- **Sign-in rate limits count failures only**; sign-up, reset and resend count every attempt.
+- **`infra:check` refuses any Supabase project but Reeldeal's**, before connecting.
+- **Workspace deletion: deactivate first, delete after a recovery period** (recommended 30 days,
+  D-W1), keep legal records (`docs/data-retention.md`). Not built until decided.

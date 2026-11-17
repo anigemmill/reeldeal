@@ -11,15 +11,14 @@ import { toast } from "@/components/ui/toast";
 import { getMedia } from "@/content/media";
 import { MODES, PALETTES, serializeTheme, themeClassName, TYPES, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { SettingsNav, type SettingsItem } from "./settings-shell";
 
 /*
   Settings → Appearance (design/explorations/Appearance.dc.html).
   Choose palette, mode and typography, preview, then apply. Applying saves the
   choice (a cookie now; the user's preferences row once accounts exist in Phase 3).
 */
-const SETTINGS_NAV = ["Profile", "Workspace", "Brand profiles", "Team", "Billing", "Appearance", "Notifications"];
-
-export function AppearanceScreen() {
+export function AppearanceScreen({ settingsItems }: { settingsItems?: SettingsItem[] } = {}) {
   const applied = useTheme();
   const [draft, setDraft] = useState<Theme | null>(null);
   const pending = draft ?? applied;
@@ -31,26 +30,12 @@ export function AppearanceScreen() {
 
   return (
     <div className="flex min-h-full flex-col lg:flex-row">
-      <nav aria-label="Settings" className="flex shrink-0 gap-1 overflow-x-auto border-b border-line px-4 py-3 text-sm lg:w-60 lg:flex-col lg:border-r lg:border-b-0 lg:px-4 lg:py-8">
-        <Eyebrow className="hidden px-3 pb-2 lg:block">Settings</Eyebrow>
-        {SETTINGS_NAV.map((item) =>
-          item === "Appearance" ? (
-            <span key={item} aria-current="page" className="shrink-0 rounded-[10px] bg-surface-muted px-3 py-2.5 font-semibold text-link">
-              {item}
-            </span>
-          ) : (
-            <span key={item} aria-disabled="true" className="flex shrink-0 items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-ink-muted">
-              {item}
-              <span className="hidden font-mono text-[10px] uppercase lg:inline">soon</span>
-            </span>
-          ),
-        )}
-      </nav>
+      <SettingsNav current="appearance" items={settingsItems} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
         <header className="flex flex-col gap-2">
           <h1 className="font-display text-[clamp(32px,3.6vw,44px)] leading-none font-semibold tracking-display">Appearance</h1>
-          <p className="max-w-2xl text-ink-muted">Choose a palette, a mode and a type style. Preview first, then apply. Your choice is saved on this device for now, and to your account once sign-in arrives.</p>
+          <p className="max-w-2xl text-ink-muted">Choose a palette, a mode and a type style. Preview first, then apply. Your choice is saved on this device.</p>
         </header>
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_400px]">

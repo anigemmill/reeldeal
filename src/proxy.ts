@@ -8,12 +8,13 @@ import { publicEnv } from "@/env/public";
   - Refreshes the Supabase Auth session (rotating cookies) so server components see
     a valid session, as @supabase/ssr recommends.
   - Protects the app: signed-out visitors are sent to /sign-in (with ?expired=1 when
-    an old session cookie was present), signed-in users skip the sign-in pages.
+    an old session cookie was present), signed-in users skip the sign-in pages, and
+    signed-in users whose email isn't confirmed yet are sent to /verify-email.
   - Hides the design review pages in production unless REELDEAL_DESIGN_REVIEW=1.
   Pages still verify the user themselves (src/server/app/session.ts); this is not the
   only check.
 */
-const APP_PREFIXES = ["/dashboard", "/autopilot", "/studio", "/settings", "/library", "/brands", "/projects", "/exports", "/onboarding"];
+export const APP_PREFIXES = ["/dashboard", "/autopilot", "/studio", "/settings", "/library", "/brands", "/projects", "/exports", "/onboarding"];
 const AUTH_PAGES = ["/sign-in", "/sign-up"];
 
 const matches = (path: string, prefixes: string[]) => prefixes.some((p) => path === p || path.startsWith(`${p}/`));
@@ -52,7 +53,12 @@ export async function proxy(request: NextRequest) {
     if (request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"))) to.searchParams.set("expired", "1");
     return NextResponse.redirect(to);
   }
-  if (user && matches(path, AUTH_PAGES)) return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Email confirmation is required before onboarding or any app page (D10). Pages and
+  // actions check it again (src/server/app/session.ts); this only routes people.
+  const verified = Boolean(user?.email_confirmed_at);
+  if (user && !verified && isApp) return NextResponse.redirect(new URL("/verify-email", request.url));
+  if (user && verified && path === "/verify-email") return NextResponse.redirect(new URL("/onboarding", request.url));
+  if (user && matches(path, AUTH_PAGES)) return NextResponse.redirect(new URL(verified ? "/dashboard" : "/verify-email", request.url));
   return response;
 }
 

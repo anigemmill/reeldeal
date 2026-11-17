@@ -40,9 +40,22 @@ const THEMES: Theme[] = [
   session; the signed-in pages themselves are checked with axe in npm run test:e2e.
   Public account pages are checked directly.
 */
-const REVIEW_SCREENS = ["dashboard", "autopilot", "autopilot&step=review", "studio"];
+const REVIEW_SCREENS = [
+  "dashboard", "autopilot", "autopilot&step=review", "studio",
+  // Stage 3 designs (sample data) and their dialogs
+  "account", "workspace", "team", "team/solo", "team&dialog=invite", "team&dialog=invite-results", "team&dialog=role", "team&dialog=transfer", "billing", "billing/free", "tokens", "tokens&dialog=create", "tokens&dialog=created", "workspace&dialog=delete",
+  "onboarding&step=workspace", "onboarding/invited", "onboarding&step=brand", "onboarding&step=assets", "onboarding&step=preferences", "onboarding&step=done",
+];
 const review = (screen: string, theme: string) => `/design-system/screens/${screen.replace("&", `?theme=${theme}&`)}${screen.includes("&") ? "" : `?theme=${theme}`}`;
-const PUBLIC_APP_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
+const PUBLIC_APP_PAGES = ["/sign-in", "/sign-up", "/forgot-password", "/verify-email", "/verify-email?link=invalid", "/invite"];
+const MOBILE_PAGES = [
+  "/",
+  ...["dashboard", "autopilot", "studio", "account", "workspace", "team", "team/solo", "team&dialog=invite-results", "billing", "tokens", "tokens&dialog=create", "onboarding&step=brand"].map((x) => review(x, "crossroads.workspace.a")),
+  "/sign-in",
+  "/verify-email",
+  "/terms",
+  "/privacy",
+];
 const dropToolbar = (page: Page) => page.evaluate(() => document.body.querySelector(":scope > header")?.remove());
 
 async function startServer() {
@@ -119,7 +132,7 @@ async function axeAll(browser: Browser) {
   }
   // Mobile layouts (Crossroads, type A)
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
-  for (const path of ["/", review("dashboard", "crossroads.workspace.a"), review("autopilot", "crossroads.workspace.a"), review("studio", "crossroads.workspace.a"), "/sign-in"]) {
+  for (const path of MOBILE_PAGES) {
     const page = await load(m, path);
     if (path.startsWith("/design-system")) await dropToolbar(page);
     await axe(page, `${path} (390px)`, "crossroads.workspace.a");
@@ -198,7 +211,7 @@ async function main() {
   await startServer();
   const browser = await chromium.launch();
   try {
-    console.log(`axe: ${THEMES.length} theme sets × ${REVIEW_SCREENS.length + PUBLIC_APP_PAGES.length + 1} pages, plus 5 mobile layouts`);
+    console.log(`axe: ${THEMES.length} theme sets × ${REVIEW_SCREENS.length + PUBLIC_APP_PAGES.length + 1} pages, plus ${MOBILE_PAGES.length} phone layouts`);
     await axeAll(browser);
     const byRule = new Map<string, Finding[]>();
     for (const f of findings) byRule.set(f.rule, [...(byRule.get(f.rule) ?? []), f]);

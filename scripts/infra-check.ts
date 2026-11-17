@@ -10,6 +10,16 @@ import { pendingMigrations } from "../src/server/db/migrate";
 import { createPostgresDb } from "../src/server/db/postgres";
 import { createR2Storage } from "../src/server/storage/r2";
 
+/** Every table and view Reeldeal's migrations create in public (anything else is reported). */
+const EXPECTED_TABLES = [
+  "organisations", "memberships", "api_tokens", "brand_profiles", "brand_profile_versions", "media_assets", "media_uploads", "media_analysis",
+  "projects", "project_media", "video_briefs", "video_concepts", "storyboards", "jobs", "exports", "credit_transactions", "profiles",
+  "invitations", "audit_events", "rate_limits", "user_preferences", "billing_accounts",
+];
+/** What the local stack (infra/local) runs, i.e. what the automated tests prove. */
+const LOCAL_AUTH_VERSION = "v2.180.0";
+const LOCAL_AUTH_SCHEMA = "20250904133000";
+
 type Result = { area: string; status: "ok" | "missing" | "fail" | "warn"; detail: string };
 const results: Result[] = [];
 const add = (area: string, status: Result["status"], detail: string) => results.push({ area, status, detail });
@@ -18,6 +28,11 @@ const safe = (e: unknown) => String((e as Error).message ?? e).replace(/postgres
 async function checkDatabase() {
   if (!env.DATABASE_URL) return add("Supabase database", "missing", "DATABASE_URL not set");
   const u = new URL(env.DATABASE_URL);
+  // Never connect to another product's database: a hosted URL must name the Reeldeal project,
+  // either in the host (db.<ref>.supabase.co) or in the pooler user name (<role>.<ref>).
+  const local = u.hostname === "127.0.0.1" || u.hostname === "localhost";
+  if (!local && !`${u.hostname} ${decodeURIComponent(u.username)}`.includes(REELDEAL_PROJECT_REF))
+    return add("Supabase database", "fail", `DATABASE_URL does not name the Reeldeal project (${REELDEAL_PROJECT_REF}): not connecting`);
   const db = createPostgresDb(env.DATABASE_URL, { max: 1 });
   try {
     const [info] = await db.system((sql) =>
@@ -42,6 +57,28 @@ async function checkDatabase() {
       );
       add("RLS and grants", r.no_rls || r.anon || r.truncate ? "fail" : "ok", `${r.no_rls} table(s) without RLS, ${r.anon} anon grant(s), ${r.truncate} TRUNCATE grant(s) to users`);
     }
+    // Nothing unexpected exposed: tables we don't know about, functions anyone can call through the
+    // Data API, access to the private schemas, and whether the restricted-roles migration is in place.
+    const [x] = await db.system((sql) =>
+      sql.query<{ unknown_tables: string[] | null; public_functions: string[] | null; private_usage: string[] | null; meta_rls: boolean | null; roles: number; auth_version: string | null }>(
+        `select
+           (select array_agg(c.relname order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+             where n.nspname = 'public' and c.relkind in ('r', 'v', 'm') and c.relname <> all($1::text[])) as unknown_tables,
+           (select array_agg(p.proname order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'))) as public_functions,
+           (select array_agg(r || ' on ' || s) from unnest(array['anon', 'authenticated']) r, unnest(array['private', 'reeldeal_meta']) s
+             where to_regnamespace(s) is not null and has_schema_privilege(r, s, 'usage') and not (r = 'authenticated' and s = 'private')) as private_usage,
+           (select relrowsecurity from pg_class where oid = to_regclass('reeldeal_meta.migrations')) as meta_rls,
+           (select count(*)::int from pg_roles where rolname in ('reeldeal_web', 'reeldeal_worker')) as roles,
+           (select max(version)::text from auth.schema_migrations) as auth_version`,
+        [EXPECTED_TABLES],
+      ),
+    );
+    add("Unexpected tables", x.unknown_tables?.length ? "warn" : "ok", x.unknown_tables?.length ? `not created by Reeldeal migrations: ${x.unknown_tables.join(", ")}` : "only Reeldeal's own tables in public");
+    add("Callable functions", x.public_functions?.length ? "warn" : "ok", x.public_functions?.length ? `public functions anon/authenticated can execute: ${x.public_functions.join(", ")}` : "no public functions callable by anon or signed-in users");
+    add("Private schemas", x.private_usage?.length ? "fail" : "ok", x.private_usage?.length ? `unexpected access: ${x.private_usage.join(", ")}` : "anon has no access to private or reeldeal_meta; authenticated only uses private for policy checks");
+    add("Restricted runtime roles", x.roles === 2 ? "ok" : "warn", x.roles === 2 ? "reeldeal_web and reeldeal_worker exist (migration 20261117000001 applied)" : "not created: migration 20261117000001 not applied (awaiting approval)");
+    add("Auth schema version", "ok", `auth.schema_migrations latest ${x.auth_version ?? "unknown"} (local stack: ${LOCAL_AUTH_SCHEMA})`);
   } catch (e) {
     add("Supabase database", "fail", safe(e));
   } finally {
@@ -55,7 +92,21 @@ async function checkAuth() {
   if (!url || !key) return add("Supabase Auth API", "missing", "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY not set");
   try {
     const health = await fetch(`${url}/auth/v1/health`, { headers: { apikey: key } });
-    add("Supabase Auth API", health.ok ? "ok" : "fail", `health HTTP ${health.status}`);
+    const h = health.ok ? ((await health.json()) as { version?: string }) : {};
+    add("Supabase Auth API", health.ok ? "ok" : "fail", `health HTTP ${health.status}${h.version ? `, Supabase Auth ${h.version}` : ""}`);
+    if (h.version) {
+      const same = h.version === LOCAL_AUTH_VERSION;
+      add("Auth version vs local", same ? "ok" : "warn", same ? `same as the local test stack (${LOCAL_AUTH_VERSION})` : `live ${h.version}, local tests ran on ${LOCAL_AUTH_VERSION}: re-run the account flows against this project (docs/auth.md, live test plan)`);
+    }
+    // Public settings endpoint: which sign-in methods are on and whether email confirmation is required (D10).
+    const settings = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } });
+    if (settings.ok) {
+      const st = (await settings.json()) as { external: Record<string, boolean>; disable_signup: boolean; mailer_autoconfirm: boolean };
+      const providers = Object.entries(st.external).filter(([, on]) => on).map(([p]) => p);
+      add("Email confirmation", st.mailer_autoconfirm ? "fail" : "ok", st.mailer_autoconfirm ? "OFF: new accounts are confirmed automatically (turn on Confirm email; D10)" : "required before sign-in (D10)");
+      add("Sign-in methods", providers.every((p) => p === "email") ? "ok" : "warn", `enabled: ${providers.join(", ") || "none"}${st.disable_signup ? "; sign-ups disabled" : ""}`);
+    } else add("Auth settings", "warn", `settings HTTP ${settings.status}`);
+    add("Auth settings not readable here", "warn", "site URL, redirect URLs, SMTP, secure email change and rate limits are dashboard-only: check them against docs/email-resend.md section 6");
     const jwks = await fetch(`${url}/auth/v1/.well-known/jwks.json`, { headers: { apikey: key } });
     const keys = jwks.ok ? ((await jwks.json()) as { keys: unknown[] }).keys.length : 0;
     add("Supabase signing keys (JWKS)", keys ? "ok" : "warn", keys ? `${keys} public key(s)` : "no asymmetric keys published (enable JWT signing keys before OAuth)");
@@ -64,6 +115,55 @@ async function checkAuth() {
   }
   if (env.SUPABASE_JWT_ISSUER && env.SUPABASE_JWKS_URL) add("Remote MCP OAuth", "ok", "resource server configured (authorisation server must also be enabled in Supabase)");
   else add("Remote MCP OAuth", "missing", "SUPABASE_JWT_ISSUER / SUPABASE_JWKS_URL not set: remote MCP stays development-only (expected for now)");
+}
+
+/** The dedicated Reeldeal project (docs/production-plan.md). Anything else is refused, never queried. */
+const REELDEAL_PROJECT_REF = "jzshbaqfrrgsyiciuzfe";
+
+/** Project identity: the configured URL must point at the Reeldeal project, never another one. */
+function checkProjectIdentity(): boolean {
+  const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return true;
+  const host = new URL(url).hostname;
+  if (host === "127.0.0.1" || host === "localhost") return (add("Supabase project", "ok", "local stack (infra/local)"), true);
+  const ref = host.split(".")[0];
+  add("Supabase project", ref === REELDEAL_PROJECT_REF ? "ok" : "fail", ref === REELDEAL_PROJECT_REF ? `Reeldeal project (${ref})` : `URL points at project ${ref}, not Reeldeal (${REELDEAL_PROJECT_REF}): stop and check (never use another product's project)`);
+  return ref === REELDEAL_PROJECT_REF;
+}
+
+/**
+  Auth configuration through the Management API (read-only GETs). Only runs when a personal access
+  token is provided as SUPABASE_ACCESS_TOKEN for this run; it is read straight from the process
+  environment, never added to the app's configuration, and never printed.
+*/
+async function checkAuthConfig() {
+  const token = process.env.SUPABASE_ACCESS_TOKEN;
+  if (!token) return add("Auth configuration (Management API)", "missing", "SUPABASE_ACCESS_TOKEN not set for this run: site URL, redirect URLs, SMTP and rate limits stay a manual dashboard check");
+  const api = `https://api.supabase.com/v1/projects/${REELDEAL_PROJECT_REF}`;
+  const headers = { authorization: `Bearer ${token}` };
+  try {
+    const project = await fetch(api, { headers });
+    if (!project.ok) return add("Management API", "fail", `project HTTP ${project.status} (token can't see the Reeldeal project: wrong account?)`);
+    const p = (await project.json()) as { name: string; region: string; status: string };
+    add("Management API project", "ok", `${p.name}, ${p.region}, ${p.status}`);
+    const res = await fetch(`${api}/config/auth`, { headers });
+    if (!res.ok) return add("Auth configuration", "fail", `HTTP ${res.status}`);
+    const c = (await res.json()) as Record<string, unknown>;
+    const site = String(c.site_url ?? "");
+    const allow = String(c.uri_allow_list ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    add("Site URL", site && !site.includes("localhost") ? "ok" : "warn", site || "not set");
+    add("Redirect URLs", allow.some((u) => u.includes("*")) ? "warn" : "ok", allow.length ? `${allow.length}: ${allow.join(", ").slice(0, 120)}${allow.some((u) => u.includes("*")) ? " (wildcards: narrow to exact /auth/callback URLs)" : ""}` : "none");
+    add("Confirm email", c.mailer_autoconfirm ? "fail" : "ok", c.mailer_autoconfirm ? "OFF (D10 requires it)" : "on");
+    add("Secure email change", c.mailer_secure_email_change_enabled ? "ok" : "warn", c.mailer_secure_email_change_enabled ? "both addresses confirm" : "only the new address confirms");
+    const providers = Object.keys(c).filter((k) => /^external_[a-z_]+_enabled$/.test(k) && c[k] === true).map((k) => k.slice(9, -8));
+    add("Providers", providers.every((p) => p === "email") ? "ok" : "warn", providers.join(", ") || "none");
+    add("Custom SMTP", c.smtp_host ? "ok" : "warn", c.smtp_host ? `configured (${String(c.smtp_host)})` : "not set: Supabase's built-in mailer (heavily rate-limited, not for customers)");
+    const limits = ["rate_limit_email_sent", "rate_limit_verify", "rate_limit_token_refresh", "rate_limit_otp"].filter((k) => k in c).map((k) => `${k.replace("rate_limit_", "")} ${String(c[k])}`);
+    add("Auth rate limits", "ok", limits.join(", ") || "not returned");
+    add("Minimum password length", Number(c.password_min_length ?? 0) >= 8 ? "ok" : "warn", String(c.password_min_length ?? "not returned"));
+  } catch (e) {
+    add("Management API", "fail", safe(e));
+  }
 }
 
 async function checkStorage() {
@@ -105,7 +205,8 @@ function checkLocal() {
 async function main() {
   checkLocal();
   await checkDatabase();
-  await checkAuth();
+  if (checkProjectIdentity()) await checkAuth();
+  await checkAuthConfig();
   await checkStorage();
   await checkAi();
   const icon = { ok: "✓", missing: "–", fail: "✗", warn: "!" };

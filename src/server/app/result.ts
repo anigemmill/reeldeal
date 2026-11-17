@@ -29,6 +29,7 @@ export async function withCtx<T>(fn: (ctx: Ctx) => Promise<T>): Promise<ActionRe
   try {
     const c = await loadAppContext();
     if (!c) return { ok: false, error: { code: "unauthenticated", message: "Your session has ended. Sign in again to continue." } };
+    if ("unverified" in c) return { ok: false, error: { code: "forbidden", message: "Confirm your email address first: check your inbox for the link." } };
     if (!("ctx" in c)) return { ok: false, error: { code: "forbidden", message: "Create your workspace first." } };
     return { ok: true, data: await fn(c.ctx) };
   } catch (e) {

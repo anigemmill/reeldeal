@@ -33,7 +33,7 @@ const meterFill = ["bg-primary", "bg-primary/70", "bg-primary/45"];
 function sampleNav(): NavData {
   const { planName, meters } = sampleUsageMeters();
   return {
-    workspace: { name: SAMPLE_WORKSPACE.name, initials: SAMPLE_WORKSPACE.initials, kind: SAMPLE_WORKSPACE.kind },
+    workspace: { name: SAMPLE_WORKSPACE.name, initials: SAMPLE_WORKSPACE.initials, kind: SAMPLE_WORKSPACE.kind, href: "/design-system/screens/workspace" },
     user: { name: SAMPLE_WORKSPACE.user.name, initials: SAMPLE_WORKSPACE.user.initials, email: null },
     planName,
     meters,
@@ -54,13 +54,26 @@ export function AppNav({ className, nav }: { className?: string; nav?: NavData }
         <Logo size="sm" />
       </Link>
 
-      <div className="flex items-center gap-2.5 rounded-md border border-line bg-surface-muted px-2.5 py-2">
-        <Avatar initials={ws.initials} label={ws.name} shape="square" className="bg-primary text-primary-foreground" />
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate font-semibold">{ws.name}</span>
-          <span className="text-xs text-ink-muted">{ws.kind}</span>
-        </span>
-      </div>
+      {(() => {
+        const card = (
+          <>
+            <Avatar initials={ws.initials} label={ws.name} shape="square" className="bg-primary text-primary-foreground" />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate font-semibold">{ws.name}</span>
+              <span className="text-xs text-ink-muted">{ws.kind}</span>
+            </span>
+          </>
+        );
+        const base = "flex items-center gap-2.5 rounded-md border border-line bg-surface-muted px-2.5 py-2";
+        return ws.href ? (
+          <Link href={ws.href} className={cn(base, "hover:border-line-strong")}>
+            {card}
+            <span className="sr-only">: workspace settings</span>
+          </Link>
+        ) : (
+          <div className={base}>{card}</div>
+        );
+      })()}
       {data.workspaces.length > 1 ? (
         <form action={switchWorkspace} className="-mt-2 flex gap-1.5">
           <label className="sr-only" htmlFor="ws-switch">Switch workspace</label>
@@ -141,7 +154,7 @@ export function AppNav({ className, nav }: { className?: string; nav?: NavData }
             </button>
           </form>
         ) : null}
-        <Link href="/settings/appearance" aria-label="Settings" className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink">
+        <Link href="/settings/account" aria-label="Settings" className="inline-flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink">
           <Settings className="size-[18px]" strokeWidth={1.8} aria-hidden />
         </Link>
       </div>

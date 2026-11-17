@@ -11,7 +11,8 @@ export const usageFor = cache((ctx: Ctx) => getUsage(ctx));
 
 export type UsageMeter = { id: string; label: string; value: string; pct: number };
 export type NavData = {
-  workspace: { name: string; initials: string; kind: string };
+  /** href: Workspace settings, once that page exists (U2). Without it the card is not a link. */
+  workspace: { name: string; initials: string; kind: string; href?: string };
   user: { name: string; initials: string; email: string | null };
   planName: string;
   meters: UsageMeter[];

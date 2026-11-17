@@ -1,0 +1,41 @@
+api_tokens|read own tokens|SELECT
+api_tokens|revoke own tokens|UPDATE
+brand_profile_versions|members read|SELECT
+brand_profiles|admins delete|DELETE
+brand_profiles|editors insert|INSERT
+brand_profiles|editors update|UPDATE
+brand_profiles|members read|SELECT
+credit_transactions|members read|SELECT
+exports|members read|SELECT
+jobs|members read|SELECT
+media_analysis|members read|SELECT
+media_assets|admins delete|DELETE
+media_assets|editors insert|INSERT
+media_assets|editors update|UPDATE
+media_assets|members read|SELECT
+memberships|read own memberships, admins read all in org|SELECT
+organisations|admins update organisation|UPDATE
+organisations|members read organisation|SELECT
+profiles|create own profile|INSERT
+profiles|read own profile|SELECT
+profiles|update own profile|UPDATE
+project_media|admins delete|DELETE
+project_media|editors insert|INSERT
+project_media|editors update|UPDATE
+project_media|members read|SELECT
+projects|admins delete|DELETE
+projects|editors insert|INSERT
+projects|editors update|UPDATE
+projects|members read|SELECT
+storyboards|admins delete|DELETE
+storyboards|editors insert|INSERT
+storyboards|editors update|UPDATE
+storyboards|members read|SELECT
+video_briefs|admins delete|DELETE
+video_briefs|editors insert|INSERT
+video_briefs|editors update|UPDATE
+video_briefs|members read|SELECT
+video_concepts|admins delete|DELETE
+video_concepts|editors insert|INSERT
+video_concepts|editors update|UPDATE
+video_concepts|members read|SELECT

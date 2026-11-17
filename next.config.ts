@@ -47,6 +47,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The development server logs server-action arguments. Some carry one-time secrets (invitation
+  // tokens), so they must never be written to a terminal or a log file. Production doesn't log them.
+  logging: { serverFunctions: false },
   cacheComponents: true,
   experimental: { globalNotFound: true },
   partialPrefetching: true,

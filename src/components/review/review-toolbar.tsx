@@ -23,6 +23,12 @@ const SECTIONS = [
   { href: "/design-system/screens/dashboard", label: "Dashboard" },
   { href: "/design-system/screens/autopilot", label: "Autopilot" },
   { href: "/design-system/screens/studio", label: "Studio" },
+  { href: "/design-system/screens/onboarding", label: "Onboarding" },
+  { href: "/design-system/screens/account", label: "Account" },
+  { href: "/design-system/screens/workspace", label: "Workspace" },
+  { href: "/design-system/screens/team", label: "Team" },
+  { href: "/design-system/screens/billing", label: "Billing" },
+  { href: "/design-system/screens/tokens", label: "Tokens" },
 ];
 
 export function ReviewToolbar() {
@@ -53,7 +59,7 @@ export function ReviewToolbar() {
           <span className="font-display text-base font-bold tracking-tight">Reeldeal · Design review</span>
           <span className="rounded-pill bg-ai px-2 py-0.5 font-mono text-[10px] text-ai-foreground uppercase">Internal</span>
         </div>
-        <nav aria-label="Design review" className="flex flex-wrap gap-1 text-sm">
+        <nav aria-label="Design review" className="flex max-w-full min-w-0 flex-wrap gap-1 text-sm">
           {SECTIONS.map((s) => {
             const current = s.href === "/design-system" ? pathname === s.href : pathname.startsWith(s.href);
             return (

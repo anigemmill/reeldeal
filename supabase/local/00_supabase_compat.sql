@@ -22,6 +22,9 @@ create table if not exists auth.users (
   email text unique,
   created_at timestamptz not null default now()
 );
+-- Columns Reeldeal reads (Supabase Auth has them). Local users count as confirmed unless a test says otherwise.
+alter table auth.users add column if not exists email_confirmed_at timestamptz default now();
+alter table auth.users add column if not exists last_sign_in_at timestamptz;
 
 -- Same contract as Supabase: identity comes from the request's JWT claims.
 create or replace function auth.jwt() returns jsonb language sql stable as $$

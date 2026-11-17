@@ -1,0 +1,185 @@
+api_tokens|id|uuid|NO|gen_random_uuid()
+api_tokens|user_id|uuid|NO|
+api_tokens|org_id|uuid|NO|
+api_tokens|name|text|NO|
+api_tokens|token_prefix|text|NO|
+api_tokens|token_hash|text|NO|
+api_tokens|scopes|ARRAY|NO|ARRAY['mcp:read'::text, 'mcp:write'::text]
+api_tokens|created_at|timestamp with time zone|NO|now()
+api_tokens|expires_at|timestamp with time zone|YES|
+api_tokens|last_used_at|timestamp with time zone|YES|
+api_tokens|revoked_at|timestamp with time zone|YES|
+brand_profile_versions|brand_id|uuid|NO|
+brand_profile_versions|org_id|uuid|NO|
+brand_profile_versions|version|integer|NO|
+brand_profile_versions|snapshot|jsonb|NO|
+brand_profile_versions|created_by|uuid|YES|
+brand_profile_versions|created_at|timestamp with time zone|NO|now()
+brand_profiles|id|uuid|NO|gen_random_uuid()
+brand_profiles|org_id|uuid|NO|
+brand_profiles|name|text|NO|
+brand_profiles|description|text|YES|
+brand_profiles|industry|text|YES|
+brand_profiles|audiences|ARRAY|NO|'{}'::text[]
+brand_profiles|voice|text|YES|
+brand_profiles|colours|jsonb|NO|'[]'::jsonb
+brand_profiles|typography|jsonb|NO|'{}'::jsonb
+brand_profiles|logo_media_id|uuid|YES|
+brand_profiles|guidelines|text|YES|
+brand_profiles|restrictions|ARRAY|NO|'{}'::text[]
+brand_profiles|version|integer|NO|1
+brand_profiles|created_by|uuid|YES|
+brand_profiles|created_at|timestamp with time zone|NO|now()
+brand_profiles|updated_at|timestamp with time zone|NO|now()
+brand_profiles|website|text|YES|
+credit_transactions|id|uuid|NO|gen_random_uuid()
+credit_transactions|org_id|uuid|NO|
+credit_transactions|wallet|text|NO|
+credit_transactions|kind|text|NO|
+credit_transactions|amount|integer|NO|
+credit_transactions|period|text|NO|
+credit_transactions|job_id|uuid|YES|
+credit_transactions|note|text|YES|
+credit_transactions|created_at|timestamp with time zone|NO|now()
+exports|id|uuid|NO|gen_random_uuid()
+exports|org_id|uuid|NO|
+exports|project_id|uuid|NO|
+exports|job_id|uuid|NO|
+exports|storyboard_id|uuid|YES|
+exports|format|text|NO|
+exports|status|text|NO|
+exports|storage_key|text|YES|
+exports|mime_type|text|YES|
+exports|size_bytes|bigint|YES|
+exports|duration_seconds|numeric|YES|
+exports|width|integer|YES|
+exports|height|integer|YES|
+exports|created_at|timestamp with time zone|NO|now()
+jobs|id|uuid|NO|gen_random_uuid()
+jobs|org_id|uuid|NO|
+jobs|kind|text|NO|
+jobs|status|text|NO|'queued'::text
+jobs|stage|text|YES|
+jobs|progress|numeric|NO|0
+jobs|input|jsonb|NO|'{}'::jsonb
+jobs|result|jsonb|YES|
+jobs|error|jsonb|YES|
+jobs|idempotency_key|text|NO|
+jobs|attempt|integer|NO|1
+jobs|max_attempts|integer|NO|3
+jobs|retry_of|uuid|YES|
+jobs|project_id|uuid|YES|
+jobs|media_id|uuid|YES|
+jobs|credits_held|integer|NO|0
+jobs|created_by|uuid|YES|
+jobs|locked_by|text|YES|
+jobs|created_at|timestamp with time zone|NO|now()
+jobs|started_at|timestamp with time zone|YES|
+jobs|heartbeat_at|timestamp with time zone|YES|
+jobs|finished_at|timestamp with time zone|YES|
+jobs|claim_count|integer|NO|0
+media_analysis|id|uuid|NO|gen_random_uuid()
+media_analysis|org_id|uuid|NO|
+media_analysis|media_id|uuid|NO|
+media_analysis|job_id|uuid|YES|
+media_analysis|version|integer|NO|1
+media_analysis|technical|jsonb|NO|
+media_analysis|scenes|jsonb|NO|'[]'::jsonb
+media_analysis|quality|jsonb|NO|'{}'::jsonb
+media_analysis|ai|jsonb|YES|
+media_analysis|created_at|timestamp with time zone|NO|now()
+media_assets|id|uuid|NO|gen_random_uuid()
+media_assets|org_id|uuid|NO|
+media_assets|title|text|NO|
+media_assets|description|text|YES|
+media_assets|kind|text|NO|
+media_assets|mime_type|text|NO|
+media_assets|size_bytes|bigint|YES|
+media_assets|duration_seconds|numeric|YES|
+media_assets|width|integer|YES|
+media_assets|height|integer|YES|
+media_assets|orientation|text|YES|
+media_assets|status|text|NO|'awaiting_upload'::text
+media_assets|storage_key|text|NO|
+media_assets|original_filename|text|YES|
+media_assets|tags|ARRAY|NO|'{}'::text[]
+media_assets|ai_tags|ARRAY|NO|'{}'::text[]
+media_assets|usage_rights|text|YES|
+media_assets|brand_id|uuid|YES|
+media_assets|created_by|uuid|YES|
+media_assets|created_at|timestamp with time zone|NO|now()
+media_assets|updated_at|timestamp with time zone|NO|now()
+media_assets|search|tsvector|YES|
+media_uploads|media_id|uuid|NO|
+media_uploads|org_id|uuid|NO|
+media_uploads|upload_id|text|NO|
+media_uploads|part_size_bytes|bigint|NO|
+media_uploads|part_count|integer|NO|
+media_uploads|created_at|timestamp with time zone|NO|now()
+media_uploads|completed_at|timestamp with time zone|YES|
+memberships|org_id|uuid|NO|
+memberships|user_id|uuid|NO|
+memberships|role|USER-DEFINED|NO|'viewer'::member_role
+memberships|created_at|timestamp with time zone|NO|now()
+organisations|id|uuid|NO|gen_random_uuid()
+organisations|name|text|NO|
+organisations|slug|text|NO|
+organisations|plan_id|text|NO|'free'::text
+organisations|ai_media_analysis_consent|boolean|NO|false
+organisations|created_at|timestamp with time zone|NO|now()
+organisations|updated_at|timestamp with time zone|NO|now()
+profiles|user_id|uuid|NO|
+profiles|display_name|text|YES|
+profiles|created_at|timestamp with time zone|NO|now()
+profiles|updated_at|timestamp with time zone|NO|now()
+project_media|project_id|uuid|NO|
+project_media|media_id|uuid|NO|
+project_media|org_id|uuid|NO|
+project_media|added_at|timestamp with time zone|NO|now()
+projects|id|uuid|NO|gen_random_uuid()
+projects|org_id|uuid|NO|
+projects|brand_id|uuid|YES|
+projects|name|text|NO|
+projects|status|text|NO|'draft'::text
+projects|objective|text|YES|
+projects|audience|text|YES|
+projects|description|text|YES|
+projects|platform|text|YES|
+projects|formats|ARRAY|NO|ARRAY['9:16'::text]
+projects|duration_seconds|integer|YES|
+projects|created_by|uuid|YES|
+projects|created_at|timestamp with time zone|NO|now()
+projects|updated_at|timestamp with time zone|NO|now()
+storyboards|id|uuid|NO|gen_random_uuid()
+storyboards|org_id|uuid|NO|
+storyboards|project_id|uuid|NO|
+storyboards|version|integer|NO|
+storyboards|title|text|NO|
+storyboards|format|text|NO|
+storyboards|total_duration_seconds|numeric|NO|
+storyboards|scenes|jsonb|NO|
+storyboards|source|text|NO|
+storyboards|model|text|YES|
+storyboards|created_by|uuid|YES|
+storyboards|created_at|timestamp with time zone|NO|now()
+storyboards|brand_id|uuid|YES|
+storyboards|brand_version|integer|YES|
+video_briefs|id|uuid|NO|gen_random_uuid()
+video_briefs|org_id|uuid|NO|
+video_briefs|project_id|uuid|YES|
+video_briefs|request|text|NO|
+video_briefs|brief|jsonb|NO|
+video_briefs|source|text|NO|
+video_briefs|model|text|YES|
+video_briefs|created_by|uuid|YES|
+video_briefs|created_at|timestamp with time zone|NO|now()
+video_briefs|brand_id|uuid|YES|
+video_briefs|brand_version|integer|YES|
+video_concepts|id|uuid|NO|gen_random_uuid()
+video_concepts|org_id|uuid|NO|
+video_concepts|project_id|uuid|YES|
+video_concepts|brief_id|uuid|YES|
+video_concepts|concepts|jsonb|NO|
+video_concepts|model|text|YES|
+video_concepts|created_by|uuid|YES|
+video_concepts|created_at|timestamp with time zone|NO|now()
