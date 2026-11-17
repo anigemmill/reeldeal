@@ -26,6 +26,7 @@ all("Account settings", "Account", "/design-system/screens/account");
 all("Workspace settings", "Workspace", "/design-system/screens/workspace");
 all("Team management", "Team", "/design-system/screens/team");
 all("Usage and billing", "Usage and billing", "/design-system/screens/billing");
+all("Usage and billing", "Free workspace, billing not set up (live mapping)", "/design-system/screens/billing/free");
 all("Access tokens", "Access tokens", "/design-system/screens/tokens");
 for (const step of ["account", "verify", "workspace", "business", "brand", "assets", "preferences", "done"]) {
   if (step === "business") all("Onboarding", `Step: ${step}`, `/design-system/screens/onboarding?step=${step}`);

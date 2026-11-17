@@ -43,7 +43,7 @@ const THEMES: Theme[] = [
 const REVIEW_SCREENS = [
   "dashboard", "autopilot", "autopilot&step=review", "studio",
   // Stage 3 designs (sample data) and their dialogs
-  "account", "workspace", "team", "team&dialog=invite", "team&dialog=transfer", "billing", "tokens", "tokens&dialog=create", "tokens&dialog=created", "workspace&dialog=delete",
+  "account", "workspace", "team", "team&dialog=invite", "team&dialog=transfer", "billing", "billing/free", "tokens", "tokens&dialog=create", "tokens&dialog=created", "workspace&dialog=delete",
   "onboarding&step=workspace", "onboarding/invited", "onboarding&step=brand", "onboarding&step=assets", "onboarding&step=preferences", "onboarding&step=done",
 ];
 const review = (screen: string, theme: string) => `/design-system/screens/${screen.replace("&", `?theme=${theme}&`)}${screen.includes("&") ? "" : `?theme=${theme}`}`;

@@ -32,6 +32,15 @@ export type BillingData = {
   paymentMethod: { brand: string; last4: string; expires: string } | null;
   history: { at: string; wallet: string; kind: string; amount: number; note: string }[];
   invoices: { id: string; date: string; amount: number; status: string }[];
+  /**
+   * preview: sample data on the design review pages. live: the workspace's real figures.
+   * When billing isn't available (no subscription record yet, or not the owner), the screen
+   * shows that plainly and hides every subscription, payment and invoice detail.
+   */
+  mode?: "preview" | "live";
+  billing?: { available: true } | { available: false; reason: string };
+  /** One-off trial allowance (Free) rather than a monthly one. */
+  videoCreditsOnce?: boolean;
 };
 
 const STATUS: Record<BillingData["status"], { label: string; tone: "success" | "warning" | "danger" | "neutral" }> = {
@@ -52,8 +61,10 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
   const status = STATUS[data.status];
   const annualSaving = p.priceMonthly !== null && p.priceAnnual !== null ? p.priceMonthly * 12 - p.priceAnnual : 0;
   const rows = data.history.filter((h) => filter === "all" || h.wallet === filter);
+  const live = data.mode === "live";
+  const billing = data.billing ?? { available: true as const };
   const meters = [
-    { label: "Video credits", value: `${u.videoCreditsAvailable} available`, detail: `${u.videoCreditsUsed} used · ${u.videoCreditsHeld} held for a render in progress · ${p.videoCredits} a month`, pct: (u.videoCreditsAvailable / p.videoCredits) * 100 },
+    { label: "Video credits", value: `${u.videoCreditsAvailable} available`, detail: `${u.videoCreditsUsed} used · ${u.videoCreditsHeld} held for a render in progress · ${p.videoCredits} ${data.videoCreditsOnce ? "to try Reeldeal (one-off)" : "a month"}`, pct: p.videoCredits ? (u.videoCreditsAvailable / p.videoCredits) * 100 : 0 },
     { label: "Media analysis", value: `${u.analysisMinutesUsed} of ${p.analysisMinutes ?? "∞"} min`, detail: "Minutes of footage analysed this month", pct: p.analysisMinutes ? (u.analysisMinutesUsed / p.analysisMinutes) * 100 : 0 },
     { label: "Storage", value: `${u.storageGBUsed} of ${p.storageGB ?? "∞"} GB`, detail: "Originals and exports (previews don't count)", pct: p.storageGB ? (u.storageGBUsed / p.storageGB) * 100 : 0 },
     { label: "Brand profiles", value: `${u.brandsUsed} of ${p.brands ?? "∞"}`, detail: "", pct: p.brands ? (u.brandsUsed / p.brands) * 100 : 0 },
@@ -61,11 +72,21 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
   ];
 
   return (
-    <SettingsFrame current="billing" items={settingsItems} title="Usage and billing" intro="Your plan, what you've used this month, and how you pay." actions={<SampleBadge />}>
+    <SettingsFrame current="billing" items={settingsItems} title="Usage and billing" intro="Your plan, what you've used this month, and how you pay." actions={live ? undefined : <SampleBadge />}>
       <p role="note" className="flex gap-3 rounded-lg border border-line bg-surface-muted px-4 py-3 text-sm leading-relaxed">
         <Info className="mt-0.5 size-4 shrink-0 text-ink-muted" aria-hidden />
         <span>
-          Design preview of the billing area. Paid plans can&apos;t be bought yet: today every workspace is on Free and this page shows your real credits and usage only. Payments, invoices and plan changes arrive with Stripe.
+          {live ? (
+            billing.available ? (
+              "Your plan, credits and usage are live figures for this workspace."
+            ) : (
+              <>
+                <strong className="font-semibold">Online billing isn&apos;t set up yet.</strong> {billing.reason} The plan, credits and usage on this page are this workspace&apos;s real figures; nothing is charged here.
+              </>
+            )
+          ) : (
+            "Design preview of the billing area. Paid plans can't be bought yet: today every workspace is on Free and this page shows your real credits and usage only. Payments, invoices and plan changes arrive with Stripe."
+          )}
         </span>
       </p>
 
@@ -78,26 +99,36 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
                 {p.name}
               </h2>
             </div>
-            <Badge tone={status.tone}>{status.label}</Badge>
+            {billing.available ? <Badge tone={status.tone}>{status.label}</Badge> : <Badge tone="outline">Billing not set up</Badge>}
           </div>
           <p className="flex items-baseline gap-1.5">
             <span className="font-display text-2xl font-semibold">{money(data.interval === "annual" ? p.priceAnnual : p.priceMonthly)}</span>
             <span className="text-sm text-ink-muted">{data.interval === "annual" ? "a year" : "a month"} · {data.currency}</span>
           </p>
           <ul className="grid gap-x-6 gap-y-1.5 text-sm text-ink-muted sm:grid-cols-2">
-            <li>{p.videoCredits} videos a month</li>
+            <li>{p.videoCredits} videos {data.videoCreditsOnce ? "to try Reeldeal" : "a month"}</li>
             <li>{p.analysisMinutes} min of media analysis</li>
             <li>{p.storageGB?.toLocaleString("en-NZ")} GB storage</li>
             <li>
               {p.users} seats · {p.brands} brand profiles
             </li>
           </ul>
-          <p className="text-sm">{data.renewsAt ? <>Renews on <strong className="font-semibold">{dateFmt(data.renewsAt, { day: "numeric", month: "long", year: "numeric" })}</strong>. Unused video credits roll over as set out on the pricing page.</> : "No renewal scheduled."}</p>
+          <p className="text-sm">
+            {!billing.available ? (
+              "Nothing renews and nothing is charged: there's no subscription on this workspace."
+            ) : data.renewsAt ? (
+              <>
+                Renews on <strong className="font-semibold">{dateFmt(data.renewsAt, { day: "numeric", month: "long", year: "numeric" })}</strong>. Unused video credits roll over as set out on the pricing page.
+              </>
+            ) : (
+              "No renewal scheduled."
+            )}
+          </p>
           <div className="mt-auto flex flex-wrap gap-2">
             <Button asChild variant="primary">
-              <Link href="/pricing">Change plan</Link>
+              <Link href="/pricing">{billing.available ? "Change plan" : "See plans"}</Link>
             </Button>
-            {data.interval === "monthly" && annualSaving > 0 ? (
+            {billing.available && data.interval === "monthly" && annualSaving > 0 ? (
               <Button variant="secondary" onClick={() => previewOnly("Billing not changed")}>
                 Switch to annual (save {money(annualSaving)})
               </Button>
@@ -109,6 +140,10 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
           <h2 id="sub-title" className="font-display text-lg font-semibold">
             Subscription
           </h2>
+          {!billing.available ? (
+            <p className="text-sm leading-relaxed text-ink-muted">{billing.reason}</p>
+          ) : (
+          <>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2.5 text-sm">
             <dt className="text-ink-muted">Status</dt>
             <dd>{status.label}</dd>
@@ -126,10 +161,16 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
           <button type="button" onClick={() => previewOnly("Subscription not cancelled")} className="mt-auto w-fit text-sm text-ink-muted underline underline-offset-4 hover:text-ink">
             Cancel subscription
           </button>
+          </>
+          )}
         </section>
       </div>
 
-      <SettingsSection id="usage" title="This month's usage" description={`Allowances reset on ${dateFmt(data.renewsAt, { day: "numeric", month: "long" })}. Failed renders on our side are never charged.`}>
+      <SettingsSection
+        id="usage"
+        title="This month's usage"
+        description={`${data.videoCreditsOnce ? "Free plan videos are a one-off trial; analysis allowance resets on the 1st of each month." : data.renewsAt ? `Allowances reset on ${dateFmt(data.renewsAt, { day: "numeric", month: "long" })}.` : "Allowances reset on the 1st of each month."} Failed renders on our side are never charged.`}
+      >
         <ul className="grid gap-3 sm:grid-cols-2">
           {meters.map((m) => (
             <li key={m.label} className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4">
@@ -169,6 +210,13 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-6 text-center text-ink-muted">
+                    Nothing yet. Credits appear here as they&apos;re added and used.
+                  </td>
+                </tr>
+              ) : null}
               {rows.map((h, i) => (
                 <tr key={i}>
                   <td className="px-4 py-3 whitespace-nowrap text-ink-muted">{dateFmt(h.at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</td>
@@ -190,6 +238,9 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
       </SettingsSection>
 
       <SettingsSection id="billing-details" title="Billing details" description="Shown on invoices. The owner manages billing; card details are held by our payment provider, never by Reeldeal.">
+        {!billing.available ? (
+          <p className="rounded-lg border border-dashed border-line-strong p-5 text-sm text-ink-muted">Billing contact, company details and payment method appear here once paid plans can be bought online.</p>
+        ) : (
         <div className="flex flex-col divide-y divide-line rounded-lg border border-line bg-surface">
           <dl className="grid gap-x-6 gap-y-2.5 p-5 text-sm sm:grid-cols-[170px_minmax(0,1fr)]">
             <dt className="text-ink-muted">Billing contact</dt>
@@ -209,6 +260,7 @@ export function BillingScreen({ data, settingsItems }: { data: BillingData; sett
             </Button>
           </div>
         </div>
+        )}
       </SettingsSection>
 
       <SettingsSection id="invoices" title="Invoices">
