@@ -1,0 +1,155 @@
+# Migration approval pack: `20261117000001`, `20261118000001` (and `20261119000001`)
+
+**Status at 2026-11-17: none of these migrations is applied to the live `reeldeal` project
+(`jzshbaqfrrgsyiciuzfe`).** This pack is everything needed to decide. Each migration is approved
+separately. The detailed reviews are still in `docs/review/migration-20261117000001-…` and
+`…-20261118000001-…`. This pack supersedes their SQL appendices: 1118 gained two read-only helper
+functions in this round, and 1119 is new.
+
+| # | Migration | Purpose | Requested now? |
+|---|---|---|---|
+| 1 | `20261117000001_restricted_runtime_roles` | Least-privilege database logins for the web app and worker (audit S2, advisor S9) | **Yes** |
+| 2 | `20261118000001_teams_workspace_onboarding` | Teams and invitations, workspace details, onboarding progress, preferences, token environment, auth rate limits, billing scaffold | **Yes** |
+| 3 | `20261119000001_credit_rollover` | One-month video-credit rollover with expiry (`docs/credits.md`) | **Additional, new this round.** Approve separately; it can wait |
+
+## 1. Execution order
+
+1. **Pre-checks (read-only).** `npm run infra:check` with the Reeldeal URL and owner `DATABASE_URL`
+   (it refuses any other project), then `npm run db:migrate -- --plan`. Expected output: exactly the
+   approved file(s), in this order: 1117, 1118, 1119.
+2. **Backup point.** Note the time, and confirm a daily backup or PITR exists in the dashboard
+   (Database → Backups).
+3. **Apply 1117.** `npm run db:migrate -- --apply` runs each file in its own transaction, all or
+   nothing. To apply one at a time, temporarily move the later files out of
+   `supabase/migrations/`, or let me apply each through the Supabase tool once the connector sees the
+   project.
+4. **Apply 1118.** Its grants to `reeldeal_web` are conditional, so it also works without 1117. But
+   1117 first means those grants are created at once.
+5. **(If approved) apply 1119.** It's independent of 1118 and has conditional `reeldeal_web` grants,
+   like 1118.
+6. **Post-checks.** `npm run infra:check`: restricted roles present, 0 tables without RLS,
+   0 anon grants, private schema not exposed, expected tables only. Then the Supabase security
+   advisor.
+7. **Only then** deploy code from this branch. The code writes `api_tokens.environment` and
+   calls the 1118 functions.
+
+Nothing in this order changes a row of customer data. The live tables are empty today.
+
+## 2. Every permission change
+
+### 1117: restricted runtime roles
+
+- **New roles** `reeldeal_web` and `reeldeal_worker`: `NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB
+  NOCREATEROLE NOBYPASSRLS`. Nobody can log in as them until a password is set by hand at
+  deployment.
+- `grant authenticated to reeldeal_web`, so the web role can act as a signed-in user under the
+  existing RLS. The worker role gets no such grant.
+- Table grants and policies for each role, exactly as listed in the 1117 review ("What changes"):
+  - Web: inserts limited by policy (free plan only, first owner only, grants positive and holds
+    negative, jobs queued only); narrow column updates.
+  - Worker: charges and releases only; analysis and exports inserts; job run columns.
+  - Neither role has DELETE, TRUNCATE, `auth.users`, profiles or role creation.
+- Usage on `public` and `private`; execute on the two helper functions.
+- `reeldeal_meta`: **revoked** from `public`, `anon` and `authenticated`, with RLS on (they had no
+  access in practice; this is hardening).
+- **Unchanged:** `anon`, `authenticated`, `service_role`, every existing policy, the owner login.
+
+### 1118: teams, workspace and onboarding
+
+- `authenticated` gets:
+  - **update** on the new workspace columns (RLS still limits it to admins)
+  - **select** on its own `user_preferences` and on the new tables per their policies (owners read
+    `billing_accounts`; admins read invitations and the audit log)
+  - **execute** on `private.my_role`, `create_invitation`, `revoke_invitation`, `my_invitations`,
+    `invitation_preview` *(new this round)*, `accept_invitation`, `change_member_role`,
+    `remove_member`, `leave_workspace`, `transfer_ownership` and `team_members`. All are SECURITY
+    DEFINER with `search_path = ''`, check `auth.uid()`, and enforce `docs/team-permissions.md`.
+- No user write grants on `invitations`, `audit_events`, `memberships` or `billing_accounts`. Writes
+  happen only through the functions.
+- `private.rate_limits`: revoked from everyone. `private.rate_limit_hit` and `rate_limit_peek`
+  *(new this round)* are revoked from `public` and executable only by the owner (the server's
+  system connection) and, if 1117 is applied, `reeldeal_web`.
+- `reeldeal_web` (if present): insert on `api_tokens.environment`; execute on the two rate-limit
+  functions.
+- `anon`: nothing.
+
+### 1119: credit rollover (additional)
+
+- `authenticated`: select on `credit_period_closes`, limited by RLS to members of the workspace.
+  No write anywhere: the ledger stays server-written.
+- `reeldeal_web` (if present): select and insert on `credit_period_closes`; a new insert policy on
+  `credit_transactions` for kinds `rollover` and `expiry` only.
+- `anon`: nothing.
+
+## 3. Tables and columns added
+
+| Migration | Object | Notes |
+|---|---|---|
+| 1117 | Roles `reeldeal_web`, `reeldeal_worker`, 33 policies | No tables |
+| 1118 | `organisations` columns: `legal_name`, `industry`, `website`, `location`, `phone`, `workspace_kind`, `default_formats`, `onboarding_step`, `onboarding_completed_at` | Nullable or defaulted |
+| 1118 | `media_assets.kind` check widened to include `document` | Constraint replaced in the same transaction |
+| 1118 | `api_tokens.environment` (`development` default) | |
+| 1118 | Tables: `invitations` (token hash only), `audit_events`, `user_preferences`, `billing_accounts`, `private.rate_limits` | RLS on each public table |
+| 1118 | Unique index `memberships_one_owner`; unique open invitation per workspace and email | |
+| 1118 | Functions listed in section 2 | |
+| 1119 | `credit_transactions.kind` check widened with `rollover`, `expiry` | Constraint replaced in the same transaction |
+| 1119 | Partial unique indexes: one grant, one expiry, one carry out, one carry in per workspace, wallet and month | Fails only if duplicates already exist (live: empty) |
+| 1119 | Table `credit_period_closes` | RLS on |
+
+## 4. Impact on customers and data
+
+- **Live data today:** none. The project has no users or workspaces (last read-only check), so
+  nothing is rewritten. Each migration only adds objects.
+- **Behaviour:** none until code from this branch is deployed. After deployment:
+  - Invitations, team management, onboarding resume and preferences work.
+  - Sign-in limits count failures only.
+  - With 1119, unspent video credits carry into the next month.
+- **1117 risk:** a missing grant would show as "permission denied" on one feature once the
+  services move to the roles (a separate step, by changing `DATABASE_URL`). This is covered by
+  `restricted-roles.test.ts` and the browser suite run as the roles.
+- **1119 risk:** on first use after it's applied, each workspace's earlier months are closed once.
+  Live is empty, so no balance changes.
+
+## 5. Rollback, and what it loses
+
+| Migration | Script | Data lost if rolled back |
+|---|---|---|
+| 1117 | `supabase/rollback/20261117000001_…down.sql` | **None.** Drops the roles, their grants and policies, and RLS on `reeldeal_meta`. First point `DATABASE_URL` back at the owner login, or `drop role` refuses (a safe failure) |
+| 1118 | `supabase/rollback/20261118000001_…down.sql` | **Deletes:** every invitation, including accepted ones (the record of who invited whom); **the whole audit log** (role changes, removals, ownership transfers); billing records; user preferences; rate-limit counters; the new workspace columns (legal name, industry, website, location, phone, kind, formats, onboarding progress); token environments. **Refuses** if any `document` media exist. **Keeps** memberships (people who joined stay members), brands, media, projects, tokens and the ledger. **Export first:** `copy (select * from public.audit_events) to stdout csv header;` and the same for `invitations`, `billing_accounts` and the organisation columns |
+| 1119 | `supabase/rollback/20261119000001_…down.sql` | **Deletes** every `rollover` and `expiry` ledger row and the close history. Balances return to "current month only": carried credits disappear from the current month. No grants, holds, charges or refunds are touched. Export commands are in the script header |
+
+**The faster partial rollback for 1118 and 1119:** redeploy the previous code and leave the schema
+in place. Every addition is inert without the code that uses it.
+
+All three rollbacks were tested on the local Supabase image (apply → rollback → re-apply). Results
+are in section 7.
+
+## 6. Environment variables and credentials needed afterwards
+
+| When | Name | Where | Secret? |
+|---|---|---|---|
+| Applying (your machine) | `DATABASE_URL`: owner, session pooler (`postgres.jzshbaqfrrgsyiciuzfe`, port 5432) | Your shell only, never committed | Yes |
+| Deploying with 1117 | Passwords for `reeldeal_web` and `reeldeal_worker` (`alter role … with login password …`), generated and kept in a password manager or the host's secret store | Supabase SQL editor | Yes |
+| Deploying with 1117 | `DATABASE_URL` for Vercel: `reeldeal_web.jzshbaqfrrgsyiciuzfe`, port **6543** (transaction mode) | Vercel environment (production and preview separately) | Yes |
+| Deploying with 1117 | `DATABASE_URL` for the worker host: `reeldeal_worker.jzshbaqfrrgsyiciuzfe`, port 5432 | Worker host secrets | Yes |
+| Deploying 1118 code | `SIGNING_SECRET` (already required; now also keys the rate-limit HMACs) | Vercel and worker | Yes |
+| Deploying 1118 code | None for token environments: derived from `NODE_ENV` (`production` on any Vercel build, **including previews**). If previews must not accept production tokens, give them a separate database (recommended) | n/a | n/a |
+| Deploying 1118 code | `NEXT_PUBLIC_SITE_URL` (invitation links and auth callbacks) | Vercel | No |
+| Not needed | Service-role or secret key | n/a | Never used by these migrations or the code paths |
+
+## 7. Test evidence (local only; nothing here ran against the live project)
+
+TEST_RESULTS_PLACEHOLDER
+
+## 8. What I need from you
+
+- [ ] **Approve 1117** (yes / no)
+- [ ] **Approve 1118** (yes / no), having read the data-loss row in section 5
+- [ ] **1119:** approve now / later / not at all. Also decide D-B2 (billing cycle = Stripe period)
+- [ ] **How to apply:** you run `db:migrate` on your machine, or I apply through the Supabase tool
+      once it's reconnected to the account that owns `reeldeal` (`docs/supabase-reconnection.md`)
+- [ ] **When:** before the first deployment of this branch
+
+## Appendix: the SQL, verbatim
+
+Generated from the files in `supabase/` by `scripts/build-approval-pack.sh`, so it can't drift.

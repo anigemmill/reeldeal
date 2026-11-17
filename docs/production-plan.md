@@ -1,6 +1,6 @@
 # Production accounts and backend: audit and roadmap
 
-Status: **Mission 4 checkpoint (2026-11-18): live R2 verified; customer backend prepared and tested locally; two migrations awaiting approval.** The current checkpoint is section 0; the previous one follows it. Decisions are in section 12. No application code, database or
+Status: **Mission 5 checkpoint (2026-11-17): R2 CORS awaiting approval; three migrations awaiting approval; invitations, credit rollover and UX fixes built and tested locally.** The current checkpoint is section 00; earlier ones follow it. Decisions are in section 12. No application code, database or
 infrastructure was changed while writing it. The only live checks were read-only (2026-11-16):
 
 - Supabase: listed projects, tables, migrations and security advisors.
@@ -14,6 +14,64 @@ Evidence labels used below:
 - **Unverified**: built, but never exercised against real infrastructure.
 
 ---
+
+## 00. Checkpoint: 2026-11-17 (Mission 5)
+
+Nothing in this mission changed live infrastructure, DNS, billing or data. Every live action
+below is either read-only or **awaiting your approval**.
+
+### Awaiting your approval
+
+| Item | Document | Effect |
+|---|---|---|
+| R2 CORS on `reeldeal-dev-media` (`http://localhost:3000`, PUT only) | `docs/review/r2-cors-approval.md` | Lets browsers upload. Verified necessary: a real browser PUT is blocked today and nothing was written |
+| Migration 1117 (restricted roles) | `docs/review/migration-approval-pack.md` | Least privilege for the web app and worker |
+| Migration 1118 (teams and onboarding) | same | Invitations, team, onboarding, preferences, rate limits. **Rollback deletes invitations and the audit log** |
+| Migration 1119 (credit rollover), new | same, `docs/credits.md` | Delivers the one-month rollover promised in pricing |
+| Supabase connector or credentials | `docs/supabase-reconnection.md` | The connector is signed in to another account. URL and keys aren't in this environment |
+| Retention decisions D-W1 to D-W6 | `docs/data-retention.md` | Before workspace deletion is built |
+| Send the `Sb-Forwarded-For` question | `docs/review/supabase-support-question.md` | R6 |
+
+### Built this mission (local, tested)
+
+- **`/invite` page:** token in the URL fragment (never reaches a server log); sign in or sign up
+  and come back; onboarding lists invitations for the confirmed address (works across devices);
+  `private.invitation_preview` (1118).
+- **Credit rollover:**
+  - closing finished months is idempotent
+  - one cycle only, capped at one month's allocation, oldest first, with expiry rows
+  - open holds are counted across months (the previous figure was wrong)
+  - 12 tests (`credit-rollover.test.ts`)
+- **Sign-in rate limit counts failures only** (`rate_limit_peek`). Shared-IP, stuffing, sign-up,
+  reset and resend abuse tests.
+- **UX:** U1, U3–U8 and U10 fixed; U2 staged; U9 copy updated; U11 deferred; U12 partly done
+  (`docs/backend-integration.md`).
+- **`infra:check`:**
+  - refuses any Supabase project other than Reeldeal, before connecting
+  - reads auth configuration through the Management API when a token is given (read-only)
+- **R2 browser test** (`npm run test:r2-browser`), ready to run after CORS approval.
+
+### Test results (local unless stated)
+
+MISSION5_RESULTS
+
+### Remaining blockers before the first real customer journey
+
+1. **R2 CORS** approved and applied, then `npm run test:r2-browser` passing against the real bucket.
+2. **Supabase access** to the Reeldeal project (connector or credentials), then a read-only
+   `infra:check`.
+3. **Migrations 1117 and 1118** approved and applied (1119 recommended before paid plans).
+4. **Resend:** domain DNS (approval), API key, Supabase SMTP and templates, then the live account
+   test plan (`docs/auth.md`) with a mailbox you own.
+5. **A deployment target:** Vercel project environment variables (production and preview
+   separately), `NEXT_PUBLIC_SITE_URL`, and the Supabase site URL and redirect URLs for that origin;
+   R2 CORS for that origin.
+6. **A worker host** (FFmpeg) with `reeldeal_worker` credentials.
+7. **Legal:** Terms and Privacy text (placeholders today), and the retention decisions.
+8. **Wiring the settings and onboarding screens** (steps 4–8, Team, Workspace, Tokens) to the
+   tested services. Each needs 1118 first.
+9. **Monitoring** (Sentry, D9) before the pilot.
+10. **Billing (Stripe)** before charging anyone. Free and pilot accounts can start without it.
 
 ## 0. Checkpoint: 2026-11-18 (Mission 4)
 

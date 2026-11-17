@@ -309,3 +309,20 @@ How it is wired: `docs/app.md`. Decisions:
   `billing_accounts` record the screen says billing isn't set up.
 - **The migration safety check ignores function bodies** (they don't run at migration time); `DO`
   blocks are still checked.
+
+## Mission 5 (2026-11-17)
+
+- **R2 CORS is PUT-only from named origins.** Browsers only upload to storage. Downloads are
+  navigations and previews are media tags, so GET, HEAD and exposed headers aren't needed. Each
+  new origin (preview, production) is added with its own approval.
+- **Invitation tokens travel in the URL fragment** (`/invite#…`), never the path or query, so they
+  can't reach server logs, analytics or Referer headers. The page posts the token to a server action.
+- **The invitation preview shows details only to the invited, confirmed address.** Everyone else gets
+  "different address" or "not found".
+- **Credit rollover is a month-close in the ledger** (rollover and expiry rows; one close per month,
+  enforced by unique indexes), not a balance column. Carry = min(left over, the month's own grant,
+  the current allocation). Periods stay calendar months until Stripe (D-B2).
+- **Sign-in rate limits count failures only**; sign-up, reset and resend count every attempt.
+- **`infra:check` refuses any Supabase project but Reeldeal's**, before connecting.
+- **Workspace deletion: deactivate first, delete after a recovery period** (recommended 30 days,
+  D-W1), keep legal records (`docs/data-retention.md`). Not built until decided.

@@ -20,6 +20,10 @@ here was run against the live project.
 | Unauthenticated users can't open app routes | Holds; every app route folder is checked against the proxy list | `security-regression.test.ts`, browser suite |
 | Unverified users can't reach onboarding or the app | Holds | Browser suite |
 | Open redirects | Fixed earlier (S1); regression tests | `safe-redirect.test.ts`, `route.test.ts` |
+| Invitation tokens stay out of logs, URLs sent to the server, and Referer headers (Mission 5) | Holds: fragment only, removed from the address bar, POST body, hashed before any query, `no-referrer` | Browser suite (every request URL and Referer recorded and checked) |
+| Someone else's invitation link reveals nothing (Mission 5) | Holds: "different address", no workspace, role or inviter | `team.test.ts`, browser suite |
+| Credit ledger can't be double-carried or written by clients (Mission 5) | Holds: unique indexes, credit lock, no client grants | `credit-rollover.test.ts` |
+| Sign-in brute force and credential stuffing limited without locking out shared offices (Mission 5) | Holds (failures only) | `rate-limit.test.ts` |
 
 ## Defects found and fixed in this review
 
@@ -32,10 +36,12 @@ here was run against the live project.
 
 ## Open items (not defects in the code; need decisions or live infrastructure)
 
-- **R2 CORS is not configured.** Browser uploads to the real bucket will fail until it is.
+- **R2 CORS is not configured** (approval requested: `docs/review/r2-cors-approval.md`). Browser
+  uploads to the real bucket fail until it is (verified with a real browser; nothing written).
 - **Auth rate limits.** Raise Supabase's per-IP limit after the app limits are live; ask about
-  `Sb-Forwarded-For` (R6).
+  `Sb-Forwarded-For` (R6; question drafted in `docs/review/supabase-support-question.md`).
 - **The services still use the owner database connection** until migration `20261117000001` is
   approved and the services move to the restricted roles.
-- **Workspace and account deletion** aren't built (retention decision needed).
-- **Audit log retention and export:** decide before launch.
+- **Workspace and account deletion** aren't built: recommendation and decisions D-W1 to D-W6 are in
+  `docs/data-retention.md`.
+- **Audit log retention:** recommended 2 years (D-W2).
