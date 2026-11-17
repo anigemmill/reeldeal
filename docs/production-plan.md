@@ -65,7 +65,7 @@ below is either read-only or **awaiting your approval**.
 | Rollback 1119, then re-apply | Local Supabase image | Clean (table and ledger kinds removed, then restored) |
 | Migration safety check | n/a | 10 migrations additive (constraint replacements reviewed) |
 | Typecheck, lint, secret scan, token and pricing validation, production build | n/a | Pass |
-| Accessibility (axe) on the production build | n/a | Running at the time of writing; result in the final report |
+| Accessibility (axe) on the production build | n/a | No WCAG 2.2 A/AA violations: 16 theme sets × 31 pages, plus 17 phone layouts; keyboard, focus and reduced-motion checks pass (two name mismatches found in the new controls, fixed, re-run clean) |
 | Invitation tokens absent from server logs | Local dev server | Found in **development** server-action logging; fixed (`logging.serverFunctions: false`), re-checked: 0 occurrences |
 | Real browser upload to R2 | **Live** `reeldeal-dev-media` | Blocked by CORS as expected; nothing written. Full test waits for approval |
 
