@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { serverEnv } from "@/env/server";
 import type { Db } from "../db/types";
 import { AppError } from "../errors";
 import { SCOPES, type MemberRole, type Principal, type Scope } from "./principal";
@@ -12,12 +13,23 @@ import { SCOPES, type MemberRole, type Principal, type Scope } from "./principal
 const PREFIX = "rdl_pat_";
 const FORMAT = /^rdl_pat_[A-Za-z0-9_-]{43}$/;
 
+/*
+  Environment binding (migration 20261118000001): every token records where it was made,
+  and is accepted only by servers of the same environment. A token minted on a laptop or a
+  preview deployment can never authenticate against production, even if both ever shared
+  a database. NODE_ENV=production means "production"; anything else is "development".
+*/
+export type TokenEnvironment = "development" | "production";
+export const currentTokenEnvironment = (): TokenEnvironment => (serverEnv.NODE_ENV === "production" ? "production" : "development");
+/** Active (not revoked, not expired) tokens one person may hold per workspace. */
+export const MAX_ACTIVE_TOKENS = 20;
+
 export const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 export const looksLikePat = (token: string) => token.startsWith(PREFIX);
 
 export async function createAccessToken(
   db: Db,
-  input: { userId: string; orgId: string; name: string; scopes?: Scope[]; expiresInDays?: number },
+  input: { userId: string; orgId: string; name: string; scopes?: Scope[]; expiresInDays?: number; environment?: TokenEnvironment },
 ): Promise<{ token: string; id: string; prefix: string; expiresAt: Date | null }> {
   const token = PREFIX + randomBytes(32).toString("base64url");
   const scopes = input.scopes ?? ["mcp:read", "mcp:write"];
@@ -25,15 +37,18 @@ export async function createAccessToken(
   const expiresAt = input.expiresInDays ? new Date(Date.now() + input.expiresInDays * 86400_000) : null;
   const [row] = await db.system((sql) =>
     sql.query<{ id: string }>(
-      "insert into public.api_tokens (user_id, org_id, name, token_prefix, token_hash, scopes, expires_at) values ($1, $2, $3, $4, $5, $6, $7) returning id",
-      [input.userId, input.orgId, input.name, token.slice(0, 12), hashToken(token), scopes, expiresAt],
+      "insert into public.api_tokens (user_id, org_id, name, token_prefix, token_hash, scopes, expires_at, environment) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id",
+      [input.userId, input.orgId, input.name, token.slice(0, 12), hashToken(token), scopes, expiresAt, input.environment ?? currentTokenEnvironment()],
     ),
   );
   return { token, id: row.id, prefix: token.slice(0, 12), expiresAt };
 }
 
-/** Verify a PAT. Returns the principal or throws unauthenticated (one generic message for every failure). */
-export async function verifyAccessToken(db: Db, token: string): Promise<Principal> {
+/**
+ * Verify a PAT. Returns the principal or throws unauthenticated (one generic message for every
+ * failure). Only tokens made in this server's environment are accepted (see TokenEnvironment).
+ */
+export async function verifyAccessToken(db: Db, token: string, environment: TokenEnvironment = currentTokenEnvironment()): Promise<Principal> {
   const fail = () => new AppError("unauthenticated", "Invalid or expired access token");
   if (!FORMAT.test(token)) throw fail();
   const rows = await db.system((sql) =>
@@ -41,8 +56,8 @@ export async function verifyAccessToken(db: Db, token: string): Promise<Principa
       `select t.id, t.user_id, t.org_id, t.scopes, m.role, t.last_used_at
          from public.api_tokens t
          join public.memberships m on m.org_id = t.org_id and m.user_id = t.user_id
-        where t.token_hash = $1 and t.revoked_at is null and (t.expires_at is null or t.expires_at > now())`,
-      [hashToken(token)],
+        where t.token_hash = $1 and t.revoked_at is null and (t.expires_at is null or t.expires_at > now()) and t.environment = $2`,
+      [hashToken(token), environment],
     ),
   );
   const row = rows[0];

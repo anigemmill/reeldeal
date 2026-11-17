@@ -4,7 +4,7 @@ import type { Principal, MemberRole } from "../auth/principal";
 import { SCOPES } from "../auth/principal";
 import type { Ctx, Platform } from "../context";
 import { AppError, parseInput } from "../errors";
-import { createBrand } from "./brands";
+import { createFirstBrand } from "./brands";
 import { ensureGrant } from "./usage";
 
 /*
@@ -97,8 +97,8 @@ export async function createWorkspace(p: Platform, userId: string, raw: Workspac
   });
   if (i.display_name) await saveProfile(p, userId, i.display_name);
   const ctx: Ctx = { ...p, principal: { userId, orgId, role: "owner", scopes: [...SCOPES], via: "session" } };
-  const [existingBrand] = await p.db.asUser(userId, (sql) => sql.query<{ id: string }>("select id from public.brand_profiles where org_id = $1 limit 1", [orgId]));
-  const brand = existingBrand ?? (await createBrand(ctx, { name: i.business_name, industry: i.industry, website: i.website || undefined }));
+  // Created only if the workspace has none, under a lock: a double-clicked submit gets the same brand back.
+  const brand = await createFirstBrand(ctx, { name: i.business_name, industry: i.industry, website: i.website || undefined });
   return { org_id: orgId, brand_id: brand.id as string };
 }
 

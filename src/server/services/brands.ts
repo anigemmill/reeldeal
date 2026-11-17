@@ -96,19 +96,27 @@ export async function getBrand(ctx: Ctx, id: string) {
 }
 
 export async function createBrand(ctx: Ctx, input: BrandInput) {
+  return (await insertBrand(ctx, input, {}))!;
+}
+
+async function insertBrand(ctx: Ctx, input: BrandInput, opts: { onlyIfNone?: boolean }) {
   requireScope(ctx.principal, "mcp:write");
   requireRole(ctx.principal, "editor");
   const b = parseInput(BrandInput, input);
   if (b.logo_media_id) await assertLogo(ctx, b.logo_media_id);
-  // Plan limit on brand profiles (config/pricing.json).
-  const [{ n, plan_id }] = await asUser(ctx, (sql) =>
-    sql.query<{ n: number; plan_id: string }>("select (select count(*)::int from public.brand_profiles where org_id = $1) as n, (select plan_id from public.organisations where id = $1) as plan_id", [ctx.principal.orgId]),
-  );
-  const limit = getPlan(plan_id)?.brandProfiles;
-  if (typeof limit === "number" && n >= limit) throw new AppError("conflict", `Your ${getPlan(plan_id)?.name ?? plan_id} plan includes ${limit} brand profile${limit === 1 ? "" : "s"}. Edit the existing one, or upgrade for more.`);
   try {
-    const [row] = await asUser(ctx, (sql) =>
-      sql.query<BrandRow>(
+    const row = await asUser(ctx, async (sql) => {
+      // Plan limit on brand profiles (config/pricing.json). Count and insert in ONE transaction
+      // under a per-workspace lock, so simultaneous requests can't both pass the limit.
+      await sql.query("select pg_advisory_xact_lock(hashtext($1))", [`brands:${ctx.principal.orgId}`]);
+      const [{ n, plan_id }] = await sql.query<{ n: number; plan_id: string }>(
+        "select (select count(*)::int from public.brand_profiles where org_id = $1) as n, (select plan_id from public.organisations where id = $1) as plan_id",
+        [ctx.principal.orgId],
+      );
+      if (opts.onlyIfNone && n > 0) return null;
+      const limit = getPlan(plan_id)?.brandProfiles;
+      if (typeof limit === "number" && n >= limit) throw new AppError("conflict", `Your ${getPlan(plan_id)?.name ?? plan_id} plan includes ${limit} brand profile${limit === 1 ? "" : "s"}. Edit the existing one, or upgrade for more.`);
+      const [inserted] = await sql.query<BrandRow>(
         `insert into public.brand_profiles (org_id, name, description, industry, audiences, voice, colours, typography, guidelines, restrictions, created_by, website, logo_media_id)
          values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8::text::jsonb, $9, $10, $11, $12, $13) returning ${COLS}`,
         [
@@ -126,12 +134,24 @@ export async function createBrand(ctx: Ctx, input: BrandInput) {
           b.website || null,
           b.logo_media_id ?? null,
         ],
-      ),
-    );
-    return present(row);
+      );
+      return inserted;
+    });
+    return row ? present(row) : null;
   } catch (e) {
     throw toAppError(e);
   }
+}
+
+/**
+ * The workspace's first brand profile, created only if it has none (onboarding). Safe to call
+ * twice at once (a double-clicked submit): the second call returns the brand the first made.
+ */
+export async function createFirstBrand(ctx: Ctx, input: BrandInput) {
+  const made = await insertBrand(ctx, input, { onlyIfNone: true });
+  if (made) return made;
+  const [existing] = await asUser(ctx, (sql) => sql.query<BrandRow>(`select ${COLS} from public.brand_profiles where org_id = $1 order by created_at limit 1`, [ctx.principal.orgId]));
+  return present(existing!);
 }
 
 /** Update the fields that are provided and bump the version. */
