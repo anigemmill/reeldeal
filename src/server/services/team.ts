@@ -18,6 +18,12 @@ import { AppError, invalid, parseInput } from "../errors";
 const INVITE_PREFIX = "rdl_inv_";
 export const INVITE_FORMAT = /^rdl_inv_[A-Za-z0-9_-]{43}$/;
 export const hashInviteToken = (token: string) => createHash("sha256").update(token).digest("hex");
+/**
+  The link someone receives. The token goes in the URL fragment (after "#"): browsers never send
+  the fragment to a server, so it can't reach access logs, proxies, analytics or Referer headers.
+  The /invite page reads it in the browser and posts it to a server action.
+*/
+export const inviteUrl = (base: string, token: string) => `${base}/invite#${token}`;
 
 /** Map the membership functions' errors (SQLSTATE + message) to user-facing errors. */
 function teamError(e: unknown): never {
@@ -110,7 +116,7 @@ export async function inviteMembers(ctx: Ctx, raw: z.input<typeof InviteInput>, 
         hashInviteToken(token),
         seatLimit,
       ]))!;
-      results.push({ email, invitation_id: row.id, accept_url: `${opts.acceptUrlBase}/invite/${token}` });
+      results.push({ email, invitation_id: row.id, accept_url: inviteUrl(opts.acceptUrlBase, token) });
     } catch (e) {
       if (e instanceof AppError && e.code !== "internal") results.push({ email, error: e.message });
       else throw e;
@@ -141,6 +147,20 @@ export async function acceptInvitation(p: Platform, userId: string, by: { token:
   } else id = parseInput(z.uuid(), by.invitationId);
   const [row] = (await callAsUser<{ org_id: string }>(p, userId, "select private.accept_invitation($1, $2) as org_id", [hash, id]))!;
   return { org_id: row.org_id };
+}
+
+export type InvitationPreview =
+  | { status: "open" | "expired" | "revoked" | "used" | "member"; org_name: string; role: Exclude<MemberRole, "owner">; invited_by_name: string; expires_at: string | null }
+  | { status: "not_found" | "other_account" };
+
+/** What the invitation page shows a signed-in visitor (details only when the invitation is for their confirmed address). */
+export async function previewInvitation(p: Platform, userId: string, token: string): Promise<InvitationPreview> {
+  if (!INVITE_FORMAT.test(token)) return { status: "not_found" };
+  const [row] = (await callAsUser<{ status: string; org_name: string | null; role: string | null; invited_by_name: string | null; expires_at: string | null }>(
+    p, userId, "select * from private.invitation_preview($1)", [hashInviteToken(token)],
+  ))!;
+  if (!row || row.status === "not_found" || row.status === "other_account") return { status: row?.status === "other_account" ? "other_account" : "not_found" };
+  return { status: row.status as "open", org_name: row.org_name!, role: row.role as "editor", invited_by_name: row.invited_by_name!, expires_at: iso(row.expires_at) };
 }
 
 export async function changeMemberRole(ctx: Ctx, userId: string, role: string) {

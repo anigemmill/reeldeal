@@ -17,6 +17,7 @@ import {
   inviteMembers,
   leaveWorkspace,
   myInvitations,
+  previewInvitation,
   removeMember,
   revokeInvitation,
   transferOwnership,
@@ -41,7 +42,7 @@ async function newUser(email: string, confirmed = true) {
   return id;
 }
 const roleOf = async (orgId: string, userId: string) => (await sys<{ role: string }>("select role from public.memberships where org_id = $1 and user_id = $2", [orgId, userId]))[0]?.role ?? null;
-const tokenOf = (url: string) => url.split("/invite/")[1]!;
+const tokenOf = (url: string) => url.split("/invite#")[1]!;
 
 let A: string, B: string; // organisations
 let owner: string, editor: string, viewer: string, ownerB: string;
@@ -65,7 +66,7 @@ describe("invitations", () => {
     const r = await inviteMembers(ctx(owner, A, "owner"), { emails: ["New.Admin@Example.test"], role: "admin" }, { acceptUrlBase: BASE });
     const inv = r.invitations[0]!;
     expect(inv.error).toBeUndefined();
-    expect(inv.accept_url).toMatch(/^https:\/\/app\.reeldeal\.test\/invite\/rdl_inv_[A-Za-z0-9_-]{43}$/);
+    expect(inv.accept_url).toMatch(/^https:\/\/app\.reeldeal\.test\/invite#rdl_inv_[A-Za-z0-9_-]{43}$/);
     const [row] = await sys<{ email: string; token_hash: string; role: string }>("select email, token_hash, role from public.invitations where id = $1", [inv.invitation_id]);
     expect(row).toMatchObject({ email: "new.admin@example.test", role: "admin" });
     expect(row.token_hash).toBe(hashInviteToken(tokenOf(inv.accept_url!)));
@@ -140,6 +141,21 @@ describe("invitations", () => {
 
     expect(await code(acceptInvitation(p, withdrawn, { token: "rdl_inv_short" }))).toBe("not_found");
     expect(await code(acceptInvitation(p, withdrawn, { token: "rdl_inv_" + "x".repeat(43) }))).toBe("not_found");
+  });
+
+  it("the invitation page preview shows details only to the invited, confirmed account", async () => {
+    const r = await inviteMembers(ctx(owner, A, "owner"), { emails: ["preview@example.test"], role: "editor" }, { acceptUrlBase: BASE });
+    const token = tokenOf(r.invitations[0]!.accept_url!);
+    const stranger = await newUser("preview-stranger@example.test");
+    expect(await previewInvitation(p, stranger, token)).toEqual({ status: "other_account" }); // no workspace name, role or inviter
+    const unconfirmed = await newUser("preview@example.test", false);
+    expect(await previewInvitation(p, unconfirmed, token)).toEqual({ status: "other_account" });
+    await sys("update auth.users set email_confirmed_at = now() where id = $1", [unconfirmed]);
+    expect(await previewInvitation(p, unconfirmed, token)).toMatchObject({ status: "open", org_name: "Lakeside Lodge", role: "editor" });
+    await acceptInvitation(p, unconfirmed, { token });
+    expect((await previewInvitation(p, unconfirmed, token)).status).toBe("member");
+    expect(await previewInvitation(p, stranger, "rdl_inv_" + "y".repeat(43))).toEqual({ status: "not_found" });
+    expect(await previewInvitation(p, stranger, "not-a-token")).toEqual({ status: "not_found" });
   });
 
   it("re-inviting replaces the old link (the first one stops working)", async () => {

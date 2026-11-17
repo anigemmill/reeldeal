@@ -637,6 +637,76 @@ async function main() {
     await B.close();
   });
 
+  /* ---- invitations: link (token in the URL fragment) and onboarding ---- */
+  await run("invitations", async () => {
+    const { default: postgres } = await import("postgres");
+    const { createHash, randomBytes } = await import("node:crypto");
+    const db = postgres(process.env.DATABASE_URL!, { max: 1 });
+    const [owner] = await db<{ org_id: string; user_id: string }[]>`select m.org_id, m.user_id from public.memberships m join auth.users u on u.id = m.user_id where u.email = ${emailB} and m.role = 'owner'`;
+    const invite = async (email: string, role: string) => {
+      const token = `rdl_inv_${randomBytes(32).toString("base64url")}`;
+      await db`insert into public.invitations (org_id, email, role, token_hash, invited_by) values (${owner.org_id}, ${email}, ${role}, ${createHash("sha256").update(token).digest("hex")}, ${owner.user_id})`;
+      return token;
+    };
+    const emailL = `e2e-link-${stamp}@reeldeal.local`;
+    const emailO = `e2e-onb-${stamp}@reeldeal.local`;
+    const linkToken = await invite(emailL, "editor");
+    await invite(emailO, "viewer");
+
+    // Signed out: a generic card, and the token never leaves the browser.
+    const L = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const seen: string[] = [];
+    L.on("request", (r) => seen.push(`${r.url()} ${r.headers().referer ?? ""}`));
+    const lp = await L.newPage();
+    await lp.goto(`${BASE}/invite#${linkToken}`);
+    await lp.getByRole("link", { name: "Sign in" }).waitFor({ timeout: 15000 });
+    check("Invitation page (signed out) asks to sign in or create an account", (await lp.locator("main:visible").innerText()).includes("Create an account"));
+    check("The invitation token is removed from the address bar", !lp.url().includes("rdl_inv_"));
+    check("Signed out, the page reveals no workspace details", !(await lp.locator("main:visible").innerText()).includes("Other Cafe"));
+    await axe(lp, "/invite (signed out)");
+
+    // Sign up in another tab, confirm, then come back to the invitation in the original tab.
+    const { page: vp } = await signUpAndVerify(L, "Lee Link", emailL);
+    await settle(vp);
+    check("Onboarding lists the invitation for the confirmed address", (await vp.locator("main:visible").innerText()).includes("You've been invited"));
+    await vp.close();
+    await lp.goto(`${BASE}/invite`); // same tab: the token was kept in sessionStorage
+    await lp.getByRole("button", { name: /Join Other Cafe/ }).waitFor({ timeout: 15000 });
+    check("Signed in as the invited address, the page names the workspace and role", /invited you to join Other Cafe as an editor/.test(await lp.locator("main:visible").innerText()));
+    await axe(lp, "/invite (signed in)");
+    await lp.getByRole("button", { name: /Join Other Cafe/ }).click();
+    await lp.waitForURL("**/dashboard**", { timeout: 30000 });
+    const [joined] = await db<{ role: string }[]>`select m.role from public.memberships m join auth.users u on u.id = m.user_id where u.email = ${emailL} and m.org_id = ${owner.org_id}`;
+    check("Accepting the link joins the workspace with the invited role", joined?.role === "editor");
+    check("The token was never sent to the server in a URL or Referer", !seen.some((x) => x.includes(linkToken)));
+    await lp.goto(`${BASE}/invite#${linkToken}`);
+    await lp.getByText(/already a member/).waitFor({ timeout: 15000 });
+    check("Opening a used link again says you're already a member", true);
+    await L.close();
+
+    // A different signed-in account learns nothing from someone else's link.
+    const S = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const { page: sp } = await signUpAndVerify(S, "Sam Stranger", `e2e-stranger-${stamp}@reeldeal.local`);
+    const strangerToken = await invite(`e2e-someone-${stamp}@reeldeal.local`, "admin");
+    await sp.goto(`${BASE}/invite#${strangerToken}`);
+    await sp.getByText(/different email address/).waitFor({ timeout: 15000 });
+    check("Someone else's invitation shows 'different address' and no workspace details", !(await sp.locator("main:visible").innerText()).includes("Other Cafe"));
+    await sp.goto(`${BASE}/invite#rdl_inv_${"z".repeat(43)}`);
+    await sp.getByText(/couldn't find this invitation/).waitFor({ timeout: 15000 });
+    check("An unknown invitation link says it can't be found", true);
+    await S.close();
+
+    // Cross-device: no link at all, just onboarding's Join button.
+    const O = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const { page: op } = await signUpAndVerify(O, "Olive Onboard", emailO);
+    await op.getByRole("button", { name: "Join" }).click();
+    await op.waitForURL("**/dashboard**", { timeout: 30000 });
+    const [viewer] = await db<{ role: string }[]>`select m.role from public.memberships m join auth.users u on u.id = m.user_id where u.email = ${emailO} and m.org_id = ${owner.org_id}`;
+    check("Joining from onboarding (no link) works, with the invited role", viewer?.role === "viewer");
+    await O.close();
+    await db.end();
+  });
+
   await browser.close();
   const failed = results.filter((r) => !r.ok);
   console.log(`\n${results.length - failed.length} of ${results.length} checks passed`);
