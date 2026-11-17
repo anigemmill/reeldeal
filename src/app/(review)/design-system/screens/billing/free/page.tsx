@@ -19,7 +19,7 @@ export default function BillingFreeReviewPage() {
       plan: { id: free.id, name: free.name, price_monthly: free.priceMonthly, price_annual: free.priceAnnual, video_credits: free.videoCredits.amount, video_credits_period: free.videoCredits.period, analysis_minutes: free.analysisMinutes ?? null, storage_gb: free.storageGB ?? null, brand_profiles: free.brandProfiles ?? null, seats: free.users ?? null },
       usage: {
         period: "2026-11",
-        video_credits: { allowance: 2, allowance_period: "once", granted: 2, used: 1, held_for_renders_in_progress: 0, available: 1 },
+        video_credits: { allowance: 2, allowance_period: "once", granted: 2, used: 1, held_for_renders_in_progress: 0, available: 1, carried_over: 0, carries_forward_if_unused: 0, expires_at_period_end: 0 },
         analysis_minutes: { allowance: free.analysisMinutes ?? null, used: 6.5 },
         storage_gb: { allowance: free.storageGB ?? null, used: 0.38 },
         brand_profiles: 1,

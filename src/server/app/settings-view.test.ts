@@ -9,7 +9,7 @@ const overview = (billing: BillingOverview["billing"]): BillingOverview => ({
   plan: { id: "free", name: "Free", price_monthly: 0, price_annual: 0, video_credits: 2, video_credits_period: "once", analysis_minutes: 30, storage_gb: 5, brand_profiles: 1, seats: 1 },
   usage: {
     period: "2026-11",
-    video_credits: { allowance: 2, allowance_period: "once", granted: 2, used: 1, held_for_renders_in_progress: 0, available: 1 },
+    video_credits: { allowance: 2, allowance_period: "once", granted: 2, used: 1, held_for_renders_in_progress: 0, available: 1, carried_over: 0, carries_forward_if_unused: 0, expires_at_period_end: 0 },
     analysis_minutes: { allowance: 30, used: 4.5 },
     storage_gb: { allowance: 5, used: 0.42 },
     brand_profiles: 1,
