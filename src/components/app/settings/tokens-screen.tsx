@@ -20,7 +20,19 @@ import { SettingsFrame, SettingsSection, type SettingsItem } from "./settings-sh
   more than its owner's role. Public remote MCP stays off until OAuth is complete.
 */
 type Scope = "mcp:read" | "mcp:write" | "mcp:render";
-export type TokenRow = { id: string; name: string; prefix: string; scopes: string[]; createdAt: string; expiresAt: string | null; lastUsedAt: string | null; createdBy: string; revokedAt?: string };
+export type TokenRow = {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: string[];
+  createdAt: string;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  createdBy: string;
+  revokedAt?: string;
+  /** U7: tokens only work in the environment that made them (api_tokens.environment). */
+  environment?: "development" | "production";
+};
 export type TokensData = { workspace: string; myRole: "owner" | "admin" | "editor" | "viewer"; tokens: TokenRow[]; newToken: string };
 
 const SCOPES: { id: Scope; label: string; hint: string }[] = [
@@ -84,6 +96,11 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
                     <span className="flex flex-wrap items-center gap-2 font-medium">
                       {t.name}
                       <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs text-ink-muted">{t.prefix}…</code>
+                      {t.environment === "development" ? (
+                        <Badge size="sm" tone="outline" title="Works only with the development server, not the live app">
+                          Development
+                        </Badge>
+                      ) : null}
                     </span>
                     <span className="flex flex-wrap gap-1.5">
                       {t.scopes.map((s) => (

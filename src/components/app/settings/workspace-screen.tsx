@@ -119,9 +119,10 @@ export function WorkspaceScreen({ data, settingsItems }: { data: WorkspaceData; 
             <span className="text-sm text-ink-muted">“{data.brand.voice}”</span>
             <span className="text-xs text-ink-muted">Updated {dateFmt(data.brand.updatedAt)}</span>
           </div>
+          {/* U8: editors and above edit brands; viewers can only look. */}
           <Button asChild variant="secondary">
             <Link href="/brands">
-              Edit brand <ExternalLink aria-hidden />
+              {data.myRole === "viewer" ? "View brand" : "Edit brand"} <ExternalLink aria-hidden />
             </Link>
           </Button>
         </div>
@@ -182,7 +183,7 @@ export function WorkspaceScreen({ data, settingsItems }: { data: WorkspaceData; 
           <div className="flex flex-wrap items-center gap-4 p-5">
             <div className="flex min-w-0 flex-1 basis-56 flex-col">
               <span className="font-medium">Delete workspace</span>
-              <span className="text-sm text-ink-muted">Deletes all footage, brands, projects and exports for everyone, after a 14-day grace period [TO CONFIRM]. Owner only.</span>
+              <span className="text-sm text-ink-muted">Everyone loses access at once. Footage, brands, projects and exports are deleted after a recovery period of [30 days, TO CONFIRM], during which you can cancel. Invoices and records we must keep by law are kept. Owner only.</span>
             </div>
             <Button variant="secondary" className="border-danger/50 text-danger hover:bg-danger/10" disabled={data.myRole !== "owner"} onClick={() => setDialog("delete")}>
               <Trash2 aria-hidden /> Delete workspace
@@ -195,7 +196,7 @@ export function WorkspaceScreen({ data, settingsItems }: { data: WorkspaceData; 
         open={dialog === "delete"}
         onOpenChange={(v) => !v && (setDialog(null), setTyped(""))}
         title={`Delete ${o.name}?`}
-        description="Everything in this workspace is scheduled for deletion and everyone loses access. Download anything you want to keep first."
+        description="Everyone loses access straight away. Content is deleted after [30 days, TO CONFIRM]; until then you can cancel by signing in. Download anything you want to keep first."
         footer={
           <>
             <ModalClose asChild>

@@ -25,6 +25,7 @@ const all = (group: string, label: string, path: string) => {
 all("Account settings", "Account", "/design-system/screens/account");
 all("Workspace settings", "Workspace", "/design-system/screens/workspace");
 all("Team management", "Team", "/design-system/screens/team");
+all("Team management", "Just you: invite your team (U6)", "/design-system/screens/team/solo");
 all("Usage and billing", "Usage and billing", "/design-system/screens/billing");
 all("Usage and billing", "Free workspace, billing not set up (live mapping)", "/design-system/screens/billing/free");
 all("Access tokens", "Access tokens", "/design-system/screens/tokens");
@@ -35,6 +36,8 @@ for (const step of ["account", "verify", "workspace", "business", "brand", "asse
 for (const [viewport, theme] of [["desktop", "light"], ["mobile", "dark"]] as const) shots.push({ group: "Onboarding", label: "Invitation waiting", path: "/design-system/screens/onboarding/invited", viewport, theme, full: true });
 for (const [label, path] of [
   ["Invite people", "/design-system/screens/team?dialog=invite"],
+  ["Invite results with copy link (U4, U5)", "/design-system/screens/team?dialog=invite-results"],
+  ["Confirm a role change (U3)", "/design-system/screens/team?dialog=role"],
   ["Transfer ownership", "/design-system/screens/team?dialog=transfer"],
   ["Create token", "/design-system/screens/tokens?dialog=create"],
   ["Token created (shown once)", "/design-system/screens/tokens?dialog=created"],

@@ -14,7 +14,7 @@ import { SegmentedControl } from "@/components/ui/tabs";
 import { NEW_BRAND_COLOUR_HEX } from "@/content/brand-defaults";
 import { SAMPLE_ORG } from "@/content/sample/settings";
 import { cn } from "@/lib/utils";
-import { SampleBadge } from "../settings/preview";
+import { previewOnly, SampleBadge } from "../settings/preview";
 
 /*
   Onboarding journey (DESIGN for review, Stage 4 wires it). Seven steps, only the first
@@ -43,6 +43,9 @@ const TONES = ["Warm", "Calm", "Adventurous", "Playful", "Premium", "Down-to-ear
 export function OnboardingFlow({ initialStep = "account", invite }: { initialStep?: StepId; invite?: { workspace: string; role: string; from: string } }) {
   const [step, setStep] = useState<StepId>(initialStep);
   const [use, setUse] = useState<"business" | "agency">("business");
+  // U10: someone with an invitation isn't on the seven-step path unless they choose their own workspace.
+  const [ownInstead, setOwnInstead] = useState(false);
+  const invited = Boolean(invite) && !ownInstead;
   useEffect(() => {
     const s = new URLSearchParams(location.search).get("step") as StepId | null;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL (review pages only)
@@ -61,7 +64,7 @@ export function OnboardingFlow({ initialStep = "account", invite }: { initialSte
           <SampleBadge />
         </div>
 
-        {step !== "done" ? (
+        {step !== "done" && !invited ? (
           <nav aria-label="Setup progress" className="flex flex-col gap-2.5">
             <p className="flex justify-between font-mono text-[11px] tracking-label text-ink-muted uppercase">
               <span>
@@ -117,28 +120,40 @@ export function OnboardingFlow({ initialStep = "account", invite }: { initialSte
           )}
 
           {step === "workspace" && (
-            <Step title="Who is this" accent="for?" intro="Your workspace holds your footage, brand and videos. Only people you invite can see it.">
-              {invite ? (
+            <Step
+              title={invited ? "Join your" : "Who is this"}
+              accent={invited ? "team." : "for?"}
+              intro={invited ? "Your account is ready. Join the workspace you were invited to, or set up one of your own." : "Your workspace holds your footage, brand and videos. Only people you invite can see it."}
+            >
+              {invite && invited ? (
                 <div className="flex flex-col gap-3 rounded-lg border border-primary/40 bg-surface-muted p-4">
                   <p className="text-sm">
                     <strong className="font-semibold">{invite.from}</strong> invited you to <strong className="font-semibold">{invite.workspace}</strong> as {invite.role}.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="action">Join {invite.workspace}</Button>
-                    <Button variant="ghost">Create my own workspace instead</Button>
+                    <Button variant="action" onClick={() => previewOnly("You haven't joined")}>
+                      Join {invite.workspace}
+                    </Button>
+                    <Button variant="ghost" onClick={() => setOwnInstead(true)}>
+                      Create my own workspace instead
+                    </Button>
                   </div>
                 </div>
               ) : null}
-              <fieldset className="grid gap-3 sm:grid-cols-2">
-                <legend className="sr-only">Workspace type</legend>
+              {invited ? null : (
+                <>
+                  <fieldset className="grid gap-3 sm:grid-cols-2">
+                    <legend className="sr-only">Workspace type</legend>
                 <ChoiceCard checked={use === "business"} onSelect={() => setUse("business")} icon={<Building2 aria-hidden />} title="My business" text="Videos for a business you own or work for." />
                 <ChoiceCard checked={use === "agency"} onSelect={() => setUse("agency")} icon={<Briefcase aria-hidden />} title="A client (agency)" text="Each client gets its own workspace. Add more clients any time." />
               </fieldset>
               <p className="flex gap-2.5 text-sm text-ink-muted">
                 <Users className="mt-0.5 size-4 shrink-0" aria-hidden />
                 Joining a team that already uses Reeldeal? Ask them to invite this email address: you&apos;ll go straight in.
-              </p>
-              <Footer onBack={() => go(-1)} onNext={() => go(1)} />
+                  </p>
+                  <Footer onBack={() => go(-1)} onNext={() => go(1)} />
+                </>
+              )}
             </Step>
           )}
 

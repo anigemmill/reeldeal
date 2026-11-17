@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 /*
   Settings sub-navigation and page frame (from the approved Appearance screen).
   Items without an href are not built yet: shown as "soon", never as links.
+  Below the large breakpoint the items wrap onto several rows, so every item is visible on a
+  phone (U1: a sideways-scrolling row hid "Usage and billing" and "Access tokens" at 390px).
 */
 export type SettingsItem = { id: string; label: string; href?: string };
 
@@ -22,19 +24,19 @@ export const PRODUCT_SETTINGS: SettingsItem[] = [
 
 export function SettingsNav({ current, items = PRODUCT_SETTINGS }: { current: string; items?: SettingsItem[] }) {
   return (
-    <nav aria-label="Settings" className="flex shrink-0 gap-1 overflow-x-auto border-b border-line px-4 py-3 text-sm lg:w-60 lg:flex-col lg:border-r lg:border-b-0 lg:px-4 lg:py-8">
+    <nav aria-label="Settings" className="flex shrink-0 flex-wrap gap-1 border-b border-line px-4 py-3 text-sm lg:w-60 lg:flex-col lg:flex-nowrap lg:border-r lg:border-b-0 lg:px-4 lg:py-8">
       <Eyebrow className="hidden px-3 pb-2 lg:block">Settings</Eyebrow>
       {items.map((item) =>
         item.id === current ? (
-          <span key={item.id} aria-current="page" className="shrink-0 rounded-[10px] bg-surface-muted px-3 py-2.5 font-semibold text-link">
+          <span key={item.id} aria-current="page" className="shrink-0 rounded-[10px] bg-surface-muted px-3 py-2 font-semibold text-link lg:py-2.5">
             {item.label}
           </span>
         ) : item.href ? (
-          <Link key={item.id} href={item.href} className="shrink-0 rounded-[10px] px-3 py-2.5 hover:bg-surface-muted">
+          <Link key={item.id} href={item.href} className="shrink-0 rounded-[10px] px-3 py-2 hover:bg-surface-muted lg:py-2.5">
             {item.label}
           </Link>
         ) : (
-          <span key={item.id} aria-disabled="true" className="flex shrink-0 items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-ink-muted">
+          <span key={item.id} aria-disabled="true" className="flex shrink-0 items-center justify-between gap-3 rounded-[10px] px-3 py-2 text-ink-muted lg:py-2.5">
             {item.label}
             <span className="hidden font-mono text-[10px] uppercase lg:inline">soon</span>
           </span>

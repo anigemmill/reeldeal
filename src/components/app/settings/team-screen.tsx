@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Mail, MoreHorizontal, RotateCw, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Copy, Crown, Mail, MoreHorizontal, RotateCw, Trash2, TriangleAlert, UserPlus, Users, X } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,16 @@ import { SettingsFrame, SettingsSection, type SettingsItem } from "./settings-sh
 type Role = "owner" | "admin" | "editor" | "viewer";
 export type TeamMember = { id: string; name: string; email: string; role: Role; joinedAt: string; lastActive: string; you?: boolean };
 export type TeamInvite = { id: string; email: string; role: Exclude<Role, "owner">; invitedBy: string; sentAt: string; expiresAt: string };
-export type TeamData = { workspace: string; myRole: Role; seats: number | null; members: TeamMember[]; invites: TeamInvite[] };
+export type TeamData = {
+  workspace: string;
+  myRole: Role;
+  seats: number | null;
+  members: TeamMember[];
+  invites: TeamInvite[];
+  /** False until Resend is set up: invitations are shared by copying the link (U5). */
+  emailDelivery?: boolean;
+};
+const ROLE_ARTICLE: Record<Role, string> = { owner: "the", admin: "an", editor: "an", viewer: "a" };
 
 const initialsOf = (n: string) => n.split(/\s+/).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 const RANK: Record<Role, number> = { viewer: 1, editor: 2, admin: 3, owner: 4 };
@@ -36,6 +45,13 @@ const assignable = (me: Role, target: Role): Exclude<Role, "owner">[] =>
 export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsItems?: SettingsItem[] }) {
   const [dialog, setDialog] = useInitialDialog();
   const [removing, setRemoving] = useState<TeamMember | null>(null);
+  // U3: a role change is confirmed first (and spelled out when it removes permissions).
+  const [roles] = useState<Record<string, Role>>({}); // wired pages update this after a confirmed change
+  const [changing, setChanging] = useState<{ member: TeamMember; to: Role } | null>(null);
+  const roleOf = (m: TeamMember) => roles[m.id] ?? m.role;
+  // Review pages: ?dialog=role shows the confirmation for demoting the first administrator.
+  const reviewChange = dialog === "role" ? (() => { const m = data.members.find((x) => x.role === "admin" && !x.you); return m ? { member: m, to: "viewer" as Role } : null; })() : null;
+  const pendingChange = changing ?? reviewChange;
   const used = data.members.length + data.invites.length;
   const full = data.seats !== null && used >= data.seats;
   const canInvite = RANK[data.myRole] >= RANK.admin;
@@ -71,6 +87,26 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
         <p className="text-sm text-ink-muted sm:max-w-64">{full ? "All seats are taken. Remove someone or upgrade for more." : "Pending invitations hold a seat until they're accepted or revoked."}</p>
       </div>
 
+      {data.members.length === 1 && data.invites.length === 0 && canInvite ? (
+        <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-line-strong p-6 sm:flex-row sm:items-center sm:gap-5">
+          <span aria-hidden className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-muted text-ink-muted">
+            <Users className="size-5" />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <p className="font-semibold">Invite your team</p>
+            <p className="text-sm text-ink-muted">
+              It&apos;s just you so far. Your plan includes {data.seats === null ? "unlimited seats" : `${data.seats} seat${data.seats === 1 ? "" : "s"}`}
+              {data.seats === 1 ? ": upgrade to add people." : ", including yours."}
+            </p>
+          </div>
+          {data.seats !== 1 ? (
+            <Button variant="secondary" onClick={() => setDialog("invite")}>
+              <UserPlus aria-hidden /> Invite people
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       <SettingsSection id="members" title="Members" description="Change a role from the menu on each person. Only the owner can make or remove administrators.">
         <ul className="flex flex-col divide-y divide-line rounded-lg border border-line bg-surface">
           {data.members.map((m) => {
@@ -95,7 +131,12 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
                       <Crown aria-hidden /> Owner
                     </Badge>
                   ) : editable ? (
-                    <Select aria-label={`Role for ${m.name}`} defaultValue={m.role} options={[...new Set([m.role, ...options])].map((r) => ({ value: r, label: ROLE_LABEL[r] }))} onValueChange={() => previewOnly("Role not changed")} />
+                    <Select
+                      aria-label={`Role for ${m.name}`}
+                      value={roleOf(m)}
+                      options={[...new Set([m.role, ...options])].map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+                      onValueChange={(v) => v !== roleOf(m) && setChanging({ member: m, to: v as Role })}
+                    />
                   ) : (
                     <span className="text-sm">{ROLE_LABEL[m.role]}</span>
                   )}
@@ -130,7 +171,11 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
         </ul>
       </SettingsSection>
 
-      <SettingsSection id="invites" title="Pending invitations" description="Invitations are emailed and expire after 7 days. The person accepts by signing in or creating an account with that address.">
+      <SettingsSection id="invites" title="Pending invitations" description={
+          data.emailDelivery
+            ? "Invitations are emailed and expire after 7 days. The person accepts by signing in or creating an account with that address."
+            : "Invitations expire after 7 days. Email isn't set up yet, so you copy each link when you invite and send it yourself. The person accepts by signing in or creating an account with that address."
+        }>
         {data.invites.length === 0 ? (
           <p className="rounded-lg border border-dashed border-line-strong p-5 text-sm text-ink-muted">No pending invitations.</p>
         ) : (
@@ -147,8 +192,8 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
                   </span>
                 </div>
                 <div className="flex w-full gap-1.5 pl-11 sm:w-auto sm:pl-0">
-                  <Button size="sm" variant="ghost" onClick={() => previewOnly("No email was sent")}>
-                    <RotateCw aria-hidden /> Resend
+                  <Button size="sm" variant="ghost" onClick={() => previewOnly(data.emailDelivery ? "No email was sent" : "No new link was made")}>
+                    <RotateCw aria-hidden /> {data.emailDelivery ? "Resend" : "New link"}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => previewOnly("Invitation not revoked")}>
                     <X aria-hidden /> Revoke
@@ -188,8 +233,44 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
         </SettingsSection>
       ) : null}
 
-      <InviteDialog open={dialog === "invite"} onOpenChange={close} data={data} />
+      <InviteDialog
+        open={dialog === "invite" || dialog === "invite-results"}
+        onOpenChange={close}
+        data={data}
+        reviewResults={dialog === "invite-results" ? `rangi@lakesidelodge.example, ${data.members[1]?.email ?? "member@example.com"}, not-an-email` : undefined}
+      />
       <TransferDialog open={dialog === "transfer"} onOpenChange={close} data={data} />
+      <Modal
+        open={pendingChange !== null}
+        onOpenChange={(o) => !o && (setChanging(null), dialog === "role" && setDialog(null))}
+        size="sm"
+        title={pendingChange ? `Make ${pendingChange.member.name} ${ROLE_ARTICLE[pendingChange.to]} ${ROLE_LABEL[pendingChange.to].toLowerCase()}?` : ""}
+        description={
+          pendingChange
+            ? RANK[pendingChange.to] < RANK[roleOf(pendingChange.member)]
+              ? `${pendingChange.member.name} will lose access to some things. As ${ROLE_ARTICLE[pendingChange.to]} ${ROLE_LABEL[pendingChange.to].toLowerCase()} they can: ${ROLE_SUMMARY[pendingChange.to].charAt(0).toLowerCase()}${ROLE_SUMMARY[pendingChange.to].slice(1)} The change applies at once, including to their access tokens.`
+              : `As ${ROLE_ARTICLE[pendingChange.to]} ${ROLE_LABEL[pendingChange.to].toLowerCase()} they can also: ${ROLE_SUMMARY[pendingChange.to].charAt(0).toLowerCase()}${ROLE_SUMMARY[pendingChange.to].slice(1)}`
+            : undefined
+        }
+        footer={
+          <>
+            <ModalClose asChild>
+              <Button variant="ghost">Cancel</Button>
+            </ModalClose>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (!pendingChange) return;
+                setChanging(null);
+                if (dialog === "role") setDialog(null);
+                previewOnly(`Role not changed (${pendingChange.member.name} stays ${ROLE_LABEL[roleOf(pendingChange.member)].toLowerCase()})`);
+              }}
+            >
+              Change role
+            </Button>
+          </>
+        }
+      />
       <Modal
         open={removing !== null}
         onOpenChange={(o) => !o && setRemoving(null)}
@@ -211,30 +292,114 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
   );
 }
 
-function InviteDialog({ open, onOpenChange, data }: { open: boolean; onOpenChange: (o: boolean) => void; data: TeamData }) {
+/** One line per address after inviting: created (with its link) or the reason it wasn't (U4). */
+export type InviteResult = { email: string; link?: string; error?: string };
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+  Design preview only: the same checks the server makes (format, duplicates, already a member,
+  already invited, seats), so the result list can be reviewed. The real page shows the results
+  from inviteMembers (src/server/services/team.ts) instead. No link is made here.
+*/
+export function previewInviteResults(raw: string, data: TeamData): InviteResult[] {
+  const emails = [...new Set(raw.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean))];
+  let left = data.seats === null ? Infinity : data.seats - data.members.length - data.invites.length;
+  return emails.map((email) => {
+    if (!EMAIL_RE.test(email)) return { email, error: "This isn't a valid email address." };
+    if (data.members.some((m) => m.email.toLowerCase() === email)) return { email, error: "Already in this workspace." };
+    if (data.invites.some((i) => i.email.toLowerCase() === email)) return { email, error: "Already invited. Use New link on their invitation." };
+    if (left <= 0) return { email, error: "No seats left on your plan." };
+    left -= 1;
+    return { email };
+  });
+}
+
+function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boolean; onOpenChange: (o: boolean) => void; data: TeamData; reviewResults?: string }) {
   const [role, setRole] = useState<string>("editor");
+  const [emails, setEmails] = useState("");
+  const [submitted, setResults] = useState<InviteResult[] | null>(null);
+  const results = submitted ?? (reviewResults ? previewInviteResults(reviewResults, data) : null);
+  const [copied, setCopied] = useState<string | null>(null);
   const left = data.seats === null ? null : data.seats - data.members.length - data.invites.length;
   const roles = (data.myRole === "owner" ? ["admin", "editor", "viewer"] : ["editor", "viewer"]) as Exclude<Role, "owner">[];
+  const change = (o: boolean) => {
+    if (!o) {
+      setResults(null);
+      setEmails("");
+      setCopied(null);
+    }
+    onOpenChange(o);
+  };
+  const created = results?.filter((r) => !r.error).length ?? 0;
+  const copy = async (r: InviteResult) => {
+    if (!r.link) return previewOnly("Nothing was copied (no invitation was created)");
+    try {
+      await navigator.clipboard.writeText(r.link);
+      setCopied(r.email);
+    } catch {
+      setCopied(null);
+    }
+  };
+  if (results)
+    return (
+      <Modal
+        open={open}
+        onOpenChange={change}
+        title={created ? `${created} invitation${created === 1 ? "" : "s"} ready` : "No invitations created"}
+        description={
+          data.emailDelivery
+            ? "Each person gets an email with their link."
+            : "Email isn't set up yet. Copy each link and send it to that person yourself: it works once, for that address only, and expires in 7 days."
+        }
+        footer={
+          <Button variant="primary" onClick={() => change(false)}>
+            Done
+          </Button>
+        }
+      >
+        <ul aria-label="Invitation results" className="flex flex-col divide-y divide-line rounded-lg border border-line">
+          {results.map((r) => (
+            <li key={r.email} className="flex flex-wrap items-center gap-3 p-3">
+              <span aria-hidden className={cn("inline-flex size-7 shrink-0 items-center justify-center rounded-full", r.error ? "bg-danger/10 text-danger" : "bg-success/10 text-success")}>
+                {r.error ? <TriangleAlert className="size-4" /> : <Check className="size-4" />}
+              </span>
+              <span className="flex min-w-0 flex-1 basis-48 flex-col">
+                <span className="font-medium break-all">{r.email}</span>
+                <span className="text-sm text-ink-muted">{r.error ?? `Invited as ${ROLE_LABEL[role as Role].toLowerCase()}`}</span>
+              </span>
+              {!r.error && !data.emailDelivery ? (
+                <Button size="sm" variant="secondary" onClick={() => copy(r)} aria-label={`Copy invitation link for ${r.email}`}>
+                  {copied === r.email ? <Check aria-hidden /> : <Copy aria-hidden />} {copied === r.email ? "Copied" : "Copy link"}
+                </Button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        <p role="status" className="sr-only">
+          {created} of {results.length} invitations created.
+        </p>
+      </Modal>
+    );
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={change}
       title="Invite people"
-      description={`They'll get an email with a link to join ${data.workspace}. ${left === null ? "" : `${left} seat${left === 1 ? "" : "s"} left on your plan.`}`}
+      description={`${data.emailDelivery ? "They'll get an email with a link to join" : "You'll get a link for each person to join"} ${data.workspace}. ${left === null ? "" : `${left} seat${left === 1 ? "" : "s"} left on your plan.`}`}
       footer={
         <>
           <ModalClose asChild>
             <Button variant="ghost">Cancel</Button>
           </ModalClose>
-          <Button variant="primary" onClick={() => (onOpenChange(false), previewOnly("No invitation was sent"))}>
-            Send invitations
+          <Button variant="primary" disabled={!emails.trim()} onClick={() => setResults(previewInviteResults(emails, data))}>
+            {data.emailDelivery ? "Send invitations" : "Create invitations"}
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex flex-col gap-5" onSubmit={(e) => (e.preventDefault(), emails.trim() && setResults(previewInviteResults(emails, data)))}>
         <Field label="Email addresses" hint="Separate several addresses with commas.">
-          <Textarea name="emails" rows={3} placeholder="name@business.com, another@business.com" />
+          <Textarea name="emails" rows={3} placeholder="name@business.com, another@business.com" value={emails} onChange={(e) => setEmails(e.target.value)} />
         </Field>
         <RadioGroup legend="Role" value={role} onValueChange={setRole} options={roles.map((r) => ({ value: r, label: ROLE_LABEL[r], hint: ROLE_SUMMARY[r] }))} />
       </form>

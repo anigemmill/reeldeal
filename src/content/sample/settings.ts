@@ -66,7 +66,7 @@ export const SAMPLE_BILLING = {
 
 export const SAMPLE_TOKENS = [
   { id: "t1", name: "Claude Desktop (studio laptop)", prefix: "rdl_pat_k7Qm", scopes: ["mcp:read", "mcp:write", "mcp:render"], createdAt: "2026-10-02T02:00:00Z", expiresAt: "2026-12-31T02:00:00Z", lastUsedAt: "2026-11-17T06:58:00Z", createdBy: "Aroha Ngata" },
-  { id: "t2", name: "Reporting script", prefix: "rdl_pat_Zp3x", scopes: ["mcp:read"], createdAt: "2026-08-20T02:00:00Z", expiresAt: "2026-11-24T02:00:00Z", lastUsedAt: "2026-11-01T10:20:00Z", createdBy: "Aroha Ngata" },
+  { id: "t2", name: "Reporting script", prefix: "rdl_pat_Zp3x", scopes: ["mcp:read"], createdAt: "2026-08-20T02:00:00Z", expiresAt: "2026-11-24T02:00:00Z", lastUsedAt: "2026-11-01T10:20:00Z", createdBy: "Aroha Ngata", environment: "development" as const },
   { id: "t3", name: "Old Claude connection", prefix: "rdl_pat_b2Lw", scopes: ["mcp:read", "mcp:write"], createdAt: "2026-07-01T02:00:00Z", expiresAt: null, lastUsedAt: "2026-08-03T10:20:00Z", createdBy: "Aroha Ngata", revokedAt: "2026-09-10T00:00:00Z" },
 ];
 /** Shown once in the "token created" state. Not a real token: the wrong length and an obvious marker. */
