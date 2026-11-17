@@ -1,5 +1,15 @@
 # Connecting real infrastructure (development)
 
+> **Status 2026-11-18.**
+> - **R2: connected.** The credentials work, the bucket is private, and the 12 real-bucket tests pass.
+>   **CORS is still to apply** (step 4.3); lifecycle and public access can only be checked in the
+>   dashboard.
+> - **Supabase:** live checks are waiting for access. `npm run infra:check` now reports the Auth
+>   version, email confirmation, sign-in methods, unexpected tables or functions, and the restricted
+>   roles.
+>
+> Details: `docs/production-plan.md` section 0.
+
 This is the owner's checklist for connecting the existing MCP server and video engine to a real
 Supabase project, a real Cloudflare R2 bucket and OpenAI. Nothing here deploys anything publicly.
 

@@ -288,3 +288,24 @@ How it is wired: `docs/app.md`. Decisions:
   `router.replace` re-rendered the page on the server and briefly removed the document title.
 - **Local stack mirrors production auth settings**: confirmation required, secure email change, the repo's
   email templates served to the local auth server.
+
+## Mission 4: infrastructure readiness and customer backend (2026-11-18)
+- **R2 verified live** with the environment's scoped token (12 real-bucket tests, clean-up confirmed).
+  CORS for the app origin is missing; applying it is a live change and waits for approval.
+- **Membership changes only through SECURITY DEFINER functions** (migration 20261118000001), each
+  checking `auth.uid()` and writing an audit event. Users keep no write grants on `memberships`.
+  The plan's seat limit comes from `config/pricing.json`, passed by the service.
+- **Invitation acceptance requires the caller's confirmed email to match.** The emailed token only
+  points at the invitation; the same error for every mismatch (no probing).
+- **Ownership transfer:** the app checks the owner's password and the typed workspace name; the
+  database checks owner, target role (admin or editor) and target confirmed email; one-owner unique index.
+- **Access tokens are bound to their environment** (`api_tokens.environment`): production refuses
+  development tokens. The web page may create tokens only from a signed-in session, with an expiry.
+- **App-side auth rate limits in Postgres** (per visitor IP and per email, HMAC keys), because
+  Supabase sees the app server's IPs. Supabase's limits stay on. No Redis.
+- **First brand created under a lock**, and brand-limit checks are transactional (fixes a double-submit
+  duplicate and a limit race found by tests).
+- **Real billing pages never show sample values** (`toBillingScreenData`, tested). Without a
+  `billing_accounts` record the screen says billing isn't set up.
+- **The migration safety check ignores function bodies** (they don't run at migration time); `DO`
+  blocks are still checked.

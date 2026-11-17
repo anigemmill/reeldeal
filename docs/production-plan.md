@@ -1,6 +1,6 @@
 # Production accounts and backend: audit and roadmap
 
-Status: **Stage 3 (authentication) complete locally; Stage 3 designs awaiting review (2026-11-17).** Decisions are in section 12; the current checkpoint is section 0. No application code, database or
+Status: **Mission 4 checkpoint (2026-11-18): live R2 verified; customer backend prepared and tested locally; two migrations awaiting approval.** The current checkpoint is section 0; the previous one follows it. Decisions are in section 12. No application code, database or
 infrastructure was changed while writing it. The only live checks were read-only (2026-11-16):
 
 - Supabase: listed projects, tables, migrations and security advisors.
@@ -15,7 +15,153 @@ Evidence labels used below:
 
 ---
 
-## 0. Checkpoint: 2026-11-17 (after Stage 3)
+## 0. Checkpoint: 2026-11-18 (Mission 4)
+
+Branch `claude/eager-edison-iwtva8`, on top of `0a69462`.
+
+### Live infrastructure (real services, not local)
+
+**Cloudflare R2: connected and verified.** Credentials are set in this environment as `R2_*` (never
+printed); `R2_BUCKET=reeldeal-dev-media`.
+
+| Check | Result |
+|---|---|
+| `npm run infra:check` | Bucket reachable with the credentials; unsigned request refused (HTTP 400) |
+| Real-bucket test suite (12 tests) | **All pass** against `reeldeal-dev-media`: signed PUT, **no overwrite of an existing original**, tampered, expired and header-stripped links refused, multipart upload and download intact, abort, dropped-part retry, missing-part recovery, cancel, conditional single PUT |
+| Clean-up | 0 objects and 0 open multipart uploads left in the bucket afterwards |
+| Token scope | Least privilege: can't read bucket settings or list buckets (403) |
+| **CORS** | **Not configured for the app origin:** a browser preflight from `http://localhost:3000` gets 403 with no CORS headers. **Browser uploads to the real bucket will fail until it is set.** Needs your approval; command below |
+| Lifecycle (abort incomplete multipart after 7 days) | **Unverifiable** with an object-scoped token; check in the dashboard |
+| Public access (r2.dev / custom domain) | Unverifiable via the S3 API; the S3 endpoint is private; check "Public access: off" in the dashboard |
+
+To apply CORS (approval needed; dashboard → R2 → `reeldeal-dev-media` → Settings → CORS policy, or):
+
+```bash
+npx wrangler r2 bucket cors set reeldeal-dev-media --file infra/r2/cors.json
+```
+
+Add the preview or production app origin to `infra/r2/cors.json` before it's used from there.
+
+**Supabase: blocked; read-only checks not possible this session.**
+
+- The Supabase connector is now linked to a different Supabase account. It only sees one new project
+  (Tokyo, created 2026-11-17) and is refused on `reeldeal`. That other project was **not touched**.
+- This environment has none of `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL` or
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`. The project's API answers, but needs the publishable key.
+- **Unblock** (either):
+  - add the two public values (URL plus publishable key), and optionally a read-only `DATABASE_URL`,
+    to the environment
+  - or re-link the connector to the Vercel-linked Supabase organisation
+- Then run `npm run infra:check`. It now also reports:
+  - Auth version vs local (v2.180.0)
+  - email confirmation on/off and enabled sign-in methods
+  - unexpected tables or callable functions
+  - private-schema access and whether the restricted roles exist
+  - the Auth schema migration level
+- It was proven against the local stack. Site URL, redirect URLs, SMTP, secure email change and
+  rate limits are dashboard-only.
+- Last confirmed state (2026-11-16, read-only): 7 migrations applied, RLS on all 17 tables, no anon
+  grants, 0 users.
+
+### Prepared migrations (not applied)
+
+| Migration | Purpose | Review |
+|---|---|---|
+| `20261117000001` | Restricted runtime roles | `docs/review/migration-20261117000001-restricted-runtime-roles.md` |
+| `20261118000001` (new) | Teams, invitations, audit log, workspace and onboarding fields, preferences, token environment, auth rate limits, billing scaffold | `docs/review/migration-20261118000001-teams-workspace-onboarding.md` |
+
+**Restricted roles (`20261117000001`) in short:**
+
+- **What the roles do.** `reeldeal_web` (the app and `/api/mcp`) switches to `authenticated` for user
+  work, so RLS applies as today. As itself, it can only do the few server writes the app needs.
+  `reeldeal_worker` can only run jobs and write analysis, exports, charges and releases.
+- **Why it's safer.** Today the services log in as `postgres`, which bypasses RLS and can create roles.
+  A bug or injection in trusted code could touch any organisation's data. The roles can't bypass RLS,
+  delete, change plans, read `auth.users` or tokens (worker), or create roles.
+- **What changes on apply.** Two roles that can't log in, plus their grants and policies, and the
+  `reeldeal_meta` lock-down. Nothing else changes until the services' `DATABASE_URL` is switched.
+- **Credentials afterwards.** You set passwords by hand:
+  - `alter role reeldeal_web with login password '…'`, and the same for `reeldeal_worker`
+  - pooler user names `reeldeal_web.jzshbaqfrrgsyiciuzfe` (port 6543) and `reeldeal_worker.<ref>` (port 5432)
+  - stored only in the host's secret store
+- **Transition.** The worker first, then the app: change `DATABASE_URL`, restart, run
+  `npm run infra:check`. The owner URL stays on your own machine for migrations and admin scripts.
+- **Rollback.** Point `DATABASE_URL` back to the owner (instant). Then, optionally, run the rollback
+  script: it drops only the roles, grants and policies, and was tested on a database with real data.
+
+### Customer backend (local; services and tests, not yet wired to the screens)
+
+Map: `docs/backend-integration.md`.
+
+- **Team:** `services/team.ts` over the migration's functions. 25 permission tests cover every rule
+  (one owner; no self-elevation; admins can't take ownership; removed members lose access at once;
+  invitations org- and address-bound, expiring, single-use, revocable).
+- **Access tokens:** `services/access-tokens.ts` (role-limited scopes, required expiry, cap,
+  web-session only). Tokens are now bound to their environment: a development token is refused by
+  production. 10 tests.
+- **Workspace, onboarding, preferences:** `services/workspace-settings.ts`. Onboarding resumes after
+  sign-out; only the owner is asked.
+- **Usage and billing:** `services/billing.ts`, plus a tested real-page mapping that never shows sample
+  values. The billing screen gained a live "Billing not set up" state
+  (`/design-system/screens/billing/free`).
+- **Auth hardening:** app-side rate limits per visitor IP and per email, in Postgres
+  (`docs/auth.md`). Supabase's own limits stay on.
+- **Defects found and fixed:** duplicate brand profiles on a double-submitted "Create workspace", and
+  a race past the plan's brand limit. Both have regression tests.
+- **Security review:** `docs/security-review.md` (7 new regression tests; no isolation weakness found).
+- **UX issues to resolve before wiring:** U1–U12 in `docs/backend-integration.md`.
+
+### Test results (local unless stated)
+
+| Suite | Result |
+|---|---|
+| R2 storage suite against the **real** bucket | 12 / 12 pass |
+| Unit, service and permission tests, PGlite | 287 passed, 10 skipped |
+| Same on `supabase/postgres:17.6.1.166` | 284 passed, 8 skipped |
+| Browser journey (local Supabase Auth + Postgres + S3 + mail catcher) | 93 / 93 |
+| Accessibility: 16 themes × 27 pages + 16 phone layouts, keyboard, reduced motion | No WCAG 2.2 A/AA violations; all pass |
+| Production build, types, lint, migration safety, secret scan, token check, pricing | All pass |
+
+### Next stage (proposed, in order)
+
+1. **Approvals:** R2 CORS; migrations `20261117000001` and `20261118000001`; the Supabase access
+   needed for the live checks.
+2. **Live verification:** `infra:check` on Supabase; apply the migrations; switch the worker, then the
+   app, to the restricted roles; first live end-to-end run with real R2 (a separate report).
+3. **Wire the screens** (after your design feedback and fixes U1–U12):
+   - Account (already live)
+   - Team, including `/invite/[token]` and copy-link until email
+   - Access tokens
+   - Workspace
+   - Usage and billing (live mapping)
+   - Onboarding steps 4–7, plus the resume card
+4. **Resend + Supabase SMTP**, then the live auth test plan (`docs/auth.md`).
+5. **Hosting** (Vercel preview, Fly.io worker), Sentry, then a pilot customer.
+
+### Outstanding launch requirements
+
+- **Configuration:**
+  - R2 CORS and lifecycle; confirm public access is off
+  - Supabase Auth settings, SMTP and templates
+  - migrations applied; services on the restricted roles
+- **Accounts and services:**
+  - Resend domain and DNS
+  - OpenAI production key and budget
+  - hosting (app and worker); Sentry
+- **Product:**
+  - Stripe billing
+  - workspace and account deletion (retention decision)
+  - credit rollover in the ledger (D-B1)
+  - Terms and Privacy final text
+  - final product name and domain
+  - Google sign-in (D5)
+  - OAuth for public MCP (D6)
+- **Tests on live services:**
+  - live auth plan
+  - live isolation run (`integration:live`)
+  - load test of the sign-in path (R6)
+
+## 0b. Checkpoint: 2026-11-17 (after Stage 3)
 
 ### Done, and tested locally
 - **Email verification required (D10).**
