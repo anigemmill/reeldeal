@@ -35,7 +35,8 @@
     "worker:restart-test": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/worker-restart-test.ts",
     "infra:check": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/infra-check.ts",
     "test:e2e": "tsx scripts/e2e.ts",
-    "review:shots": "tsx scripts/review-shots.ts"
+    "review:shots": "tsx scripts/review-shots.ts",
+    "test:r2-browser": "tsx scripts/r2-browser-test.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

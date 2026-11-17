@@ -3,10 +3,9 @@
     {
       "allowed": {
         "origins": ["http://localhost:3000"],
-        "methods": ["GET", "PUT", "HEAD"],
+        "methods": ["PUT"],
         "headers": ["content-type", "if-none-match"]
       },
-      "exposeHeaders": ["ETag"],
       "maxAgeSeconds": 3600
     }
   ]
