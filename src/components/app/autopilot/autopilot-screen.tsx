@@ -2,7 +2,6 @@
 
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, Clapperboard, Loader2, Pause, Play, Sparkles, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { projectState, startProject, writeBrief, writeConcepts, writeStoryboard } from "@/app/(app)/_actions/creative";
 import { Thumb } from "@/components/app/media/thumb";
@@ -56,7 +55,6 @@ type Format = (typeof FORMAT_OPTIONS)[number]["id"];
 type ProjectState = Extract<Awaited<ReturnType<typeof projectState>>, { ok: true }>["data"];
 
 export function AutopilotScreen(props: AutopilotProps) {
-  const router = useRouter();
   const [step, setStep] = useState<Step>(props.initial.projectId ? "review" : "brief");
   const [brief, setBrief] = useState(props.initial.brief);
   const [goal, setGoal] = useState<string>(GOALS[0]);
@@ -139,7 +137,7 @@ export function AutopilotScreen(props: AutopilotProps) {
             onBack={() => setStep("brief")}
             onDone={async (id) => {
               setProjectId(id);
-              router.replace(`/autopilot?project=${id}`, { scroll: false });
+              window.history.replaceState(null, "", `/autopilot?project=${id}`); // shallow: no server re-render (keeps the document title)
               await load(id);
               setStep("review");
             }}
@@ -155,7 +153,7 @@ export function AutopilotScreen(props: AutopilotProps) {
               <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden /> Loading your storyboard…
             </p>
           ) : (
-            <ReviewStep state={state} canEdit={props.canEdit} aiConfigured={props.ai.configured} reload={() => load(projectId)} onNew={() => (router.replace("/autopilot"), setState(null), setProjectId(null), setStep("brief"))} />
+            <ReviewStep state={state} canEdit={props.canEdit} aiConfigured={props.ai.configured} reload={() => load(projectId)} onNew={() => (window.history.replaceState(null, "", "/autopilot"), setState(null), setProjectId(null), setStep("brief"))} />
           ))}
       </main>
     </div>

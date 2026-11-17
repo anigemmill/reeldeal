@@ -118,12 +118,25 @@ export function LibraryScreen(props: {
     return () => clearInterval(t);
   }, [pending, refresh, router]);
 
+  // The details panel unmounts as soon as it closes, so Radix can't hand focus back:
+  // remember what opened it and return focus there (keyboard users keep their place).
+  const opener = useRef<HTMLElement | null>(null);
   const select = (id: string | null) => {
+    if (id) opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    else
+      requestAnimationFrame(() => {
+        const el = opener.current;
+        if (el?.isConnected && (!document.activeElement || document.activeElement === document.body)) el.focus();
+      });
     setSelected(id);
     const q = new URLSearchParams(params);
     if (id) q.set("media", id);
     else q.delete("media");
-    router.replace(`/library${q.size ? `?${q}` : ""}`, { scroll: false });
+    // Shallow URL update (shareable ?media= link) without a server round trip. router.replace
+    // re-rendered the whole page and briefly removed the document <title> (an axe
+    // document-title failure and an untitled page for screen readers). Next.js keeps
+    // useSearchParams in sync with history.replaceState.
+    window.history.replaceState(null, "", `/library${q.size ? `?${q}` : ""}`);
   };
 
   const onDrop = (files: FileList | null) => {
