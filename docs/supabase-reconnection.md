@@ -5,29 +5,30 @@ read-only. None creates users, changes settings or applies migrations.
 
 ## 1. Where things stand
 
-| Item | State |
-|---|---|
-| Reeldeal project | `reeldeal`, ref **`jzshbaqfrrgsyiciuzfe`**, Sydney, Postgres 17 (verified in an earlier session: 7/7 migrations, empty tables, RLS on all 17 public tables) |
-| Supabase connector in this session | Signed in to a **different account**. It lists two projects, neither of which is Reeldeal: `accounts-dev` (`xmqivpwwdksahxkkamgm`, Sydney, created 2026-11-17) and an inactive Tokyo project (`ahclyplubhkhggonkfnj`). Requests for `jzshbaqfrrgsyiciuzfe` are refused. **I didn't query either of the other projects**, because they may belong to another product such as Findable |
-| `NEXT_PUBLIC_SUPABASE_URL` | **Not set** in this environment |
-| Publishable (anon) key | **Not set** |
-| `DATABASE_URL` (live) | **Not set**. The local stack is used for tests |
-| `SUPABASE_ACCESS_TOKEN` | **Not set** |
+**Confirmed by you (2026-11-17): the Reeldeal project reference is `jzshbaqfrrgsyiciuzfe`.** Every
+check is pinned to it. `infra:check` and `scripts/compare-live-schema.sh` refuse any other project
+before connecting.
 
-**If `accounts-dev` is a new project you made for Reeldeal, tell me.** Until then it's treated as
-"not Reeldeal" and `infra:check` refuses it (see section 3).
+| Item | State (2026-11-17, re-checked) |
+|---|---|
+| Project `jzshbaqfrrgsyiciuzfe` | **Exists and is reachable**: `https://jzshbaqfrrgsyiciuzfe.supabase.co/auth/v1/health` answers 401 "No API key", as it should without a key. Nothing else can be checked without access |
+| Supabase connector | **Still signed in to a different organisation** (`hjdbuvhakmohyqdvuzkn`). It lists `accounts-dev` and an inactive Tokyo project, and refuses `jzshbaqfrrgsyiciuzfe` ("You do not have permission"). Neither of those projects is Reeldeal's, and neither was queried |
+| `NEXT_PUBLIC_SUPABASE_URL`, publishable key, `DATABASE_URL`, `SUPABASE_ACCESS_TOKEN` | Not set in this environment |
+| Last successful read-only view (earlier session, through the then-correct connector) | `reeldeal`, Sydney, Postgres 17; 7/7 migrations; empty tables; RLS on all 17 public tables |
 
 ## 2. What to provide to reconnect (pick A or B)
 
 ### A. Re-link the connector (recommended)
 
-1. In claude.ai, open Settings → Connectors → Supabase → Disconnect.
-2. Connect again, signing in as the Supabase account that owns the `reeldeal` project. That's the
-   organisation linked to Vercel, not the account that owns `accounts-dev`.
-3. When asked which organisation to allow, choose the Reeldeal one only. Don't grant access to an
-   organisation that holds Findable.
-4. Start a new session (or tell me), and I'll run `list_projects` and confirm `jzshbaqfrrgsyiciuzfe`
-   appears before running anything else.
+1. Go to https://claude.ai/customize/connectors → Supabase → Disconnect.
+2. Connect again and sign in to the Supabase account that **owns `jzshbaqfrrgsyiciuzfe`**. If you
+   use several Supabase accounts, check in supabase.com → Organisations which one lists that project
+   first.
+3. When Supabase asks which organisation to allow, choose only the one containing
+   `jzshbaqfrrgsyiciuzfe`. Don't include an organisation that holds Findable.
+4. **Start a new session** (connectors are read when a session starts) and ask me to run the
+   verification. My first call will be `list_projects`, and I'll stop unless the reference matches
+   `jzshbaqfrrgsyiciuzfe` exactly.
 
 ### B. Environment values (no connector)
 
@@ -44,7 +45,26 @@ Never needed here: the **service-role / secret key**. Nothing in these checks us
 
 I'll verify these by name and length only. Values are never printed.
 
-## 3. Guard rails in `npm run infra:check`
+## 3. What I run once access exists (all read-only)
+
+1. Connector: `list_projects` and `get_project`. The reference must equal `jzshbaqfrrgsyiciuzfe`;
+   record the name, region, status, Postgres version and database host.
+2. `list_migrations` and `list_tables`, plus the security and performance advisors.
+3. `supabase/checks/live-readonly-verification.sql`: identity, both migration trackers, tables with
+   RLS and row counts, exact customer-data counts, objects 1117/1118/1119 would create (expected
+   absent), policies, unexpected grants and callable functions, default privileges, login and RLS
+   bypass roles, the column inventory, the Auth schema version and extensions. SELECT only;
+   tested on the local stack. Through `psql` it runs inside `begin read only … rollback`.
+4. `npm run infra:check` (with the URL and publishable key, and optionally `DATABASE_URL` and
+   `SUPABASE_ACCESS_TOKEN`).
+5. `bash scripts/compare-live-schema.sh` (with `DATABASE_URL`): diffs the live columns and policies
+   against the schema the 7 applied migrations produce. The baseline is built from the repo's own
+   files on a scratch database (`supabase/checks/expected-20261116000003`). Any line it prints is a
+   difference between the live project and the repo.
+
+Not run without approval: migrations 1117, 1118, 1119; any write; auth setting changes; test users.
+
+## 3b. Guard rails in `npm run infra:check`
 
 - The Supabase URL must name `jzshbaqfrrgsyiciuzfe`. Any other project is reported as a failure, and
   the Auth checks don't run against it.
