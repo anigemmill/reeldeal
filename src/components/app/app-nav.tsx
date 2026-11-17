@@ -66,8 +66,9 @@ export function AppNav({ className, nav }: { className?: string; nav?: NavData }
         );
         const base = "flex items-center gap-2.5 rounded-md border border-line bg-surface-muted px-2.5 py-2";
         return ws.href ? (
-          <Link href={ws.href} aria-label={`${ws.name}: workspace settings`} className={cn(base, "hover:border-line-strong")}>
+          <Link href={ws.href} className={cn(base, "hover:border-line-strong")}>
             {card}
+            <span className="sr-only">: workspace settings</span>
           </Link>
         ) : (
           <div className={base}>{card}</div>

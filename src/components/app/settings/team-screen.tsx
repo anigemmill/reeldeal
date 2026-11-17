@@ -368,7 +368,7 @@ function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boole
                 <span className="text-sm text-ink-muted">{r.error ?? `Invited as ${ROLE_LABEL[role as Role].toLowerCase()}`}</span>
               </span>
               {!r.error && !data.emailDelivery ? (
-                <Button size="sm" variant="secondary" onClick={() => copy(r)} aria-label={`Copy invitation link for ${r.email}`}>
+                <Button size="sm" variant="secondary" onClick={() => copy(r)} aria-label={copied === r.email ? `Copied link for ${r.email}` : `Copy link for ${r.email}`}>
                   {copied === r.email ? <Check aria-hidden /> : <Copy aria-hidden />} {copied === r.email ? "Copied" : "Copy link"}
                 </Button>
               ) : null}
