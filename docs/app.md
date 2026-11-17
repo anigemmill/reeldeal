@@ -38,7 +38,9 @@ the same platform services as the MCP server.
 
 | Area | Status |
 |---|---|
-| Sign up, sign in, sign out, password reset (email link), session refresh and expiry | Working (Supabase Auth) |
+| Sign up (with Terms consent), email verification required before onboarding (resend, expired and used links), sign in, sign out, sign out everywhere, password reset, session refresh and expiry | Working (Supabase Auth; local stack) |
+| Settings → Account: name, email change (both addresses confirm), password change (current password required) | Working (local stack) |
+| Terms of Service, Privacy Policy | Placeholder structure only, marked as drafts, not indexed |
 | Onboarding: workspace, industry, website, first brand | Working (Free plan, 2 trial credits) |
 | Dashboard | Real workspace, plan, usage, projects, processing, best clips, exports, credits; first-use guide |
 | Library | Drag and drop or choose; several files; progress, cancel, retry (missing parts only); search, filters, sort, grid/list; details with preview, metadata, quality checks and keyframes |
@@ -74,7 +76,9 @@ npm run worker
 AI_PROVIDER=fixture npm run dev
 ```
 
-Open http://localhost:3000/sign-up. Emails (password reset) arrive at http://localhost:8025.
+Open http://localhost:3000/sign-up. Emails (confirm your email, password reset, email change)
+arrive at http://localhost:8025, using the repo's templates (`supabase/templates`). Sign-up needs
+the confirmation link before onboarding, as in production.
 Use `OPENAI_API_KEY=… npm run dev` instead of `AI_PROVIDER=fixture` for real AI.
 `AI_PROVIDER=fixture` gives deterministic test output, labelled in the UI, and is refused
 by production builds.

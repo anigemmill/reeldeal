@@ -1,6 +1,6 @@
 # Production accounts and backend: audit and roadmap
 
-Status: **Stage 1 approved (2026-11-16); Stage 2 in progress.** Decisions are recorded in section 12. No application code, database or
+Status: **Stage 3 (authentication) complete locally; Stage 3 designs awaiting review (2026-11-17).** Decisions are in section 12; the current checkpoint is section 0. No application code, database or
 infrastructure was changed while writing it. The only live checks were read-only (2026-11-16):
 
 - Supabase: listed projects, tables, migrations and security advisors.
@@ -14,6 +14,68 @@ Evidence labels used below:
 - **Unverified**: built, but never exercised against real infrastructure.
 
 ---
+
+## 0. Checkpoint: 2026-11-17 (after Stage 3)
+
+### Done, and tested locally
+- **Email verification required (D10).**
+  - Sign-up goes to `/verify-email`: the address, a resend button with a visible one-minute
+    cooldown, and links to start again or sign in.
+  - The proxy, pages and server actions refuse an unconfirmed account. Signing in before confirming
+    leads back to verification.
+  - The email-link handler (`/auth/callback`) gives each flow its right outcome: confirmed, already
+    confirmed, and expired or used.
+- **Branded auth email templates** (`supabase/templates/`) with token-hash links. These work on any
+  device; Supabase's default links only work in the browser that asked for them (a real problem
+  found by the tests).
+- **Account settings** (`/settings/account`):
+  - change name
+  - change email (secure change: both addresses confirm)
+  - change password, with the current password required
+  - sign out, and sign out everywhere (with confirmation)
+  - account details, and the verified state
+- **Terms of Service and Privacy Policy** pages: structure with bracketed placeholders, a visible
+  draft notice, and `noindex`. The consent checkbox on sign-up is required.
+- **Accessibility fixes:**
+  - The media detail page lost its `<title>` during navigation. Fixed by updating the URL in place,
+    with no server re-render. The same fix applies to Autopilot.
+  - Closing media details dropped keyboard focus on `<body>`. It now returns to the item.
+- **Designs for review (D7)**, all built as real components on labelled sample data:
+  - onboarding (7 steps, plus the invited variant)
+  - workspace settings, team management, usage and billing, access tokens
+  - screenshot pack at three sizes in light and dark (`npm run review:shots`)
+
+### Found during Stage 3, and handled
+- Supabase Auth v2.180 ignores `current_password`. The app checks the current password itself.
+- Default (PKCE) email links fail across devices. Token-hash templates fix this.
+- Supabase Auth allows one confirmation email per address per minute. The app shows a clear message.
+
+### Test results (local only; nothing here ran against live services)
+| Suite | Result |
+|---|---|
+| Unit, service and privilege tests, embedded Postgres | 219 passed, 10 skipped |
+| Same, on Supabase's Postgres image (`supabase/postgres:17.6.1.166`) | 216 passed, 8 skipped |
+| Browser journey, local Supabase Auth + Postgres + S3 + mail catcher (`npm run test:e2e`) | 93 of 93 |
+| Accessibility (`npm run test:a11y`): 16 theme sets × 26 pages, plus 17 phone layouts; keyboard and reduced-motion checks | No WCAG 2.2 A/AA violations; all keyboard checks pass |
+| Types, lint, migration safety, secret scan, token check, pricing config, production build | All pass |
+
+### Outstanding infrastructure (none of it is complete; local tests don't count)
+| Item | State | Needs |
+|---|---|---|
+| Cloudflare R2: real bucket tests | Bucket exists; privacy, CORS, lifecycle and token unverified; storage tests never run against it | Scoped R2 token in your `.env.local`, then `npm run infra:check` and the R2 tests |
+| Supabase Auth email | Built-in mailer (won't reach customers); templates not installed; confirmation setting unverified on the live project | Resend + domain, then SMTP and template setup (`docs/email-resend.md`), with approval |
+| Restricted database credentials | Migration `20261117000001` prepared and tested, **not applied** | Your review and approval (`docs/review/`) |
+| Resend account and sending domain | Not created | Account, region, domain, DNS (approval) |
+| App hosting and worker | Nothing deployed | Hosting approval (Vercel preview, Fly.io worker) |
+| OpenAI production key | Not set | Key with a monthly budget limit |
+| Sentry (D9) | Not set up | Before a real customer pilot |
+
+### Next stage proposal
+1. **Your review of the designs.** Changes first, then Stage 4 (onboarding steps 4–7, brand assets
+   with the `document` media kind, `user_preferences`) and Stage 5 (invitations, team, ownership
+   transfer, workspace settings, audit log, token page).
+2. **Stage 2 live items**, as soon as credentials arrive: R2 verification, Resend and Supabase SMTP,
+   then the first live end-to-end run, kept separate from local results.
 
 ## 1. Summary
 
@@ -246,8 +308,8 @@ functions, and the existing tests cover them. It is in Stage 2 so everything aft
 | S2 | High (defence in depth) | The server's database credential is the table owner (4.4) | Dedicated roles (Stage 2) |
 | S3 | Medium | **No rate limiting on web server actions.** AI brief, concepts and storyboard each cost OpenAI money per click. The MCP limiter is in-memory, so each serverless instance has its own count | Postgres-backed limiter for AI, uploads, invitations and sign-in adjacent actions. Per-organisation daily AI cap from `pricing.json`. OpenAI project budget as a backstop (Stage 6) |
 | S4 | Medium | **Storage allowance not enforced.** Uploads up to 20 GB are accepted whatever the plan's `storageGB`. The presigned PUT can't cap size; completion records it | Check the quota when the upload is created (declared size) and again at completion (actual size). Over quota: refuse and delete (Stage 6) |
-| S5 | Medium | **Email verification not enforced in code** | Turn on "Confirm email" in Supabase. Onboarding, invitation acceptance and the app require `email_confirmed_at` (Stage 3) |
-| S6 | Medium | **Password change without re-authentication** (any session can call `updatePassword`) | Settings asks for the current password (or Supabase's reauthenticate nonce). Turn on "Secure password change" and "Secure email change" (Stage 3) |
+| S5 | **Fixed** (was Medium) | **Email verification not enforced in code** | Turn on "Confirm email" in Supabase. Onboarding, invitation acceptance and the app require `email_confirmed_at` (Stage 3) |
+| S6 | **Fixed for settings** (was Medium) | **Password change without re-authentication** (any session can call `updatePassword`). Settings now require the current password; the reset flow still uses the emailed link | Settings asks for the current password (or Supabase's reauthenticate nonce). Turn on "Secure password change" and "Secure email change" (Stage 3) |
 | S7 | Medium | **Default Supabase mailer** (not deliverable to customers) | Custom SMTP (Stage 2) |
 | S8 | Low–Medium | CSP still allows inline scripts | Nonce-based CSP now that app pages render per request (Stage 7) |
 | S9 | Low (measured: no access for anon or authenticated) | `reeldeal_meta.migrations` has RLS disabled (advisor: critical) | Revoke anon and authenticated on the schema, then enable RLS. Migration for your review (Stage 2) |
@@ -341,7 +403,7 @@ Estimates are focused build sessions (about half a day each). Owner time is list
   **only with your approval**.
 - *Depends on:* email provider account and sending domain, R2 API token, OpenAI key, signing secret, hosting decisions.
 
-### Stage 3: Authentication (3–4 sessions)
+### Stage 3: Authentication ✅ (local; see section 0)
 - S1 fix first, then:
   - the check-your-email screen with resend
   - verification enforced (S5)
@@ -442,6 +504,13 @@ Estimates are focused build sessions (about half a day each). Owner time is list
   audit make this safe, but it must land before new features are built on top.
 - **Serverless database connections.** Vercel functions need Supabase's transaction pooler (port 6543).
   The driver already uses `prepare: false`; connection limits still need watching under load.
+- **R6: server-side sign-in and the auth rate limit.** Sign-in, password checks and resends go from
+  the app's server to Supabase Auth, so many customers share a few server IP addresses. Supabase's
+  per-IP sign-in limit could block legitimate customers at busy times. Check and raise it in Stage 2;
+  measure under load in Stage 7.
+- **R7: auth server version.** The local Supabase Auth image (v2.180) didn't enforce
+  `current_password`. The hosted project may run a different version: re-test password, email
+  change and verification flows against the live project once SMTP is set up.
 - **Unconfirmed brand name.** Anything verified externally (Google consent screen, email sender domain,
   OAuth client) may have to be redone if the name changes.
 - **AI cost.** Until S3 lands, a signed-in user can trigger unlimited AI calls. Keep an OpenAI budget limit from day one.

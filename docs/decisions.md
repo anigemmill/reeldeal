@@ -265,3 +265,26 @@ How it is wired: `docs/app.md`. Decisions:
   third-party use of their colours and lettering that implies endorsement.
 - This is an exception to "orange has one job": the Instagram gradient contains orange,
   kept to the tile's lower-left corner so white type sits on pink and purple.
+
+## Stage 3: authentication and customer experience designs (2026-11-17)
+- **Email verification is required** (D10) in the proxy, pages and server actions, whatever the project's
+  setting. Unverified users see `/verify-email` (resend with a one-minute cooldown; neutral replies).
+- **Auth emails use token-hash links** (`supabase/templates/`), not Supabase's default PKCE links, which
+  only work in the requesting browser: confirming on a phone after signing up on a laptop failed.
+- **The app checks the current password** before a password change (throwaway sign-in, session revoked).
+  Supabase Auth v2.180 accepts but ignores `current_password`; we still send it.
+- **Secure email change**: both addresses must confirm. The settings page shows the pending address from
+  Supabase Auth; the callback reports "one of two confirmed" until both are.
+- **Sign out everywhere** revokes every session (`scope: global`) after a confirmation dialog. A password
+  change signs out other sessions (`scope: others`).
+- **Settings navigation** is shared (`SettingsFrame`, `PRODUCT_SETTINGS`): unbuilt areas show "soon" and are
+  not links.
+- **Legal pages are placeholders**: section structure only, every body bracketed, a draft notice on
+  screen, `noindex`. No legal wording was written.
+- **Stage 3 designs are real components on sample data** (`src/components/app/settings/*-screen.tsx`,
+  `onboarding-flow.tsx`), shown only on `/design-system/screens/*` and labelled. Wiring them later replaces
+  the sample data, not the components. `npm run review:shots` regenerates the screenshot pack.
+- **Shallow URL updates** (`history.replaceState`) for the library's `?media=` and Autopilot's `?project=`:
+  `router.replace` re-rendered the page on the server and briefly removed the document title.
+- **Local stack mirrors production auth settings**: confirmation required, secure email change, the repo's
+  email templates served to the local auth server.

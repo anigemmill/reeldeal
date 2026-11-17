@@ -54,9 +54,9 @@ any values.
 5. **Authentication → URL Configuration** (needed by the web app): Site URL = your app URL
    (`http://localhost:3000` for local use); add `http://localhost:3000/auth/callback` to
    Redirect URLs. Password-reset and confirmation emails link back through it.
-6. Decide whether new accounts must confirm their email (Authentication → Providers → Email).
-   Both work: without confirmation users go straight to onboarding; with it, the sign-up
-   page says to check their email.
+6. New accounts must confirm their email (D10): turn on **Confirm email** and **Secure email change**
+   (Authentication → Providers → Email), and install the templates in `supabase/templates`.
+   Custom SMTP (Resend) comes first: `docs/email-resend.md`. The app enforces confirmation either way.
 
 ### 2. Apply the migrations (first change to the database: needs your go-ahead)
 
