@@ -24,7 +24,8 @@ import { handleMcpHttp, protectedResourceMetadata, type HttpConfig } from "./htt
   Flags: --worker also runs the job worker in this process.
 */
 async function main() {
-  const platform = await createPlatform();
+  // Hosting the remote MCP endpoint is the web service: in production it must use reeldeal_web.
+  const platform = await createPlatform({ service: "web" });
   const port = env.MCP_HTTP_PORT;
   const resourceUrl = env.MCP_PUBLIC_URL ?? `http://localhost:${port}/mcp`;
   const cfg: HttpConfig = {

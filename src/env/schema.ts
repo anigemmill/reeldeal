@@ -27,7 +27,27 @@ export const publicSchema = z
     if (Boolean(env.NEXT_PUBLIC_SUPABASE_URL) !== Boolean(env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
       ctx.addIssue({ code: "custom", path: ["NEXT_PUBLIC_SUPABASE_URL"], message: "Set both NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, or neither" });
     }
+    // Public variables are inlined into every browser bundle. A secret or service-role key pasted
+    // here would bypass RLS for anyone who opens the site, so the build and the server refuse it.
+    if (env.NEXT_PUBLIC_SUPABASE_ANON_KEY && isPrivilegedSupabaseKey(env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+      ctx.addIssue({ code: "custom", path: ["NEXT_PUBLIC_SUPABASE_ANON_KEY"], message: "This is a secret (service-role) key. Use the publishable or anon key: secret keys must never reach the browser" });
+    }
   });
+
+/** True for Supabase secret keys (sb_secret_…) and legacy JWT keys whose role is service_role. */
+export function isPrivilegedSupabaseKey(key: string): boolean {
+  if (key.startsWith("sb_secret_")) return true;
+  const parts = key.split(".");
+  if (parts.length !== 3) return false;
+  try {
+    // atob exists in browsers and Node (this schema runs in both).
+    const b64 = parts[1]!.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4))) as { role?: string };
+    return payload.role === "service_role" || payload.role === "supabase_admin";
+  } catch {
+    return false;
+  }
+}
 
 const R2_KEYS = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"] as const;
 
@@ -57,6 +77,12 @@ export const serverSchema = z
     /* ---- Platform services (MCP server, workers, API routes) ---- */
     /** Postgres connection (Supabase: the pooler URL). Without it, local tools use embedded PGlite. */
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "must be a postgres:// URL").optional(),
+    /**
+     * Production start-up check that the web app connects as reeldeal_web and the worker as
+     * reeldeal_worker (src/server/db/role-guard.ts). "warn" only for the window before the role
+     * passwords are set; infra:check reports it.
+     */
+    DATABASE_ROLE_CHECK: z.enum(["enforce", "warn"]).default("enforce"),
     /** Embedded database directory for local development without DATABASE_URL. */
     PGLITE_DIR: z.string().min(1).default(".data/pglite"),
     /** OAuth 2.1 access tokens (Supabase Auth) for remote MCP: issuer and JWKS. */

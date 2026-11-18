@@ -8,7 +8,7 @@ import { createPlatform, platformEnv as env } from "../src/server/platform";
 import { createWorker } from "../src/server/workers/runner";
 
 async function main() {
-  const platform = await createPlatform();
+  const platform = await createPlatform({ service: "worker" });
   if (platform.db.driver === "pglite") {
     platform.log.warn("Using the embedded database: run the worker inside the MCP server instead (it starts one automatically).");
   }

@@ -11,7 +11,7 @@ import { createPlatform } from "../platform";
 let platform: Promise<Platform> | null = null;
 
 export async function getPlatform(): Promise<Platform> {
-  platform ??= createPlatform({ autoMigrateEmbedded: false });
+  platform ??= createPlatform({ autoMigrateEmbedded: false, service: "web" });
   try {
     return await platform;
   } catch (e) {

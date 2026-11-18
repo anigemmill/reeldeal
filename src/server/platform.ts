@@ -7,6 +7,7 @@ import type { Platform } from "./context";
 import { createPgliteDb } from "./db/pglite";
 import { migrate } from "./db/migrate";
 import { createPostgresDb } from "./db/postgres";
+import { enforceDatabaseRole, type ServiceKind } from "./db/role-guard";
 import type { Db } from "./db/types";
 import { createLogger, type Logger } from "./log";
 import { createLocalStorage } from "./storage/local";
@@ -21,7 +22,11 @@ export const PLATFORM_VERSION = "0.1.0";
     storage   R2 when configured; otherwise local files with signed URLs (development)
     ai        OpenAI when OPENAI_API_KEY is set; otherwise AI tools report "not configured"
 */
-export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateEmbedded?: boolean } = {}): Promise<Platform> {
+/**
+ * `service` says which database login this process must use in production (web → reeldeal_web,
+ * worker → reeldeal_worker). Scripts that run as the owner (migrations, bootstrap) pass "admin".
+ */
+export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateEmbedded?: boolean; service?: ServiceKind } = {}): Promise<Platform> {
   const log = opts.log ?? createLogger(env.MCP_LOG_LEVEL);
 
   let signingSecret = env.SIGNING_SECRET;
@@ -39,6 +44,12 @@ export async function createPlatform(opts: { log?: Logger; db?: Db; autoMigrateE
       const pg = await createPgliteDb(env.PGLITE_DIR);
       if (opts.autoMigrateEmbedded !== false) await migrate(pg, (sql) => pg.exec(sql), (m) => log.info("migration", { m }));
       db = pg;
+    }
+    if (env.DATABASE_URL) {
+      await enforceDatabaseRole(db, opts.service ?? "admin", { production: env.NODE_ENV === "production", mode: env.DATABASE_ROLE_CHECK, warn: (m, d) => log.warn(m, d) }).catch(async (e) => {
+        await db!.close();
+        throw e;
+      });
     }
   }
 
