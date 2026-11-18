@@ -61,7 +61,8 @@ stack: `supabase/postgres:17.6.1.166`, Supabase Auth v2.180.0, MinIO, Mailpit).
 | Worker start-up check | Local stack, production mode | Owner login refused; web role refused; `reeldeal_worker` starts; `warn` mode logs and starts |
 | Browser journey, two businesses (`npm run test:e2e`) | Dev server, local stack, fixture AI | **140/141.** One keyboard check ("Upload opens the file chooser") timed out once with focus correctly on the button; it passed in earlier runs. Retry added; recorded as a flaky check, not hidden |
 | Production build as `reeldeal_web` + `reeldeal_worker` | `next start` and worker on the local stack | Sign-up → verify → workspace → all setup steps (real logo upload) → workspace, billing, tokens (create and revoke), team (invite) on phone and desktop: **no errors** (`npm run review:live-shots`) |
-| Accessibility (axe, keyboard, reduced motion) | Production build | See below (filled in after the run) |
+| Accessibility suite (`npm run test:a11y`: axe on 16 theme sets × 31 pages plus 17 phone layouts; keyboard paths; reduced motion) | Production build, `reeldeal_web` login | **All passed** |
+| Server and MCP suite (`npm run test:supabase-local`) | `supabase/postgres` image | **227 passed, 8 skipped** |
 | axe on the new live pages | Browser suite | **0 violations:** /onboarding/setup (brand, assets, done), /settings/workspace, /settings/billing, /settings/tokens, /settings/team |
 | Typecheck, lint, secret scan, token check, pricing, env, migration safety | n/a | **Pass** |
 | Production build | n/a | **Pass** |
