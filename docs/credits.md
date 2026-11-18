@@ -7,7 +7,7 @@ The promise in `config/pricing.json` and `docs/pricing-source.md` section 6 is u
 - the **oldest credits are used first**
 - Free's one-off allowance never rolls over or expires
 
-Until migration `20261119000001_credit_rollover` (not applied, awaiting approval), the ledger only
+Until migration `20261119000001_credit_rollover` (applied to the live project 2026-11-18; see `docs/review/migration-execution-record-2026-11-18.md`), the ledger only
 counted the current month. Rollover was promised but not delivered.
 
 ## How it works

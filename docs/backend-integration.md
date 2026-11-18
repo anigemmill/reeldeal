@@ -4,13 +4,11 @@ Status at 2026-11-17 (Mission 5). **A screen existing does not mean the feature 
 for each area, what is in the database, what is in the services, what is tested, and what
 remains before the screen can be wired to real accounts.
 
-Two prepared migrations are **not applied** to the live project:
-
-- `20261117000001_restricted_runtime_roles`: reviewed in `docs/review/`
-- `20261118000001_teams_workspace_onboarding`: reviewed in `docs/review/`
-
-Everything marked "needs 1118" works locally and in tests. It can't run against the live project
-until that migration is approved and applied.
+**Update 2026-11-18:** `20261117000001_restricted_runtime_roles`, `20261118000001_teams_workspace_onboarding`
+and `20261119000001_credit_rollover` are **applied to the live project**
+(`docs/review/migration-execution-record-2026-11-18.md`). "Needs 1118" in the tables below now means
+"needs the code deployed": the database side is live. The Mission 6 wiring status is in the table
+at the end of this file.
 
 ## Implementation map
 
