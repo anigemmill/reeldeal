@@ -146,3 +146,27 @@ pass and inbox placement in Gmail and Outlook.
 3. DNS: you add the records Resend shows, or approve me to.
 4. Approval to configure Supabase Auth SMTP and templates on the `reeldeal` project.
 5. `[SUPPORT EMAIL]`, `[DMARC REPORT ADDRESS]`, and `[COMPANY LEGAL NAME AND POSTAL ADDRESS]` for the email footer.
+
+## 11. Emails the app sends itself (Mission 6, built, not live)
+
+Account emails (confirm, reset, email change) come from **Supabase Auth through Resend SMTP**
+(section 6). Workspace **invitations** come from the app, through the **Resend API**
+(`src/server/email/`):
+
+| Variable (Vercel, Production) | Value | Secret |
+|---|---|---|
+| `RESEND_API_KEY` | A Resend API key with **sending access only**, restricted to the verified domain | Yes |
+| `EMAIL_FROM` | `Reeldeal <team@mail.<domain>>` (any address on the verified domain) | No |
+| `EMAIL_REPLY_TO` (optional) | A monitored inbox, e.g. `support@<domain>` | No |
+
+- **Off until both are set.** Without them, Team shows "Copy link" and nothing is sent (U5).
+- **No duplicate sends:** each invitation is sent with `Idempotency-Key: invitation:<id>`.
+  "Resend" on a pending invitation revokes it and creates a new one with a new link, which is a
+  new key and one new email.
+- **Nothing sensitive is logged:** no address, link, body or key. Failures log the HTTP status only,
+  and the admin is shown the link to copy instead.
+- **Reminders:** no automatic reminder (there's no scheduler yet). The admin presses "Resend" on a
+  pending invitation; the email is titled "Reminder: join …".
+- **DNS:** the same records as section 4 cover both senders (same domain).
+- Templates, rendered at desktop and phone width: `docs/review/email/README.md` (`npm run review:emails`).
+- Tests: `src/server/email/email.test.ts` (escaping, idempotency key, no logging, not-configured).

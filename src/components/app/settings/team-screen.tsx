@@ -2,6 +2,7 @@
 
 import { Check, Copy, Crown, Mail, MoreHorizontal, RotateCw, Trash2, TriangleAlert, UserPlus, Users, X } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,14 @@ import { Avatar } from "@/components/ui/misc";
 import { ProgressBar } from "@/components/ui/progress";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import type { ActionResult } from "@/server/app/result";
+import { perform } from "./live";
 import { agoFmt, dateFmt, previewOnly, ROLE_LABEL, ROLE_SUMMARY, SampleBadge, useInitialDialog } from "./preview";
 import { SettingsFrame, SettingsSection, type SettingsItem } from "./settings-shell";
 
 /*
-  Settings → Team (DESIGN, Stage 5 wires it). Rules shown here are the agreed ones
+  Settings → Team. The design review page passes sample data and no actions (nothing is saved);
+  the real page (/settings/team) passes the workspace's team and the server actions. Rules shown here are the agreed ones
   (docs/production-plan.md 4.2): one owner; admins manage editors and viewers but not
   the owner or other admins; invitations count toward the plan's seats and expire in
   7 days; ownership transfer needs the workspace name and your password.
@@ -33,6 +37,19 @@ export type TeamData = {
   invites: TeamInvite[];
   /** False until Resend is set up: invitations are shared by copying the link (U5). */
   emailDelivery?: boolean;
+  /** Live pages: relative times are from now (review pages use a fixed date for stable screenshots). */
+  now?: number;
+};
+type InviteResponse = ActionResult<{ results: InviteResult[]; emailDelivery: boolean }>;
+/** Server actions (src/app/(app)/_actions/settings.ts). Absent on the design review pages. */
+export type TeamActions = {
+  invite: (emails: string, role: string) => Promise<InviteResponse>;
+  renew: (invitationId: string) => Promise<InviteResponse>;
+  revoke: (invitationId: string) => Promise<ActionResult<unknown>>;
+  changeRole: (userId: string, role: string) => Promise<ActionResult<unknown>>;
+  remove: (userId: string) => Promise<ActionResult<unknown>>;
+  leave: () => Promise<ActionResult<unknown>>;
+  transfer: (newOwnerId: string, confirmName: string, password: string) => Promise<ActionResult<unknown>>;
 };
 const ROLE_ARTICLE: Record<Role, string> = { owner: "the", admin: "an", editor: "an", viewer: "a" };
 
@@ -42,8 +59,12 @@ const RANK: Record<Role, number> = { viewer: 1, editor: 2, admin: 3, owner: 4 };
 const assignable = (me: Role, target: Role): Exclude<Role, "owner">[] =>
   me === "owner" ? (target === "owner" ? [] : ["admin", "editor", "viewer"]) : me === "admin" && RANK[target] < RANK.admin ? ["editor", "viewer"] : [];
 
-export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsItems?: SettingsItem[] }) {
+export function TeamScreen({ data, settingsItems, actions }: { data: TeamData; settingsItems?: SettingsItem[]; actions?: TeamActions }) {
   const [dialog, setDialog] = useInitialDialog();
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [renewed, setRenewed] = useState<InviteResult[] | null>(null);
+  const ago = (iso: string) => agoFmt(iso, data.now);
   const [removing, setRemoving] = useState<TeamMember | null>(null);
   // U3: a role change is confirmed first (and spelled out when it removes permissions).
   const [roles] = useState<Record<string, Role>>({}); // wired pages update this after a confirmed change
@@ -65,7 +86,7 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
       intro={`People who can use ${data.workspace}. Each person signs in with their own account; what they can do depends on their role.`}
       actions={
         <div className="flex flex-wrap items-center gap-2">
-          <SampleBadge />
+          {actions ? null : <SampleBadge />}
           {canInvite ? (
             <Button variant="primary" onClick={() => setDialog("invite")} disabled={full}>
               <UserPlus aria-hidden /> Invite people
@@ -122,7 +143,7 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
                       {m.you ? <Badge size="sm">You</Badge> : null}
                     </span>
                     <span className="truncate text-sm text-ink-muted">{m.email}</span>
-                    <span className="text-xs text-ink-muted">Joined {dateFmt(m.joinedAt)} · Active {agoFmt(m.lastActive)}</span>
+                    <span className="text-xs text-ink-muted">Joined {dateFmt(m.joinedAt)} · Active {ago(m.lastActive)}</span>
                   </div>
                 </div>
                 <div className="order-3 col-span-2 sm:order-none sm:col-span-1">
@@ -150,7 +171,7 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
                       <DropdownMenu.Portal>
                         <DropdownMenu.Content align="end" sideOffset={4} className="z-50 min-w-48 rounded-md border border-line bg-surface p-1 text-sm shadow-float">
                           {m.you ? (
-                            <DropdownMenu.Item className="flex cursor-default items-center gap-2 rounded px-2.5 py-2 outline-none data-highlighted:bg-surface-muted" onSelect={() => previewOnly("You haven't left")}>
+                            <DropdownMenu.Item className="flex cursor-default items-center gap-2 rounded px-2.5 py-2 outline-none data-highlighted:bg-surface-muted" onSelect={() => setDialog("leave")}>
                               Leave workspace
                             </DropdownMenu.Item>
                           ) : (
@@ -188,14 +209,36 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
                 <div className="flex min-w-0 flex-1 basis-56 flex-col">
                   <span className="font-medium break-all">{i.email}</span>
                   <span className="text-xs text-ink-muted">
-                    {ROLE_LABEL[i.role]} · invited by {i.invitedBy} {agoFmt(i.sentAt)} · expires {dateFmt(i.expiresAt)}
+                    {ROLE_LABEL[i.role]} · invited by {i.invitedBy} {ago(i.sentAt)} · {data.now && Date.parse(i.expiresAt) <= data.now ? <strong className="font-semibold text-warning">expired</strong> : <>expires {dateFmt(i.expiresAt)}</>}
                   </span>
                 </div>
                 <div className="flex w-full gap-1.5 pl-11 sm:w-auto sm:pl-0">
-                  <Button size="sm" variant="ghost" onClick={() => previewOnly(data.emailDelivery ? "No email was sent" : "No new link was made")}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={async () => {
+                      if (!actions) return previewOnly(data.emailDelivery ? "No email was sent" : "No new link was made");
+                      setBusy(true);
+                      const r = await perform(actions.renew(i.id));
+                      setBusy(false);
+                      if (r) setRenewed(r.results);
+                    }}
+                  >
                     <RotateCw aria-hidden /> {data.emailDelivery ? "Resend" : "New link"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => previewOnly("Invitation not revoked")}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={busy}
+                    aria-label={`Revoke invitation for ${i.email}`}
+                    onClick={async () => {
+                      if (!actions) return previewOnly("Invitation not revoked");
+                      setBusy(true);
+                      await perform(actions.revoke(i.id), `Invitation for ${i.email} revoked`);
+                      setBusy(false);
+                    }}
+                  >
                     <X aria-hidden /> Revoke
                   </Button>
                 </div>
@@ -234,12 +277,44 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
       ) : null}
 
       <InviteDialog
-        open={dialog === "invite" || dialog === "invite-results"}
-        onOpenChange={close}
+        open={dialog === "invite" || dialog === "invite-results" || renewed !== null}
+        onOpenChange={(o) => (close(o), !o && setRenewed(null))}
         data={data}
+        actions={actions}
+        given={renewed}
         reviewResults={dialog === "invite-results" ? `rangi@lakesidelodge.example, ${data.members[1]?.email ?? "member@example.com"}, not-an-email` : undefined}
       />
-      <TransferDialog open={dialog === "transfer"} onOpenChange={close} data={data} />
+      <TransferDialog open={dialog === "transfer"} onOpenChange={close} data={data} actions={actions} />
+      <Modal
+        open={dialog === "leave"}
+        onOpenChange={close}
+        size="sm"
+        title={`Leave ${data.workspace}?`}
+        description="You lose access straight away, including any access tokens you made for this workspace. Your uploads and videos stay in the workspace."
+        footer={
+          <>
+            <ModalClose asChild>
+              <Button variant="ghost">Cancel</Button>
+            </ModalClose>
+            <Button
+              variant="primary"
+              disabled={busy}
+              onClick={async () => {
+                if (!actions) return setDialog(null), previewOnly("You haven't left");
+                setBusy(true);
+                const r = await perform(actions.leave(), `You left ${data.workspace}`);
+                setBusy(false);
+                if (r) {
+                  router.push("/dashboard");
+                  router.refresh();
+                }
+              }}
+            >
+              Leave workspace
+            </Button>
+          </>
+        }
+      />
       <Modal
         open={pendingChange !== null}
         onOpenChange={(o) => !o && (setChanging(null), dialog === "role" && setDialog(null))}
@@ -259,11 +334,17 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
             </ModalClose>
             <Button
               variant="primary"
-              onClick={() => {
+              disabled={busy}
+              onClick={async () => {
                 if (!pendingChange) return;
+                if (actions) {
+                  setBusy(true);
+                  await perform(actions.changeRole(pendingChange.member.id, pendingChange.to), `${pendingChange.member.name} is now ${ROLE_ARTICLE[pendingChange.to]} ${ROLE_LABEL[pendingChange.to].toLowerCase()}`);
+                  setBusy(false);
+                }
                 setChanging(null);
                 if (dialog === "role") setDialog(null);
-                previewOnly(`Role not changed (${pendingChange.member.name} stays ${ROLE_LABEL[roleOf(pendingChange.member)].toLowerCase()})`);
+                if (!actions) previewOnly(`Role not changed (${pendingChange.member.name} stays ${ROLE_LABEL[roleOf(pendingChange.member)].toLowerCase()})`);
               }}
             >
               Change role
@@ -282,7 +363,19 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
             <ModalClose asChild>
               <Button variant="ghost">Cancel</Button>
             </ModalClose>
-            <Button variant="primary" onClick={() => (setRemoving(null), previewOnly("Nobody was removed"))}>
+            <Button
+              variant="primary"
+              disabled={busy}
+              onClick={async () => {
+                const m = removing;
+                if (!m) return;
+                if (!actions) return setRemoving(null), previewOnly("Nobody was removed");
+                setBusy(true);
+                await perform(actions.remove(m.id), `${m.name} was removed`);
+                setBusy(false);
+                setRemoving(null);
+              }}
+            >
               Remove
             </Button>
           </>
@@ -293,7 +386,7 @@ export function TeamScreen({ data, settingsItems }: { data: TeamData; settingsIt
 }
 
 /** One line per address after inviting: created (with its link) or the reason it wasn't (U4). */
-export type InviteResult = { email: string; link?: string; error?: string };
+export type InviteResult = { email: string; link?: string; emailed?: boolean; error?: string };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -314,11 +407,35 @@ export function previewInviteResults(raw: string, data: TeamData): InviteResult[
   });
 }
 
-function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boolean; onOpenChange: (o: boolean) => void; data: TeamData; reviewResults?: string }) {
+function InviteDialog({
+  open,
+  onOpenChange,
+  data,
+  reviewResults,
+  actions,
+  given,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  data: TeamData;
+  reviewResults?: string;
+  actions?: TeamActions;
+  /** Results from "New link" on a pending invitation. */
+  given?: InviteResult[] | null;
+}) {
   const [role, setRole] = useState<string>("editor");
   const [emails, setEmails] = useState("");
   const [submitted, setResults] = useState<InviteResult[] | null>(null);
-  const results = submitted ?? (reviewResults ? previewInviteResults(reviewResults, data) : null);
+  const [sending, setSending] = useState(false);
+  const results = submitted ?? given ?? (reviewResults ? previewInviteResults(reviewResults, data) : null);
+  const submit = async () => {
+    if (!emails.trim() || sending) return;
+    if (!actions) return setResults(previewInviteResults(emails, data));
+    setSending(true);
+    const r = await perform(actions.invite(emails, role));
+    setSending(false);
+    if (r) setResults(r.results);
+  };
   const [copied, setCopied] = useState<string | null>(null);
   const left = data.seats === null ? null : data.seats - data.members.length - data.invites.length;
   const roles = (data.myRole === "owner" ? ["admin", "editor", "viewer"] : ["editor", "viewer"]) as Exclude<Role, "owner">[];
@@ -330,7 +447,7 @@ function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boole
     }
     onOpenChange(o);
   };
-  const created = results?.filter((r) => !r.error).length ?? 0;
+  const created = results?.filter((r) => !r.error || r.link).length ?? 0;
   const copy = async (r: InviteResult) => {
     if (!r.link) return previewOnly("Nothing was copied (no invitation was created)");
     try {
@@ -360,14 +477,14 @@ function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boole
         <ul aria-label="Invitation results" className="flex flex-col divide-y divide-line rounded-lg border border-line">
           {results.map((r) => (
             <li key={r.email} className="flex flex-wrap items-center gap-3 p-3">
-              <span aria-hidden className={cn("inline-flex size-7 shrink-0 items-center justify-center rounded-full", r.error ? "bg-danger/10 text-danger" : "bg-success/10 text-success")}>
+              <span aria-hidden className={cn("inline-flex size-7 shrink-0 items-center justify-center rounded-full", r.error && !r.link ? "bg-danger/10 text-danger" : r.error ? "bg-warning/10 text-warning" : "bg-success/10 text-success")}>
                 {r.error ? <TriangleAlert className="size-4" /> : <Check className="size-4" />}
               </span>
               <span className="flex min-w-0 flex-1 basis-48 flex-col">
                 <span className="font-medium break-all">{r.email}</span>
-                <span className="text-sm text-ink-muted">{r.error ?? `Invited as ${ROLE_LABEL[role as Role].toLowerCase()}`}</span>
+                <span className="text-sm text-ink-muted">{r.error ?? (r.emailed ? "Invitation emailed" : `Invited as ${ROLE_LABEL[role as Role].toLowerCase()}`)}</span>
               </span>
-              {!r.error && !data.emailDelivery ? (
+              {r.link && (!data.emailDelivery || r.error) ? (
                 <Button size="sm" variant="secondary" onClick={() => copy(r)} aria-label={copied === r.email ? `Copied link for ${r.email}` : `Copy link for ${r.email}`}>
                   {copied === r.email ? <Check aria-hidden /> : <Copy aria-hidden />} {copied === r.email ? "Copied" : "Copy link"}
                 </Button>
@@ -391,13 +508,13 @@ function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boole
           <ModalClose asChild>
             <Button variant="ghost">Cancel</Button>
           </ModalClose>
-          <Button variant="primary" disabled={!emails.trim()} onClick={() => setResults(previewInviteResults(emails, data))}>
+          <Button variant="primary" disabled={!emails.trim() || sending} onClick={submit}>
             {data.emailDelivery ? "Send invitations" : "Create invitations"}
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-5" onSubmit={(e) => (e.preventDefault(), emails.trim() && setResults(previewInviteResults(emails, data)))}>
+      <form className="flex flex-col gap-5" onSubmit={(e) => (e.preventDefault(), void submit())}>
         <Field label="Email addresses" hint="Separate several addresses with commas.">
           <Textarea name="emails" rows={3} placeholder="name@business.com, another@business.com" value={emails} onChange={(e) => setEmails(e.target.value)} />
         </Field>
@@ -407,11 +524,22 @@ function InviteDialog({ open, onOpenChange, data, reviewResults }: { open: boole
   );
 }
 
-function TransferDialog({ open, onOpenChange, data }: { open: boolean; onOpenChange: (o: boolean) => void; data: TeamData }) {
+function TransferDialog({ open, onOpenChange, data, actions }: { open: boolean; onOpenChange: (o: boolean) => void; data: TeamData; actions?: TeamActions }) {
   const candidates = data.members.filter((m) => !m.you && m.role !== "viewer");
   const [to, setTo] = useState(candidates[0]?.id ?? "");
   const [typed, setTyped] = useState("");
-  const ok = typed.trim() === data.workspace && to;
+  const [password, setPassword] = useState("");
+  const [sending, setSending] = useState(false);
+  const ok = typed.trim() === data.workspace && to && (!actions || password) && !sending;
+  const submit = async () => {
+    if (!ok) return;
+    if (!actions) return onOpenChange(false), previewOnly("Ownership not transferred");
+    setSending(true);
+    const r = await perform(actions.transfer(to, typed, password), "Ownership transferred. You're now an administrator.");
+    setSending(false);
+    setPassword("");
+    if (r) onOpenChange(false);
+  };
   return (
     <Modal
       open={open}
@@ -423,23 +551,24 @@ function TransferDialog({ open, onOpenChange, data }: { open: boolean; onOpenCha
           <ModalClose asChild>
             <Button variant="ghost">Cancel</Button>
           </ModalClose>
-          <Button variant="primary" disabled={!ok} onClick={() => (onOpenChange(false), previewOnly("Ownership not transferred"))}>
+          <Button variant="primary" disabled={!ok} onClick={submit}>
             Transfer ownership
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
-        <Field label="New owner" hint="Administrators and editors can become the owner. They'll be emailed.">
+      <form className="flex flex-col gap-4" onSubmit={(e) => (e.preventDefault(), void submit())}>
+        {candidates.length === 0 ? <p className="text-sm text-ink-muted">Only administrators and editors can become the owner. Invite someone or change a role first.</p> : null}
+        <Field label="New owner" hint="Administrators and editors can become the owner.">
           <Select value={to} onValueChange={setTo} options={candidates.map((m) => ({ value: m.id, label: `${m.name} (${ROLE_LABEL[m.role]})` }))} />
         </Field>
         <Field label={<>Type <strong className="font-semibold">{data.workspace}</strong> to confirm</>}>
           <Input value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
         </Field>
         <Field label="Your password">
-          <Input type="password" autoComplete="current-password" />
+          <Input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
-        <p className={cn("rounded-md border border-line bg-surface-muted px-3.5 py-2.5 text-sm")}>A confirmation email goes to both of you, and the change is recorded in the workspace audit log.</p>
+        <p className={cn("rounded-md border border-line bg-surface-muted px-3.5 py-2.5 text-sm")}>The change is recorded in the workspace audit log.</p>
       </form>
     </Modal>
   );

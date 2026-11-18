@@ -60,6 +60,17 @@ export const serverSchema = z
     VERCEL_PROJECT_PRODUCTION_URL: optionalString,
     /** Bypasses Row Level Security. Server-side jobs only; never in browser code. */
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
+    /** Resend (docs/email-resend.md): app emails such as invitations. Off unless both are set. */
+    RESEND_API_KEY: optionalString,
+    /** e.g. "Reeldeal <team@mail.example.com>", on a domain verified in Resend. */
+    EMAIL_FROM: optionalString,
+    EMAIL_REPLY_TO: optionalString,
+    /** Sentry (docs/monitoring.md): error reports. Off when unset. A DSN is not a secret, but keep it private. */
+    SENTRY_DSN: optionalUrl,
+    SENTRY_ENVIRONMENT: optionalString,
+    SENTRY_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(1),
+    /** Shown in Settings → Workspace ("Data stored in"), e.g. "Sydney, Australia". Configuration, not data. */
+    DATA_REGION_LABEL: optionalString,
     R2_ACCOUNT_ID: optionalString,
     R2_ACCESS_KEY_ID: optionalString,
     R2_SECRET_ACCESS_KEY: optionalString,

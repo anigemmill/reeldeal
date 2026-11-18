@@ -14,7 +14,7 @@ import { presentJob, submitJob, type JobRow } from "./jobs";
   permanent URLs are never returned; previews and downloads are short-lived signed URLs.
 */
 
-export const UPLOAD_TYPES: Record<string, { ext: string; kind: "video" | "image" | "audio"; maxBytes: number }> = {
+export const UPLOAD_TYPES: Record<string, { ext: string; kind: "video" | "image" | "audio" | "document"; maxBytes: number }> = {
   "video/mp4": { ext: "mp4", kind: "video", maxBytes: 20e9 },
   "video/quicktime": { ext: "mov", kind: "video", maxBytes: 20e9 },
   "video/webm": { ext: "webm", kind: "video", maxBytes: 20e9 },
@@ -24,13 +24,15 @@ export const UPLOAD_TYPES: Record<string, { ext: string; kind: "video" | "image"
   "audio/mpeg": { ext: "mp3", kind: "audio", maxBytes: 5e8 },
   "audio/wav": { ext: "wav", kind: "audio", maxBytes: 5e8 },
   "audio/aac": { ext: "aac", kind: "audio", maxBytes: 5e8 },
+  // Brand guidelines (migration 20261118000001 allows kind = document). Stored like footage; never analysed.
+  "application/pdf": { ext: "pdf", kind: "document", maxBytes: 25e6 },
 };
 
 const RATIOS: Record<string, number> = { "9:16": 9 / 16, "1:1": 1, "16:9": 16 / 9, "4:5": 4 / 5 };
 
 export const SearchInput = z.object({
   query: z.string().trim().max(300).optional(),
-  kind: z.enum(["video", "image", "audio"]).optional(),
+  kind: z.enum(["video", "image", "audio", "document"]).optional(),
   orientation: z.enum(["landscape", "portrait", "square"]).optional(),
   aspect_ratio: z.enum(["9:16", "1:1", "16:9", "4:5"]).optional(),
   min_duration_seconds: z.number().min(0).optional(),
@@ -312,7 +314,7 @@ export async function requestAnalysis(ctx: Ctx, id: string) {
   requireScope(ctx.principal, "mcp:write");
   requireRole(ctx.principal, "editor");
   const m = await loadMedia(ctx, id); // ownership check in user context
-  if (m.kind === "audio") throw invalid("Analysis supports video and image files");
+  if (m.kind === "audio" || m.kind === "document") throw invalid("Analysis supports video and image files");
   if (m.status === "awaiting_upload") throw invalid("Finish the upload first (complete_media_upload)");
   if (!(await mediaToolsAvailable(ctx.media))) throw unavailable("Media analysis is not available on this server (FFmpeg is not installed).");
   if (!(await ctx.storage.head(m.storage_key))) throw invalid("The original file is missing from storage");
@@ -403,7 +405,8 @@ export async function listMediaActivity(ctx: Ctx, opts: { limit?: number } = {})
       `select m.id, m.title, m.kind, m.status, m.created_at, j.status as job_status, j.stage as job_stage, j.progress as job_progress, j.error as job_error
          from public.media_assets m
          left join lateral (select status, stage, progress, error from public.jobs where media_id = m.id and kind = 'media_analysis' order by created_at desc limit 1) j on true
-        where m.org_id = $1 and (m.status <> 'ready' or m.updated_at > now() - interval '2 days')
+        -- Documents (brand guidelines) are stored, never analysed: they'd show as processing forever.
+        where m.org_id = $1 and m.kind <> 'document' and (m.status <> 'ready' or m.updated_at > now() - interval '2 days')
         order by m.updated_at desc limit $2`,
       [ctx.principal.orgId, Math.min(opts.limit ?? 8, 30)],
     ),

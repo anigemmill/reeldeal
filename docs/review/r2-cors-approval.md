@@ -1,5 +1,48 @@
 # Approval request: R2 CORS policy for `reeldeal-dev-media`
 
+> **Mission 6 (2026-11-18): reviewed again, unchanged, still not applied.** The code was checked
+> against the policy:
+> - Browsers send only `content-type` and `if-none-match` (single PUT, brand logo, onboarding
+>   uploads), and nothing extra on multipart parts (a `Blob` slice has no type). Both are in the
+>   signature, so they can't be altered.
+> - Nothing in the app fetches a signed GET with JavaScript: downloads are navigations and previews
+>   are `<img>`/`<video>` without `crossorigin`. So `GET`, `HEAD` and exposed headers stay out.
+> - No cookies or credentials are sent to R2, so no `AllowCredentials`.
+> - The policy allows the development origin only.
+>
+> **Blocker for the test run:** this cloud environment no longer has the `R2_*` credentials (they
+> were set in Mission 4). `npm run test:r2-browser` needs them in the environment's secret store. The
+> procedure is below.
+
+## Owner procedure (about 3 minutes)
+
+1. Cloudflare dashboard → **R2 Object Storage** → bucket **`reeldeal-dev-media`** → **Settings**.
+2. **CORS policy → Add CORS policy** (or Edit), open the **JSON** tab, paste exactly this, and save:
+
+   ```json
+   [
+     {
+       "AllowedOrigins": ["http://localhost:3000"],
+       "AllowedMethods": ["PUT"],
+       "AllowedHeaders": ["content-type", "if-none-match"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
+
+3. On the same page, **check without changing**:
+   - **Public access**: "Public Development URL" Disabled, and no custom domain connected.
+   - **Object lifecycle rules**: "Abort incomplete multipart uploads" after 7 days (`infra/r2/lifecycle.md`).
+     If it's missing, tell me rather than adding it: lifecycle changes are yours to approve.
+4. Put the object-scoped R2 token back in this environment's secrets (`R2_ACCOUNT_ID`,
+   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET=reeldeal-dev-media`), then ask me to run
+   `npm run test:r2-browser`. It covers image, video and 150 MB multipart uploads, cancel, retry,
+   signed and expired downloads, and refused overwrite of an original, then removes everything it wrote.
+5. **Before preview or production:** add that exact origin (e.g. `https://app.example.com`) to
+   `AllowedOrigins`, a separate change with its own approval. Never use `*`.
+
+To undo: the same page → CORS policy → Delete. Uploads from browsers stop working; nothing else changes.
+
 **Status: awaiting your approval. Not applied.**
 
 ## Why it's needed (verified 2026-11-18)

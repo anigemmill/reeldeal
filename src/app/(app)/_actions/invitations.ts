@@ -6,6 +6,7 @@ import { getPlatform } from "@/server/app/platform";
 import { failure, type ActionResult } from "@/server/app/result";
 import { ORG_COOKIE, getSessionUser } from "@/server/app/session";
 import { authConfigured } from "@/server/app/supabase";
+import { getProfile, saveProfile } from "@/server/services/account";
 import { acceptInvitation, previewInvitation, type InvitationPreview } from "@/server/services/team";
 
 /*
@@ -39,7 +40,11 @@ async function accept(by: { token: string } | { invitationId: string }): Promise
   if (!user) return { ok: false, error: { code: "unauthorised", message: "Sign in to accept this invitation." } };
   if (!user.emailVerified) return { ok: false, error: { code: "forbidden", message: "Confirm your email address first." } };
   try {
-    const r = await acceptInvitation(await getPlatform(), user.id, by);
+    const p = await getPlatform();
+    const r = await acceptInvitation(p, user.id, by);
+    // People who join by invitation never create a workspace, which is where the profile is first saved:
+    // keep the name they signed up with, so the team list shows a name rather than an email address.
+    if (user.name && !(await getProfile(p, user.id)).display_name) await saveProfile(p, user.id, user.name).catch(() => {});
     // Open the workspace they just joined.
     (await cookies()).set(ORG_COOKIE, r.org_id, { httpOnly: true, sameSite: "lax", path: "/", secure: serverEnv.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 365 });
     return { ok: true, data: r };

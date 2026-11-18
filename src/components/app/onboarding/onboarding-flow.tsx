@@ -229,7 +229,7 @@ export function OnboardingFlow({ initialStep = "account", invite }: { initialSte
   );
 }
 
-function Step({ title, accent, intro, children }: { title: string; accent: string; intro: ReactNode; children: ReactNode }) {
+export function Step({ title, accent, intro, children }: { title: string; accent: string; intro: ReactNode; children: ReactNode }) {
   return (
     <>
       <header className="flex flex-col gap-2">
@@ -243,7 +243,7 @@ function Step({ title, accent, intro, children }: { title: string; accent: strin
   );
 }
 
-function Footer({ onBack, onNext, onSkip, next = "Continue" }: { onBack?: () => void; onNext: () => void; onSkip?: () => void; next?: string }) {
+export function Footer({ onBack, onNext, onSkip, next = "Continue" }: { onBack?: () => void; onNext: () => void; onSkip?: () => void; next?: string }) {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-line pt-5">
       {onBack ? (
@@ -356,7 +356,7 @@ function DropZone({ icon, title, hint, done }: { icon: ReactNode; title: string;
   );
 }
 
-function NextCard({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
+export function NextCard({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border border-line p-3.5">
       <span className="text-primary [&_svg]:size-5">{icon}</span>

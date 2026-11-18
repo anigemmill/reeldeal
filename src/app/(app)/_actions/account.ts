@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { publicEnv } from "@/env/public";
 import type { FormState } from "@/app/(app)/(auth)/actions";
@@ -9,6 +8,7 @@ import { failure } from "@/server/app/result";
 import { getSessionUser } from "@/server/app/session";
 import { authConfigured, supabaseServer } from "@/server/app/supabase";
 import { saveProfile } from "@/server/services/account";
+import { verifyCurrentPassword } from "@/server/app/password-check";
 
 /*
   Settings → Account. Every action re-verifies the signed-in user with Supabase Auth.
@@ -96,24 +96,4 @@ export async function changePassword(_: FormState, form: FormData): Promise<Form
   // Anyone else holding an old session (another browser or device) is signed out.
   await supabase.auth.signOut({ scope: "others" });
   return { notice: "Password changed. Other browsers and devices have been signed out." };
-}
-
-/**
- * Is this the account's current password? A separate Supabase client that keeps nothing
- * (no cookies, no storage, no refresh) signs in once; the temporary session is revoked
- * immediately, so it never becomes a usable session.
- */
-async function verifyCurrentPassword(email: string, password: string): Promise<"ok" | "wrong" | "limited" | "unavailable"> {
-  if (!email || !publicEnv.NEXT_PUBLIC_SUPABASE_URL || !publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY) return "unavailable";
-  const probe = createClient(publicEnv.NEXT_PUBLIC_SUPABASE_URL, publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-  });
-  const { data, error } = await probe.auth.signInWithPassword({ email, password });
-  if (error) {
-    if (error.code === "invalid_credentials" || error.status === 400) return "wrong";
-    if (error.status === 429 || error.code?.startsWith("over_")) return "limited";
-    return "unavailable";
-  }
-  if (data.session) await probe.auth.signOut({ scope: "local" }).catch(() => {});
-  return "ok";
 }

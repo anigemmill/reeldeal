@@ -10,13 +10,14 @@ import { listMediaActivity, mediaThumbnails, searchMedia } from "@/server/servic
 import { listProjects } from "@/server/services/projects";
 import { listExports } from "@/server/services/render";
 import { getMyWorkspace } from "@/server/services/workspace";
+import { getOnboardingState } from "@/server/services/workspace-settings";
 
 export const metadata: Metadata = { title: "Home" };
 
 async function Dashboard({ searchParams }: PageProps<"/dashboard">) {
   const { ctx, user } = await requireAppContext("/dashboard");
   const q = await searchParams;
-  const [ws, brands, usage, projects, activity, best, exp] = await Promise.all([
+  const [ws, brands, usage, projects, activity, best, exp, onboarding] = await Promise.all([
     getMyWorkspace(ctx),
     listBrands(ctx),
     usageFor(ctx),
@@ -24,6 +25,7 @@ async function Dashboard({ searchParams }: PageProps<"/dashboard">) {
     listMediaActivity(ctx, { limit: 5 }),
     searchMedia(ctx, { kind: "video", status: "ready", sort: "best_quality", limit: 4 }, { includeThumbnails: true }),
     listExports(ctx, { limit: 5 }),
+    getOnboardingState(ctx, ctx.principal.userId, ctx.principal.orgId).catch(() => null),
   ]);
   const thumbs = await mediaThumbnails(ctx, projects.projects.map((p) => p.cover_media_id).filter((x): x is string => Boolean(x)));
   const brand = brands.brands[0] ?? null;
@@ -49,6 +51,10 @@ async function Dashboard({ searchParams }: PageProps<"/dashboard">) {
     history: usage.recent_transactions,
     suggestions: briefSuggestions(brand?.industry),
     welcome: q.welcome === "1",
+    setup:
+      onboarding?.stage === "setup" && onboarding.next_step && onboarding.next_step !== "done"
+        ? { step: onboarding.next_step, label: ({ business: "business details", brand: "your brand", assets: "logo and assets", preferences: "preferences" } as Record<string, string>)[onboarding.next_step] ?? "setup" }
+        : null,
   };
   return <DashboardScreen data={data} />;
 }

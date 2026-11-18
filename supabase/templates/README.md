@@ -17,5 +17,7 @@ someone can sign up on a laptop and confirm on their phone.
 Not used (leave Supabase's defaults or disable): magic link, invite (Reeldeal sends its own
 workspace invitations, Stage 5), reauthentication.
 
+The emails say links expire **in 1 hour**. That's true only while Authentication → Emails → "Email OTP expiration" is **3600** seconds (the Supabase default). Change the wording if you change the setting.
+
 Bracketed text (`[COMPANY LEGAL NAME AND POSTAL ADDRESS]`) is owner copy still needed.
 Colours are the Crossroads Blue tokens as literal hex: email clients cannot read CSS variables.

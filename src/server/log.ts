@@ -5,7 +5,8 @@
 type Level = "debug" | "info" | "warn" | "error";
 const ORDER: Record<Level, number> = { debug: 10, info: 20, warn: 30, error: 40 };
 const SECRET_KEY = /token|secret|password|authorization|api[-_]?key|signature|cookie/i;
-const SECRET_VALUE = /\b(rdl_pat_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sk-[A-Za-z0-9_-]{16,})/g;
+// Access tokens, invitation tokens, JWTs, and secret keys (OpenAI, Supabase, Resend).
+const SECRET_VALUE = /\b(rdl_(?:pat|inv)_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sk-[A-Za-z0-9_-]{16,}|sb_secret_[A-Za-z0-9_-]+|re_[A-Za-z0-9_]{16,})/g;
 
 export function redact(value: unknown, depth = 0): unknown {
   if (depth > 6) return "[…]";

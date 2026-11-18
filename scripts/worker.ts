@@ -6,13 +6,19 @@
 */
 import { createPlatform, platformEnv as env } from "../src/server/platform";
 import { createWorker } from "../src/server/workers/runner";
+import { reportError } from "../src/server/monitoring";
 
 async function main() {
   const platform = await createPlatform({ service: "worker" });
   if (platform.db.driver === "pglite") {
     platform.log.warn("Using the embedded database: run the worker inside the MCP server instead (it starts one automatically).");
   }
-  const worker = createWorker(platform, { staleAfterSeconds: env.WORKER_STALE_SECONDS, heartbeatMs: env.WORKER_HEARTBEAT_SECONDS * 1000 });
+  const worker = createWorker(platform, {
+    staleAfterSeconds: env.WORKER_STALE_SECONDS,
+    heartbeatMs: env.WORKER_HEARTBEAT_SECONDS * 1000,
+    // Job and render failures to Sentry when SENTRY_DSN is set (ids and counts only).
+    onError: (e, info) => void reportError(e, { service: "worker", tags: { job_kind: String(info.kind) }, extra: info }),
+  });
   worker.start();
   let stopping = false;
   const stop = async (signal: string) => {

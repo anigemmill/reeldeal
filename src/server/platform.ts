@@ -14,7 +14,8 @@ import { createLocalStorage } from "./storage/local";
 import { createR2Storage } from "./storage/r2";
 import type { Storage } from "./storage/types";
 
-export const PLATFORM_VERSION = "0.1.0";
+export { PLATFORM_VERSION } from "./platform-version";
+import { PLATFORM_VERSION } from "./platform-version";
 
 /*
   Builds the platform from the validated server environment (src/env/schema.ts):

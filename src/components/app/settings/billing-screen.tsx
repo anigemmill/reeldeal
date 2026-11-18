@@ -50,7 +50,7 @@ const STATUS: Record<BillingData["status"], { label: string; tone: "success" | "
   cancelled: { label: "Cancelled", tone: "danger" },
   none: { label: "No subscription", tone: "neutral" },
 };
-const KIND: Record<string, string> = { grant: "Allowance", hold: "Held for render", release: "Hold released", charge: "Used", refund: "Refund", adjustment: "Adjustment" };
+const KIND: Record<string, string> = { grant: "Allowance", hold: "Held for render", release: "Hold released", charge: "Used", refund: "Refund", adjustment: "Adjustment", rollover: "Rolled over", expiry: "Expired unused" };
 const WALLET: Record<string, string> = { video: "Video credits", analysis: "Analysis minutes", ai_generation: "AI generation" };
 
 export function BillingScreen({ data, settingsItems }: { data: BillingData; settingsItems?: SettingsItem[] }) {
