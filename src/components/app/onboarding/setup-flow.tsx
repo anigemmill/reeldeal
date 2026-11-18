@@ -100,7 +100,7 @@ function BrandStep({ data, onDone }: { data: SetupData; onDone: (summary?: strin
   const save = async () => {
     if (!b) return onDone();
     if (!name.trim()) return setError("Give your brand a name.");
-    if (colours.some((c) => !HEX.test(c))) return setError("Each colour must be a hex value like #2038E2.");
+    if (colours.some((c) => !HEX.test(c))) return setError("Each colour must be a 6-digit hex value: # and six characters, 0–9 or A–F.");
     setError(null);
     setSaving(true);
     const voice = tones.length ? `${tones.join(", ")}.` : undefined;
@@ -127,7 +127,7 @@ function BrandStep({ data, onDone }: { data: SetupData; onDone: (summary?: strin
         <div className="flex flex-wrap gap-2.5">
           {colours.map((c, n) => (
             <span key={n} className="flex items-center gap-2 rounded-md border border-line bg-surface py-1.5 pr-1.5 pl-1.5">
-              <input type="color" value={HEX.test(c) ? c : "#000000"} onChange={(e) => setColours((cs) => cs.map((x, k) => (k === n ? e.target.value : x)))} aria-label={`Colour ${n + 1}`} className="size-8 cursor-pointer rounded border-0 bg-transparent p-0" />
+              <input type="color" value={HEX.test(c) ? c : NEW_BRAND_COLOUR_HEX} onChange={(e) => setColours((cs) => cs.map((x, k) => (k === n ? e.target.value : x)))} aria-label={`Colour ${n + 1}`} className="size-8 cursor-pointer rounded border-0 bg-transparent p-0" />
               <span className="font-mono text-xs uppercase">{c}</span>
               {colours.length > 1 ? (
                 <button type="button" onClick={() => setColours((cs) => cs.filter((_, k) => k !== n))} aria-label={`Remove colour ${n + 1}`} className="inline-flex size-7 items-center justify-center rounded text-ink-muted hover:bg-surface-muted">

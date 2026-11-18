@@ -7,7 +7,7 @@ export function reportError(err: unknown, ctx: ErrorContext): Promise<boolean> {
   return captureError(err, ctx, {
     dsn: serverEnv.SENTRY_DSN,
     environment: serverEnv.SENTRY_ENVIRONMENT ?? serverEnv.NODE_ENV,
-    release: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? PLATFORM_VERSION,
+    release: serverEnv.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? PLATFORM_VERSION,
     sampleRate: serverEnv.SENTRY_SAMPLE_RATE,
   });
 }

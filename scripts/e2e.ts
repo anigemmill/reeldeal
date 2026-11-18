@@ -492,9 +492,13 @@ async function main() {
       "Keyboard: closing details returns focus to the item",
       await page.waitForFunction(() => /lake morning/i.test(document.activeElement?.textContent ?? ""), null, { timeout: 2000 }).then(() => true, () => false),
     );
-    await page.getByRole("button", { name: "Upload" }).focus();
-    const [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 5000 }), page.keyboard.press("Enter")]);
-    check("Keyboard: Upload opens the file chooser", chooser.isMultiple());
+    // One retry: a background refresh while analysis runs can land between focus and Enter (seen once in Mission 6).
+    let chooser = null;
+    for (let attempt = 0; attempt < 2 && !chooser; attempt++) {
+      await page.getByRole("button", { name: "Upload" }).focus();
+      [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 5000 }).catch(() => null), page.keyboard.press("Enter")]);
+    }
+    check("Keyboard: Upload opens the file chooser", Boolean(chooser?.isMultiple()));
   });
 
   /* ---- brand ---- */

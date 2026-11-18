@@ -1,6 +1,6 @@
 # Production accounts and backend: audit and roadmap
 
-Status: **Mission 5 checkpoint (2026-11-17): R2 CORS awaiting approval; three migrations awaiting approval; invitations, credit rollover and UX fixes built and tested locally.** The current checkpoint is section 00; earlier ones follow it. Decisions are in section 12. No application code, database or
+Status: **Mission 6 checkpoint (2026-11-18): migrations 1117–1119 live; the customer app is wired to real accounts and tested end to end locally; the remaining blockers are owner actions (role passwords, R2 CORS, Auth/SMTP settings, hosting).** Section 00 is the current checkpoint; earlier checkpoints follow it unchanged. Decisions are in section 12.
 infrastructure was changed while writing it. The only live checks were read-only (2026-11-16):
 
 - Supabase: listed projects, tables, migrations and security advisors.
@@ -14,6 +14,85 @@ Evidence labels used below:
 - **Unverified**: built, but never exercised against real infrastructure.
 
 ---
+
+## 00. Checkpoint: 2026-11-18 (Mission 6)
+
+Evidence labels as above. **Live** is the real Supabase project; everything else is local (Docker
+stack: `supabase/postgres:17.6.1.166`, Supabase Auth v2.180.0, MinIO, Mailpit).
+
+### Live infrastructure
+
+| Item | State | Evidence |
+|---|---|---|
+| Supabase `jzshbaqfrrgsyiciuzfe` | **Live:** 10 migrations in both trackers, 22 public tables, all with RLS, 0 users, 0 workspaces; both restricted roles exist with no login (read-only re-check 08:17 UTC) | `docs/review/migration-execution-record-2026-11-18.md` |
+| Migrations 1117, 1118, 1119 | **Applied** (07:35–07:50 UTC) after approval; post-checks pass | same |
+| Role passwords, Vercel, worker host, Auth settings, SMTP, R2 CORS, Sentry | **Not done: yours** | `docs/deployment-checklist.md` |
+| R2 real-bucket browser test | **Blocked:** CORS not applied, and this environment has no `R2_*` credentials this session | `docs/review/r2-cors-approval.md` |
+
+### Built and tested this mission
+
+- **Customer pages wired to real data:** onboarding steps 4–7 (brand, logo, guidelines PDF, footage,
+  preferences, done) with resume and the dashboard "finish setup" card. Workspace, Team (invite,
+  copy link or email, new link, revoke, role change, remove, leave, transfer), Access tokens and Usage
+  and billing (`docs/backend-integration.md`, end).
+- **Restricted roles:**
+  - production start-up refuses the wrong database login for the web app and worker
+    (`DATABASE_ROLE_CHECK=warn` for a planned transition)
+  - `infra:check` reports which service a URL fits
+  - every Mission 5 service tested as `reeldeal_web`
+  - credentials guide: `docs/database-credentials.md`
+- **Email:** invitation emails through the Resend API (off until configured; idempotent; nothing
+  logged), templates with explicit expiry, review pack `docs/review/email/`, DNS/SMTP and app-email
+  setup in `docs/email-resend.md`.
+- **Auth:** dashboard settings list (`docs/supabase-auth-settings.md`), live test plan
+  (`docs/auth-live-test-plan.md`).
+- **Monitoring:** dependency-free Sentry reporter, off without `SENTRY_DSN`, scrubbing tokens, keys
+  and emails. Server, browser and worker hooks (`docs/monitoring.md`).
+- **Security:** review in `docs/security-review.md` (Mission 6 section). Five defects found and
+  fixed, including token-bearing URLs in the dev request log and unlimited invitation emails.
+- **Credits:** ledger re-verified. **D-B2 recommendation** written (`docs/credits.md`). Not decided.
+
+### Test results (actual, this mission)
+
+| Check | Environment | Result |
+|---|---|---|
+| Unit and integration suite (`npm test`) | PGlite | **324 passed, 11 skipped** (skipped need live credentials) |
+| Restricted roles incl. real logins and the start-up check | `supabase/postgres` image | **48/48** |
+| Worker start-up check | Local stack, production mode | Owner login refused; web role refused; `reeldeal_worker` starts; `warn` mode logs and starts |
+| Browser journey, two businesses (`npm run test:e2e`) | Dev server, local stack, fixture AI | **140/141.** One keyboard check ("Upload opens the file chooser") timed out once with focus correctly on the button; it passed in earlier runs. Retry added; recorded as a flaky check, not hidden |
+| Production build as `reeldeal_web` + `reeldeal_worker` | `next start` and worker on the local stack | Sign-up → verify → workspace → all setup steps (real logo upload) → workspace, billing, tokens (create and revoke), team (invite) on phone and desktop: **no errors** (`npm run review:live-shots`) |
+| Accessibility (axe, keyboard, reduced motion) | Production build | See below (filled in after the run) |
+| axe on the new live pages | Browser suite | **0 violations:** /onboarding/setup (brand, assets, done), /settings/workspace, /settings/billing, /settings/tokens, /settings/team |
+| Typecheck, lint, secret scan, token check, pricing, env, migration safety | n/a | **Pass** |
+| Production build | n/a | **Pass** |
+| Logs after five full browser runs | Dev server and worker | **0** access tokens, invitation tokens, passwords, JWTs or keys. `token_hash` email-link URLs were found in the dev request log and fixed |
+
+### Customer acceptance (two businesses, local)
+
+Covered by the browser suite in one run, with businesses "E2E Lakeside" (A) and "Other Cafe" (B)
+plus four more accounts:
+- **Register, verify and set up:** register, verify by email (including another browser), create the
+  workspace, complete setup (brand, logo, guidelines, preferences), with resume.
+- **Make videos:** upload footage (including 150 MB multipart, cancel, retry, a broken file),
+  analysis, library search, a project with Autopilot (brief, concepts, storyboard), Studio, render,
+  export and signed download, plus failure, retry, duplicate-confirm and insufficient-credit cases.
+- **Team:** invite (copy link), accept on a phone, role change, viewer restrictions, revoke, remove,
+  audit log.
+- **Usage and credits:** checked on the real pages.
+- **Isolation:** B can't see A's library, projects, brands, exports or credits, and can't redirect a
+  signed link. Invitation links for another address reveal nothing.
+
+Creative AI is the labelled fixture provider (no paid calls).
+
+### Decisions and approvals still needed
+
+1. Role passwords and the hosting variables (`docs/database-credentials.md`)
+2. R2 CORS, plus R2 credentials back in this environment for the browser test
+3. Supabase Auth settings and Resend domain/DNS/SMTP
+4. D-B2 and the four commercial choices in `docs/credits.md`
+5. Retention D-W1 to D-W6 (workspace deletion)
+6. A Sentry project (optional)
+7. Owner copy: `[COMPANY LEGAL NAME AND POSTAL ADDRESS]`, `[DATA REGION, TO CONFIRM]`, Terms and Privacy
 
 ## 00. Checkpoint: 2026-11-17 (Mission 5)
 

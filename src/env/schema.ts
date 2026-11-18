@@ -69,6 +69,8 @@ export const serverSchema = z
     SENTRY_DSN: optionalUrl,
     SENTRY_ENVIRONMENT: optionalString,
     SENTRY_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(1),
+    /** Set by Vercel on every build: the release reported to Sentry. */
+    VERCEL_GIT_COMMIT_SHA: optionalString,
     /** Shown in Settings → Workspace ("Data stored in"), e.g. "Sydney, Australia". Configuration, not data. */
     DATA_REGION_LABEL: optionalString,
     R2_ACCOUNT_ID: optionalString,
