@@ -32,6 +32,8 @@ SEGMENTS = {
     "07_restaurants_a": ("indirect", "Rotorua restaurants"),
     "07_restaurants_b": ("indirect", "Rotorua restaurants"),
     "08_bars": ("indirect", "Rotorua bars and hotels"),
+    "09_attractions_a": ("direct", "Rotorua attractions"),
+    "10_attractions_b": ("direct", "Rotorua attractions"),
 }
 
 FIELDS = [

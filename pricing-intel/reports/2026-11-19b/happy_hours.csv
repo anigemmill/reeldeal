@@ -1,0 +1,18 @@
+venue_name,competitor_class,region,venue_type,happy_hour_days,happy_hour_times,normalised_item,item_name_as_listed,size_or_serving,price_nzd,standard_price,standard_basis,discount_nzd,discount_pct,conditions,confidence,menu_date_or_last_updated,source_url
+Ambrosia,indirect,Rotorua,restaurant,Wednesday,5pm-7pm,cocktail,Wicked Wednesdays: Selected Cocktails,,15.0,,,,,"Selected cocktails (""Ladies night"", guys can have them too)",B,,https://ambrosiarotorua.co.nz/
+Ambrosia,indirect,Rotorua,restaurant,Thursday,5pm-7pm,jug_beer,Thirsty Thursday: Tiger Jugs,,30.0,,,,,Tiger jug OR 4x bottled beers for $30,B,,https://ambrosiarotorua.co.nz/
+Ambrosia,indirect,Rotorua,restaurant,Thursday,5pm-7pm,bottled_beer,Thirsty Thursday: 4x Bottle Beers,4 bottles ($7.50 each),30.0,,,,,,B,,https://ambrosiarotorua.co.nz/
+Ambrosia,indirect,Rotorua,restaurant,Friday,5pm-7pm,other,T.G.I.Fridays Happy Hour - discount on beer and house wines,,,,,,,,B,,https://ambrosiarotorua.co.nz/
+Ambrosia,indirect,Rotorua,restaurant,Sunday,2pm-4pm,other,Sunday Sessions: Happy Hour & Pizza & Pint,,35.0,,,,,Any pizza and pint of Tiger,B,,https://ambrosiarotorua.co.nz/
+BREW,indirect,Rotorua,bar_pub,Monday-Friday,4pm-6pm,other,Hoppy Hour (selected drinks and food),,,,,,,Selected drinks and food,B,,https://www.brewpub.co.nz/
+BREW,indirect,Rotorua,bar_pub,Friday,5pm-7pm,tap_beer_handle_or_glass,Hoppy Hour - Croucher beer,,,,,,,$2 off Croucher beer,C,February 2020,https://www.thecuriouskiwi.co.nz/rotorua_happy_hours.php
+BREW,indirect,Rotorua,bar_pub,Friday,5pm-7pm,other,"Hoppy Hour - wine, Steinlager Pure and Heineken",,6.0,,,,,,C,February 2020,https://www.thecuriouskiwi.co.nz/rotorua_happy_hours.php
+Capers Cafe + Store,indirect,Rotorua,cafe,Daily,4pm-6pm,other,"Happy hour - wines, beer, NZ distillery gins",,,,,,,"Wines, beer, NZ distillery gins",A,"Summer 26 menu, PDF created 2026-10-27",https://www.capers.co.nz/menus
+Duke's Bar & Restaurant,indirect,Rotorua,hotel_bar,Daily,4pm-6pm,other,Happy Hour 4pm-6pm 7 days,,,,,,,,B,,https://www.princesgate.co.nz/dine/happy-hours/
+Duke's Bar & Restaurant,indirect,Rotorua,hotel_bar,Daily,4:30pm-6pm (Fri to 6:30pm),other,Happy hour house beer and wine (Princes Gate),,7.0,,,,,,C,February 2020,https://www.thecuriouskiwi.co.nz/rotorua_happy_hours.php
+Good Eastern Taphouse,indirect,Rotorua,bar_pub,Friday,4pm-6pm,other,Friday 4PM Whistle Happy Hour,,,,,,,,A,What's on image dated 19-11-2026,https://www.goodeastern.nz/events/
+Good Eastern Taphouse,indirect,Rotorua,bar_pub,Daily,4pm-6pm,other,Tools down happy hour - 20% off drinks,,,,,,,20% off drinks,C,February 2020,https://www.thecuriouskiwi.co.nz/rotorua_happy_hours.php
+Pig & Whistle,indirect,Rotorua,bar_pub,Monday-Friday,3:30pm-6pm,other,"Happy Hour (tap beers, house wine, house spirits, cocktails)",,,,,,,Excludes holidays,B,,https://www.pigandwhistle.co.nz/happy-hour
+Pig & Whistle,indirect,Rotorua,bar_pub,Monday-Friday,3:30pm-6pm,tap_beer_handle_or_glass,All Moa tap beers and ciders,,7.0,,,,,Excludes public holidays,C,February 2020,https://www.thecuriouskiwi.co.nz/rotorua_happy_hours.php
+Social Club Rotorua,indirect,Rotorua,bar_pub,Daily,3pm-6pm,other,Social Happy Hour (Social Brews special prices),,,,,,,All our Social Brews have special prices! (ask in venue which beers),C,,https://trylocal.co.nz/deal/social-happy-hour/
+The Greenhouse Kitchen & Bar,indirect,Rotorua,restaurant,Daily,5pm-7pm,other,Happy Hour house beer and wine,,5.0,,,,,House beer and house wine,C,February 2020,https://www.thecuriouskiwi.co.nz/rotorua_happy_hours.php

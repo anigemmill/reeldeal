@@ -135,32 +135,59 @@ def comparability(std, pv):
     return pd.DataFrame(out).sort_values(["item", "score"], ascending=[True, False]) if out else pd.DataFrame()
 
 
+ALIASES = {"Artisan": "Artisan Cafe & Restaurant"}
+OFFER_TYPES = ("happy_hour", "promotion")
+
+
 def changes(df, run_id):
+    """Changes since each venue's previous check, at the level a reader acts on.
+
+    - Price moves: a venue's lowest A/B price for an item type and price type,
+      flagged only past both thresholds. Item wording can differ between
+      checks, so items are matched by type, never by their listed name.
+    - Offers: a venue that now shows a happy hour or promotion it did not
+      show before, or no longer shows one it did.
+    Venues are compared only on sources both checks read, so a source one
+    check could not reach never reads as a change.
+    """
+    cols = ["venue_name", "normalised_item", "price_type", "previous", "current",
+            "change_nzd", "change_pct", "flag", "previous_run"]
     runs = list(dict.fromkeys(df["run_id"]))
     if runs.index(run_id) == 0:
-        return pd.DataFrame(columns=["venue_name", "normalised_item", "item_name_as_listed", "price_type",
-                                     "previous", "current", "change_nzd", "change_pct", "flag"])
-    prev_id = runs[runs.index(run_id) - 1]
-    key = ["venue_name", "normalised_item", "item_name_as_listed", "size_or_serving", "price_type"]
-    good = df[df["confidence"].isin(["A", "B"]) & df["price_nzd"].notna()]
-    cur = good[good["run_id"] == run_id].groupby(key)["price_nzd"].min()
-    prv = good[good["run_id"] == prev_id].groupby(key)["price_nzd"].min()
-    checked = set(df[df["run_id"] == run_id]["venue_name"])
+        return pd.DataFrame(columns=cols)
+    df = df.assign(venue_name=df["venue_name"].replace(ALIASES))
+    idx = runs.index(run_id)
+    cur = df[df["run_id"] == run_id]
     rows = []
-    for k in cur.index.union(prv.index):
-        c, p = cur.get(k), prv.get(k)
-        if p is None:
-            rows.append(dict(zip(key, k), previous=None, current=c, flag="new item or offer"))
-        elif c is None:
-            # Only a venue that was re-checked this run can have dropped an item.
-            if k[0] not in checked:
-                continue
-            rows.append(dict(zip(key, k), previous=p, current=None, flag="no longer listed"))
-        elif abs(c - p) >= MIN_CHANGE_ABS and abs(c / p - 1) >= MIN_CHANGE_PCT:
-            rows.append(dict(zip(key, k), previous=p, current=c, change_nzd=round(c - p, 2),
-                             change_pct=round((c / p - 1) * 100, 1),
-                             flag="increase" if c > p else "decrease"))
-    return pd.DataFrame(rows)
+    for venue, c in cur.groupby("venue_name"):
+        earlier = df[(df["venue_name"] == venue) & df["run_id"].isin(runs[:idx])]
+        if earlier.empty:
+            continue
+        prev_run = max(earlier["run_id"], key=runs.index)
+        # Compare only sources both checks actually read.
+        shared = set(c["source_url"]) & set(earlier[earlier["run_id"] == prev_run]["source_url"])
+        if not shared:
+            continue
+        c = c[c["source_url"].isin(shared)]
+        p = earlier[(earlier["run_id"] == prev_run) & earlier["source_url"].isin(shared)]
+        good = lambda d: d[d["confidence"].isin(["A", "B"]) & d["price_nzd"].notna()
+                           & (d["normalised_item"] != "other") & (d["price_type"] != "combo_package")]
+        pc = good(c).groupby(["normalised_item", "price_type"])["price_nzd"].min()
+        pp = good(p).groupby(["normalised_item", "price_type"])["price_nzd"].min()
+        for k in pc.index.intersection(pp.index):
+            a, b = pp[k], pc[k]
+            if abs(b - a) >= MIN_CHANGE_ABS and abs(b / a - 1) >= MIN_CHANGE_PCT:
+                rows.append({"venue_name": venue, "normalised_item": k[0], "price_type": k[1],
+                             "previous": a, "current": b, "change_nzd": round(b - a, 2),
+                             "change_pct": round((b / a - 1) * 100, 1),
+                             "flag": "increase" if b > a else "decrease", "previous_run": prev_run})
+        had = p["price_type"].isin(OFFER_TYPES).any()
+        has = c["price_type"].isin(OFFER_TYPES).any()
+        if has and not had:
+            rows.append({"venue_name": venue, "flag": "new offer", "previous_run": prev_run})
+        elif had and not has:
+            rows.append({"venue_name": venue, "flag": "offer no longer shown", "previous_run": prev_run})
+    return pd.DataFrame(rows, columns=cols)
 
 
 def break_even_grid():

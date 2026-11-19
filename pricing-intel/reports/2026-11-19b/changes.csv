@@ -1,0 +1,4 @@
+venue_name,normalised_item,price_type,previous,current,change_nzd,change_pct,flag,previous_run
+Artisan Cafe & Restaurant,fries,standard,12.5,8.0,-4.5,-36.0,decrease,2026-11-19
+Artisan Cafe & Restaurant,large_upsize,standard,0.5,6.5,6.0,1200.0,increase,2026-11-19
+Poco,spirit_and_mixer,standard,16.0,14.0,-2.0,-12.5,decrease,2026-11-19

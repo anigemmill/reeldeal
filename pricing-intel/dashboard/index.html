@@ -211,6 +211,8 @@ ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
     <div class="notice"><b>Te Puia publishes no café or bar prices online.</b> Hiakai Café’s hours are listed but not its menu, and Pātaka Kai has no drinks list or happy hour online. To place Te Puia in the market, enter its prices in the Benchmarks tab or send the current menus to Claude.</div>
     <div class="card"><h3>Packages that include food or drink</h3><p class="muted small">From Te Puia’s booking pages.</p></div>
     <div class="tbl-wrap"><table id="tp-table"><thead><tr><th>Package</th><th class="num">Price</th><th>What F&amp;B is included</th><th>Conf.</th><th>Source</th></tr></thead><tbody></tbody></table></div>
+    <div class="card"><h3>Other attractions’ packages with food or drink</h3><p class="muted small">Published packages that bundle an experience with food or drink, from each operator’s own pages. Prices are per person unless the package says otherwise.</p></div>
+    <div class="tbl-wrap"><table id="pk-table"><thead><tr><th>Attraction</th><th>Package</th><th class="num">Price</th><th>Food and drink included</th><th>Conf.</th><th>Source</th></tr></thead><tbody></tbody></table></div>
     <div class="card calc">
       <div><h3>Price-rise break-even</h3><p class="muted small">How much volume a price rise can lose before contribution falls. The margin is your assumption: no real cost data has been supplied yet.</p></div>
       <div class="calc-in">
@@ -300,7 +302,7 @@ function renderHeader() {
   const hhVenues = new Set(ROWS.filter((r) => r.ptype === "happy_hour" && r.conf !== "C").map((r) => r.venue)).size;
   $("#takeaway").textContent = `A flat white costs ${money(fw.min)}–${money(fw.max)} across ${fw.n} Rotorua venues that publish prices (median ${money(fw.median)}). ${hhVenues} venues show a happy hour on a current official source, and Te Puia publishes no café or bar prices, so its position needs its own menu.`;
   $("#meta").replaceChildren(
-    el("span", { class: "mono", text: `Checked ${RUN}` }),
+    el("span", { class: "mono", text: `Checked ${RUN.slice(0, 10)}` }),
     el("span", { text: `${priced.length} prices from ${pv} venues (${venues} checked)` }),
     el("span", { text: `${ab} graded A or B` }),
     el("span", { text: "NZD, GST-inclusive" }));
@@ -483,6 +485,11 @@ function renderTP() {
     el("td", {}, el("b", { text: r.listed })), el("td", { class: "num", text: money(r.price) }),
     el("td", { class: "small", text: r.cond || r.notes || "" }), el("td", {}, el("span", { class: `pill conf-${r.conf}`, text: r.conf })),
     el("td", { class: "small" }, el("a", { href: r.url, target: "_blank", rel: "noopener", text: "Open" })))));
+  const pk = ROWS.filter((r) => r.cls === "direct" && r.price != null && r.ptype === "combo_package").sort((a, b) => a.venue.localeCompare(b.venue) || a.price - b.price);
+  $("#pk-table tbody").replaceChildren(...pk.map((r) => el("tr", {},
+    el("td", {}, el("b", { text: r.biz || r.venue })), el("td", { text: r.listed }), el("td", { class: "num", text: money(r.price) }),
+    el("td", { class: "small", text: r.cond || (r.notes || "").slice(0, 240) }), el("td", {}, el("span", { class: `pill conf-${r.conf}`, text: r.conf })),
+    el("td", { class: "small" }, el("a", { href: r.url, target: "_blank", rel: "noopener", text: "Open" })))));
   calc();
 }
 function calc() {
@@ -580,7 +587,7 @@ async function setupDownload() {
   const dl = await (window.claude?.use?.("downloads") ?? Promise.resolve(null)).catch(() => null);
   if (!dl) return;
   const b = $("#dl"); b.hidden = false;
-  b.addEventListener("click", async () => { try { await dl.save({ filename: `rotorua-fnb-prices-${RUN}.csv`, data: toCSV(filtered()) }); } catch (e) { if (e?.code !== "declined") $("#all-count").textContent = "The download didn’t start. Try again."; } });
+  b.addEventListener("click", async () => { try { await dl.save({ filename: `rotorua-fnb-prices-${RUN.slice(0, 10)}.csv`, data: toCSV(filtered()) }); } catch (e) { if (e?.code !== "declined") $("#all-count").textContent = "The download didn’t start. Try again."; } });
 }
 
 /* ---------- Boot ---------- */

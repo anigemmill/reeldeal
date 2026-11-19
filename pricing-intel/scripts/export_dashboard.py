@@ -38,7 +38,12 @@ ALIASES = {"Artisan": "Artisan Cafe & Restaurant"}
 
 
 def main(run_id):
-    """Each venue's rows from the latest run up to RUN_ID that checked it."""
+    """For each venue and source, the rows from the latest run that read that source.
+
+    A later check that reads a different source (or cannot reach one) adds to
+    what is known; it never erases what an earlier check read elsewhere.
+    Venues with no prices keep only their latest gap note.
+    """
     runs = [r["run_id"] for r in csv.DictReader((ROOT / "data" / "runs.csv").open())]
     runs = runs[: runs.index(run_id) + 1]
     by_venue = {}
@@ -50,9 +55,14 @@ def main(run_id):
             o = {k: (r[v] or None) for k, v in MAP.items()}
             o["price"], o["std"] = num(r["price_nzd"]), num(r["standard_price_if_shown"])
             o["run"] = r["run_id"]
-            by_venue.setdefault(o["venue"], {}).setdefault(r["run_id"], []).append(o)
+            has_info = o["price"] is not None or o["ptype"] in ("happy_hour", "promotion") or o["hhTimes"]
+            key = (o["venue"], o["url"] if has_info else "(gap)")
+            by_venue.setdefault(key, {}).setdefault(r["run_id"], []).append(o)
+    priced_venues = {v for (v, u) in by_venue if u != "(gap)"}
     rows = []
-    for per_run in by_venue.values():
+    for (venue, url), per_run in by_venue.items():
+        if url == "(gap)" and venue in priced_venues:
+            continue
         latest = max(per_run, key=runs.index)
         rows.extend(per_run[latest])
     out = {"run": run_id, "runs": runs, "exported": datetime.now(timezone.utc).isoformat(timespec="seconds"),
