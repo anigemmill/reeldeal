@@ -254,12 +254,12 @@ const ITEMS = [
   ["muffin","Muffin","food"],["scone","Scone","food"],["slice_or_cookie","Slice or cookie","food"],["pie","Pie","food"],["sausage_roll","Sausage roll","food"],["toastie","Toastie","food"],
   ["sandwich_wrap","Sandwich or wrap","food"],["salad","Salad","food"],["big_breakfast","Big breakfast","food"],["eggs_benedict","Eggs benedict","food"],["fries","Fries","food"],["burger","Burger","food"],["kids_meal","Kids meal","food"],
   ["tap_beer_pint","Tap beer, pint","bar"],["tap_beer_handle_or_glass","Tap beer, handle or glass","bar"],["bottled_beer","Bottled beer","bar"],["jug_beer","Jug of beer","bar"],["cider","Cider","bar"],
-  ["house_wine_glass","House wine, glass","bar"],["wine_bottle","Wine, bottle","bar"],["spirit_and_mixer","Spirit and mixer","bar"],["cocktail","Cocktail","bar"],["bar_snack","Bar snack","bar"],["platter","Platter","bar"]
+  ["house_wine_glass","House wine, glass","bar"],["wine_bottle","Wine, bottle","bar"],["spirit_and_mixer","Spirit and mixer","bar"],["cocktail","Cocktail","bar"],["mocktail","Mocktail","bar"],["bar_snack","Bar snack","bar"],["platter","Platter","bar"]
 ];
 const ITEM = Object.fromEntries(ITEMS.map(([k, l, g]) => [k, { label: l, group: g }]));
 const itemLabel = (k) => ITEM[k]?.label || (k === "other" ? "Other" : k);
-const GROUPS = { client: "Te Puia", attr: "Rotorua attractions", town: "Rotorua town cafés", bars: "Rotorua bars and hotels", regional: "Regional", national: "National benchmarks" };
-const groupOf = (r) => r.cls === "client" ? "client" : r.cls === "direct" ? "attr" : r.cls === "indirect" ? (/bars/i.test(r.seg || "") ? "bars" : "town") : r.cls === "regional_benchmark" ? "regional" : "national";
+const GROUPS = { client: "Te Puia", attr: "Rotorua attractions", town: "Rotorua cafés and restaurants", bars: "Rotorua bars and hotels", regional: "Regional", national: "National benchmarks" };
+const groupOf = (r) => r.cls === "client" ? "client" : r.cls === "direct" ? "attr" : r.cls === "indirect" ? (["bar_pub", "hotel_bar", "brewery"].includes(r.vtype) ? "bars" : "town") : r.cls === "regional_benchmark" ? "regional" : "national";
 const marketOf = (r) => ({ attr: "attr", town: "town", bars: "town", regional: "bench", national: "bench" })[groupOf(r)] || null;
 const MARKETS = { attr: "Rotorua attractions", town: "Rotorua town", bench: "Regional + national" };
 const PTYPE = { standard: "Standard", happy_hour: "Happy hour", combo_package: "Package", promotion: "Promotion" };

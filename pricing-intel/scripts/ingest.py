@@ -28,6 +28,10 @@ SEGMENTS = {
     "03_town_cafes": ("indirect", "Rotorua town cafés"),
     "04_happy_hours": ("indirect", "Rotorua bars and hotels"),
     "05_regional": ("benchmark", "Regional and national benchmarks"),
+    "06_eat_streat": ("indirect", "Eat Streat and central Rotorua"),
+    "07_restaurants_a": ("indirect", "Rotorua restaurants"),
+    "07_restaurants_b": ("indirect", "Rotorua restaurants"),
+    "08_bars": ("indirect", "Rotorua bars and hotels"),
 }
 
 FIELDS = [
@@ -58,8 +62,8 @@ def clean(row, run_id, seg_key):
     notes = (row.get("notes") or "").lower()
     if cls == "benchmark":
         cls = "national_premium_benchmark" if "national_premium" in notes else "regional_benchmark"
-    # Hotel bars and attraction bars compete for the same happy-hour drinker.
-    if seg_key == "04_happy_hours" and row.get("venue_type") in ("attraction_bar",):
+    # A visitor attraction's café or bar is a direct competitor whichever list found it.
+    if cls == "indirect" and str(row.get("venue_type") or "").startswith("attraction"):
         cls = "direct"
     out["competitor_class"] = cls
     p = row.get("price_nzd")

@@ -33,16 +33,29 @@ def num(v):
         return None
 
 
+# Names one venue was recorded under in different runs.
+ALIASES = {"Artisan": "Artisan Cafe & Restaurant"}
+
+
 def main(run_id):
-    rows = []
+    """Each venue's rows from the latest run up to RUN_ID that checked it."""
+    runs = [r["run_id"] for r in csv.DictReader((ROOT / "data" / "runs.csv").open())]
+    runs = runs[: runs.index(run_id) + 1]
+    by_venue = {}
     with (ROOT / "data" / "observations.csv").open() as fh:
         for r in csv.DictReader(fh):
-            if r["run_id"] != run_id:
+            if r["run_id"] not in runs:
                 continue
+            r["venue_name"] = ALIASES.get(r["venue_name"], r["venue_name"])
             o = {k: (r[v] or None) for k, v in MAP.items()}
             o["price"], o["std"] = num(r["price_nzd"]), num(r["standard_price_if_shown"])
-            rows.append(o)
-    out = {"run": run_id, "exported": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            o["run"] = r["run_id"]
+            by_venue.setdefault(o["venue"], {}).setdefault(r["run_id"], []).append(o)
+    rows = []
+    for per_run in by_venue.values():
+        latest = max(per_run, key=runs.index)
+        rows.extend(per_run[latest])
+    out = {"run": run_id, "runs": runs, "exported": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "rows": rows}
     path = ROOT / "dashboard" / "data.json"
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
