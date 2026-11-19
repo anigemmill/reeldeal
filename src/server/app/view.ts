@@ -53,3 +53,6 @@ export async function navData(c: AppContext, ctx: Ctx = c.ctx): Promise<NavData>
     workspaces: c.memberships.map((m) => ({ id: m.org_id, name: m.name, current: m.org_id === ctx.principal.orgId })),
   };
 }
+
+/** Request time for relative dates on live pages (a function, so render stays free of direct impure calls). */
+export const requestNow = (): number => new Date().getTime();

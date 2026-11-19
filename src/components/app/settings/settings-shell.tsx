@@ -14,11 +14,11 @@ export type SettingsItem = { id: string; label: string; href?: string };
 /** What the product has today. The design review pages pass their own list (every area linked). */
 export const PRODUCT_SETTINGS: SettingsItem[] = [
   { id: "account", label: "Account", href: "/settings/account" },
-  { id: "workspace", label: "Workspace" },
+  { id: "workspace", label: "Workspace", href: "/settings/workspace" },
   { id: "brands", label: "Brand profiles", href: "/brands" },
-  { id: "team", label: "Team" },
-  { id: "billing", label: "Usage and billing" },
-  { id: "tokens", label: "Access tokens" },
+  { id: "team", label: "Team", href: "/settings/team" },
+  { id: "billing", label: "Usage and billing", href: "/settings/billing" },
+  { id: "tokens", label: "Access tokens", href: "/settings/tokens" },
   { id: "appearance", label: "Appearance", href: "/settings/appearance" },
 ];
 

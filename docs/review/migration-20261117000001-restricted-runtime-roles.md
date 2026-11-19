@@ -1,5 +1,7 @@
 # Migration review: restricted runtime roles (`20261117000001`)
 
+> **Update 2026-11-18: APPLIED to the live project** (07:35:56 UTC). See `docs/review/migration-execution-record-2026-11-18.md`. The roles still have no passwords: `docs/database-credentials.md`. The review below is kept as approved.
+
 **Status: prepared and tested locally. NOT applied to the live `reeldeal` project.** Applying it needs
 your explicit approval (D2). This document covers what changes, the impact, how it was tested, how to
 apply it, and how to roll it back. The complete SQL is at the end, verbatim.

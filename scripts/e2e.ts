@@ -46,6 +46,8 @@ function makeMedia() {
   ff(["-f", "lavfi", "-i", "testsrc2=size=800x600", "-frames:v", "1", join(dir, "logo.png")]);
   writeFileSync(join(dir, "broken_clip.mp4"), Buffer.alloc(300_000, 7)); // not a video: analysis must fail
   writeFileSync(join(dir, "notes.txt"), "not media");
+  // A minimal one-page PDF (brand guidelines in onboarding).
+  writeFileSync(join(dir, "guidelines.pdf"), "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n");
   ff(["-f", "lavfi", "-i", "testsrc2=size=1280x720:rate=30:duration=6", "-c:v", "libx264", "-preset", "veryfast", join(dir, "doomed_clip.mp4")]);
 }
 
@@ -102,6 +104,9 @@ async function signUp(ctx: BrowserContext, name: string, email: string, business
   await page.getByLabel("Industry").click();
   await page.getByRole("option", { name: "Accommodation" }).click();
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Steps 4–7 come next; these accounts finish them later (business A completes them in the auth section).
+  await page.waitForURL("**/onboarding/setup**", { timeout: 30000 });
+  await page.getByRole("link", { name: "Finish later" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 30000 });
   return page;
 }
@@ -207,7 +212,50 @@ async function main() {
     await vp.getByLabel("Industry").click();
     await vp.getByRole("option", { name: "Accommodation" }).click();
     await vp.getByRole("button", { name: "Create workspace" }).click();
+    /* Onboarding steps 4–7 (brand, logo and assets, preferences, done), with a resume in between. */
+    await vp.waitForURL("**/onboarding/setup**", { timeout: 30000 });
+    await settle(vp);
+    check("Creating the workspace continues to setup step 4 (brand)", /Step 4 of 7/i.test(await vp.locator("main:visible").innerText()));
+    await axe(vp, "/onboarding/setup (brand)");
+    await vp.getByLabel("Brand name").fill("E2E Lakeside Lodge");
+    await vp.getByRole("button", { name: "+ Add colour" }).click();
+    await vp.getByRole("button", { name: "Warm" }).click();
+    await vp.getByRole("button", { name: "Calm" }).click();
+    await vp.getByLabel("Who are your customers? (optional)").fill("Couples on a South Island road trip");
+    await vp.getByRole("button", { name: "Continue" }).click();
+    await vp.getByText("Step 5 of 7").waitFor({ timeout: 15000 });
+    check("Saving the brand moves to step 5 (logo and assets)", true);
+    // Leave and come back: setup resumes where it was left, from the server's record.
+    await vp.goto(`${BASE}/dashboard`);
+    await settle(vp);
+    check("The dashboard offers to finish setup", /Finish setting up E2E Lakeside/.test(await vp.locator("main:visible").innerText()));
+    await vp.getByRole("link", { name: "Continue setup" }).click();
+    await vp.getByText("Step 5 of 7").waitFor({ timeout: 15000 });
+    check("Setup resumes at the saved step", true);
+    await vp.getByLabel("Upload logo").setInputFiles(join(dir, "logo.png"));
+    await vp.getByText("Uploaded · choose another to replace it").first().waitFor({ timeout: 30000 });
+    check("The logo uploads to private storage from setup", true);
+    await vp.getByLabel("Upload brand guidelines (optional)").setInputFiles(join(dir, "notes.txt"));
+    check("A guidelines file that isn't a PDF is refused with a message", await vp.getByText("Use a PDF file.").isVisible());
+    await vp.getByLabel("Upload brand guidelines (optional)").setInputFiles(join(dir, "guidelines.pdf"));
+    await vp.getByText("Uploaded · choose another to replace it").nth(1).waitFor({ timeout: 30000 });
+    check("Brand guidelines (PDF) upload", true);
+    await axe(vp, "/onboarding/setup (assets)");
+    await vp.getByRole("button", { name: "Continue" }).click();
+    await vp.getByText("Step 6 of 7").waitFor({ timeout: 15000 });
+    await vp.getByRole("radio", { name: "1:1" }).click();
+    await vp.getByRole("button", { name: "Finish setup" }).click();
+    await vp.getByText(/You.re all/).waitFor({ timeout: 15000 });
+    const doneText = await vp.locator("main:visible").innerText();
+    check("Finishing setup summarises what was saved", /Logo: uploaded/.test(doneText) && /Default format: 1:1/.test(doneText) && /Brand profile: 2 colours, warm and calm voice/.test(doneText));
+    await axe(vp, "/onboarding/setup (done)");
+    await vp.getByRole("link", { name: "Go to dashboard" }).click();
     await vp.waitForURL("**/dashboard**", { timeout: 30000 });
+    await settle(vp);
+    check("A finished setup no longer shows the setup card", !/Finish setting up/.test(await vp.locator("main:visible").innerText()));
+    await vp.goto(`${BASE}/onboarding/setup`);
+    await vp.waitForURL("**/dashboard**", { timeout: 15000 });
+    check("Setup can't be reopened once finished", true);
     await A.addCookies(await V.cookies());
     await V.close();
     page = await A.newPage();
@@ -250,9 +298,16 @@ async function main() {
     await rp.goto(`${BASE}/forgot-password`);
     await settle(rp);
     await rp.getByLabel("Email").fill(emailA);
-    const resetSince = Date.now();
-    await rp.getByRole("button", { name: "Send reset link" }).click();
-    await rp.getByText(/we've sent a link/).waitFor({ timeout: 10000 });
+    let resetSince = Date.now();
+    // Supabase Auth allows one email per address per minute; the sign-up emails may have just gone out.
+    for (let attempt = 1; ; attempt++) {
+      resetSince = Date.now();
+      await rp.getByRole("button", { name: "Send reset link" }).click();
+      const sent = await rp.getByText(/we've sent a link/).waitFor({ timeout: 10000 }).then(() => true, () => false);
+      if (sent) break;
+      if (attempt >= 3) throw new Error("reset link was never accepted");
+      await rp.waitForTimeout(30000);
+    }
     const link = await mailLink(emailA, resetSince, /reset/i);
     check("Password reset email is sent", Boolean(link));
     await rp.goto(link);
@@ -437,9 +492,13 @@ async function main() {
       "Keyboard: closing details returns focus to the item",
       await page.waitForFunction(() => /lake morning/i.test(document.activeElement?.textContent ?? ""), null, { timeout: 2000 }).then(() => true, () => false),
     );
-    await page.getByRole("button", { name: "Upload" }).focus();
-    const [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 5000 }), page.keyboard.press("Enter")]);
-    check("Keyboard: Upload opens the file chooser", chooser.isMultiple());
+    // One retry: a background refresh while analysis runs can land between focus and Enter (seen once in Mission 6).
+    let chooser = null;
+    for (let attempt = 0; attempt < 2 && !chooser; attempt++) {
+      await page.getByRole("button", { name: "Upload" }).focus();
+      [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 5000 }).catch(() => null), page.keyboard.press("Enter")]);
+    }
+    check("Keyboard: Upload opens the file chooser", Boolean(chooser?.isMultiple()));
   });
 
   /* ---- brand ---- */
@@ -452,7 +511,7 @@ async function main() {
     await settle(page);
     await page.getByLabel("Brand voice").fill("Warm and calm.");
     await page.getByRole("button", { name: "Save changes" }).click();
-    await page.getByText(/Saved as version 2/).first().waitFor({ timeout: 10000 });
+    await page.getByText(/Saved as version \d+/).first().waitFor({ timeout: 10000 }); // setup already saved earlier versions
     check("Brand edits save as a new brand version", true);
     await axe(page, "/brands/[id]");
   });
@@ -598,6 +657,108 @@ async function main() {
     await dlg.getByText("Not enough credits for this render.").waitFor({ timeout: 10000 });
     check("With no credits left the quote explains and Render is disabled", await dlg.getByRole("button", { name: /Render · / }).isDisabled());
     await page.keyboard.press("Escape");
+    await db.end();
+  });
+
+  /* ---- settings: the real Workspace, Usage and billing, Access tokens and Team pages ---- */
+  await run("settings pages", async () => {
+    const { default: postgres } = await import("postgres");
+    const db = postgres(process.env.DATABASE_URL!, { max: 1 });
+    const [org] = await db<{ org_id: string }[]>`select m.org_id from public.memberships m join auth.users u on u.id = m.user_id where u.email = ${emailA} and m.role = 'owner'`;
+    await A.grantPermissions(["clipboard-read", "clipboard-write"], { origin: BASE });
+
+    await page.goto(`${BASE}/settings/workspace`);
+    await settle(page);
+    const wt = await page.locator("main:visible").innerText();
+    check("Workspace settings show the real workspace, not sample data", wt.includes("E2E Lakeside") && !wt.includes("Sample data"));
+    await page.getByLabel("Location (optional)").fill("Queenstown, NZ");
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await page.getByText("Business details saved").first().waitFor({ timeout: 15000 });
+    await page.reload();
+    await settle(page);
+    check("Saved business details persist after reload", (await page.getByLabel("Location (optional)").inputValue()) === "Queenstown, NZ");
+    check("The default format chosen in setup is the workspace default", await page.getByRole("checkbox", { name: /1:1 square/ }).isChecked());
+    await axe(page, "/settings/workspace");
+
+    await page.goto(`${BASE}/settings/billing`);
+    await settle(page);
+    const bt = await page.locator("main:visible").innerText();
+    check("Billing shows the real plan, says online billing isn't set up, and no sample values", /Online billing isn.t set up yet/.test(bt) && /Free/.test(bt) && !/Sample data/.test(bt) && !/Visa|Mastercard|Invoice #/.test(bt));
+    await axe(page, "/settings/billing");
+
+    await page.goto(`${BASE}/settings/tokens`);
+    await settle(page);
+    await page.getByRole("button", { name: "Create token" }).first().click();
+    await page.getByRole("dialog").getByLabel("Name").fill("E2E laptop");
+    await page.getByRole("dialog").getByRole("button", { name: "Create token" }).click();
+    const token = (await page.getByLabel("New access token").innerText({ timeout: 15000 })).trim();
+    check("A new access token is shown once, in full", /^rdl_pat_/.test(token));
+    await page.getByRole("checkbox", { name: "I've stored this token somewhere safe" }).check();
+    await page.getByRole("button", { name: "Done" }).click();
+    await settle(page);
+    const tt = await page.locator("body").innerText();
+    check("After closing, the page shows the token's name and prefix only", tt.includes("E2E laptop") && !tt.includes(token));
+    const [stored] = await db<{ token_hash: string; environment: string }[]>`select token_hash, environment from public.api_tokens where org_id = ${org!.org_id} and name = 'E2E laptop'`;
+    check("Only a hash of the token is stored, bound to the development environment", Boolean(stored) && stored!.token_hash !== token && stored!.environment === "development");
+    await page.getByRole("button", { name: "Revoke" }).first().click();
+    await page.getByRole("button", { name: "Revoke token" }).click();
+    await page.getByText("“E2E laptop” revoked").first().waitFor({ timeout: 15000 });
+    await settle(page);
+    check("A revoked token moves to 'Revoked and expired'", /Revoked and expired/.test(await page.locator("main:visible").innerText()));
+    await axe(page, "/settings/tokens");
+
+    // Test setup: Free has one seat, so this workspace is moved to Business (5 seats) to invite people.
+    await db`update public.organisations set plan_id = 'business' where id = ${org!.org_id}`;
+    const emailT = `e2e-team-${stamp}@reeldeal.local`;
+    const emailP = `e2e-pending-${stamp}@reeldeal.local`;
+    await page.goto(`${BASE}/settings/team`);
+    await settle(page);
+    check("The team page lists the owner, without sample data", /E2E Lakeside/.test(await page.locator("main:visible").innerText()) && !(await page.locator("main:visible").innerText()).includes("Sample data"));
+    await page.getByRole("button", { name: "Invite people" }).first().click();
+    await page.getByLabel("Email addresses").fill(`${emailT}, ${emailP}, not-an-email`);
+    await page.getByRole("dialog").getByRole("button", { name: "Create invitations" }).click();
+    await page.getByText("2 invitations ready").waitFor({ timeout: 15000 });
+    check("Bulk invite reports each address (two created, one invalid)", await page.getByText("This isn't a valid email address.").isVisible());
+    await page.getByRole("button", { name: `Copy link for ${emailT}` }).click();
+    const link = await page.evaluate(() => navigator.clipboard.readText());
+    check("The copied invitation link carries the token in the fragment", /\/invite#rdl_inv_/.test(link));
+    await page.getByRole("button", { name: "Done" }).click();
+    await settle(page);
+    check("Pending invitations are listed", (await page.locator("main:visible").innerText()).includes(emailP));
+    await axe(page, "/settings/team");
+
+    const T = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const { page: tp } = await signUpAndVerify(T, "Tama Team", emailT);
+    await tp.goto(link);
+    await tp.getByRole("button", { name: "Join E2E Lakeside" }).click();
+    await tp.waitForURL("**/dashboard**", { timeout: 30000 });
+    check("The invited person joins from the copied link (phone width)", true);
+
+    await page.reload();
+    await settle(page);
+    await page.getByLabel("Role for Tama Team").click();
+    await page.getByRole("option", { name: "Viewer" }).click();
+    await page.getByRole("button", { name: "Change role" }).click();
+    await page.getByText("Tama Team is now a viewer").first().waitFor({ timeout: 15000 });
+    const [m] = await db<{ role: string }[]>`select m.role from public.memberships m join auth.users u on u.id = m.user_id where u.email = ${emailT} and m.org_id = ${org!.org_id}`;
+    check("Changing a role (after confirming) is saved", m?.role === "viewer");
+    await tp.goto(`${BASE}/settings/team`);
+    await settle(tp);
+    check("A viewer sees the team but can't invite or manage it", !(await tp.getByRole("button", { name: "Invite people" }).count()) && !(await tp.getByLabel("Role for Ellie Example").count()));
+    await page.getByRole("button", { name: `Revoke invitation for ${emailP}` }).click();
+    await page.getByText(`Invitation for ${emailP} revoked`).first().waitFor({ timeout: 15000 });
+    await settle(page);
+    check("Revoking an invitation removes it from the list", !(await page.locator("main:visible").innerText()).includes(emailP));
+    await page.getByRole("button", { name: "More actions for Tama Team" }).click();
+    await page.getByRole("menuitem", { name: /Remove from workspace/ }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Remove" }).click();
+    await page.getByText("Tama Team was removed").first().waitFor({ timeout: 15000 });
+    await tp.goto(`${BASE}/dashboard`);
+    await tp.waitForURL("**/onboarding**", { timeout: 15000 });
+    check("A removed member loses access at once", true);
+    const audit = await db<{ action: string }[]>`select action from public.audit_events where org_id = ${org!.org_id} order by created_at`;
+    check("Team changes are in the audit log", ["invitation.created", "member.joined", "member.role_changed", "invitation.revoked", "member.removed"].every((a) => audit.some((x) => x.action === a)));
+    await T.close();
     await db.end();
   });
 

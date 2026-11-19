@@ -8,6 +8,7 @@ import { serverEnv as env } from "../src/env/server";
 import { publicEnv } from "../src/env/public";
 import { pendingMigrations } from "../src/server/db/migrate";
 import { createPostgresDb } from "../src/server/db/postgres";
+import { EXPECTED_DB_ROLE } from "../src/server/db/role-guard";
 import { createR2Storage } from "../src/server/storage/r2";
 
 /** Every table and view Reeldeal's migrations create in public (anything else is reported). */
@@ -43,6 +44,16 @@ async function checkDatabase() {
       ),
     );
     add("Supabase database", "ok", `connected to ${u.hostname}:${u.port || 5432} as ${info.role}, Postgres ${info.version}${u.port === "6543" ? " (transaction pooler)" : ""}`);
+    // Which service this DATABASE_URL is fit for (src/server/db/role-guard.ts). The production web app and worker refuse the wrong role at start-up.
+    const fit = Object.entries(EXPECTED_DB_ROLE).find(([, role]) => role === info.role)?.[0];
+    add(
+      "Database login",
+      fit ? "ok" : info.bypass ? "warn" : "ok",
+      fit
+        ? `${info.role}: the right login for the ${fit} service`
+        : `${info.role}${info.bypass ? " (bypasses RLS)" : ""}: fine for migrations and admin scripts; Vercel must use reeldeal_web and the worker reeldeal_worker (docs/database-credentials.md)`,
+    );
+    if (env.DATABASE_ROLE_CHECK === "warn") add("DATABASE_ROLE_CHECK", "warn", "warn: a production service on the wrong database login only logs a warning. Remove it once the role passwords are set");
     add("Supabase Auth schema", info.supabase_auth ? "ok" : "warn", info.supabase_auth ? "auth.users managed by Supabase Auth" : "not a Supabase database (no auth.identities)");
     add("User-context role", info.member ? "ok" : "fail", info.member ? `${info.role} can switch to "authenticated" (RLS applies to every user request)` : `${info.role} cannot SET ROLE authenticated: use the project's postgres user`);
     const pending = await pendingMigrations(db);

@@ -1,5 +1,7 @@
 # Supabase: reconnecting to the Reeldeal project, plus a live-readiness checklist
 
+> **Update 2026-11-18: reconnected.** The Supabase connector now reaches `jzshbaqfrrgsyiciuzfe` (organisation "ANI"). The read-only verification (2026-11-17) matched the 7-migration baseline exactly: 185 columns and 41 policies. Migrations 1117 to 1119 were then approved and applied (`docs/review/migration-execution-record-2026-11-18.md`). The status below is the record from before that, kept for the audit trail.
+
 Status at 2026-11-17. **Nothing in this document has been run against a live project.** Every check is
 read-only. None creates users, changes settings or applies migrations.
 

@@ -4,13 +4,11 @@ Status at 2026-11-17 (Mission 5). **A screen existing does not mean the feature 
 for each area, what is in the database, what is in the services, what is tested, and what
 remains before the screen can be wired to real accounts.
 
-Two prepared migrations are **not applied** to the live project:
-
-- `20261117000001_restricted_runtime_roles`: reviewed in `docs/review/`
-- `20261118000001_teams_workspace_onboarding`: reviewed in `docs/review/`
-
-Everything marked "needs 1118" works locally and in tests. It can't run against the live project
-until that migration is approved and applied.
+**Update 2026-11-18:** `20261117000001_restricted_runtime_roles`, `20261118000001_teams_workspace_onboarding`
+and `20261119000001_credit_rollover` are **applied to the live project**
+(`docs/review/migration-execution-record-2026-11-18.md`). "Needs 1118" in the tables below now means
+"needs the code deployed": the database side is live. The Mission 6 wiring status is in the table
+at the end of this file.
 
 ## Implementation map
 
@@ -113,3 +111,23 @@ look. Impact: **S** security, **F** functional, **U** usability, **V** visual.
 
 Keyboard and screen-reader checks pass on every screen and dialog in the accessibility suite
 (16 themes × 27 pages, plus phone layouts). The issues above are about clarity, not access.
+
+## Mission 6 status (2026-11-18): wired to real accounts
+
+The database side of every area is **live** (1117–1119 applied). The screens below now use the
+real services, as the signed-in user under RLS, with no sample data. Each is covered by the browser
+suite on the local stack (`npm run test:e2e`) and runs as `reeldeal_web` in `restricted-roles.test.ts`.
+
+| Area | Page | State |
+|---|---|---|
+| Onboarding 1–3 | `/sign-up`, `/verify-email`, `/onboarding` | Working (unchanged). Creating a workspace now continues to step 4 |
+| Onboarding 4–7 | `/onboarding/setup` | **Wired:** brand (name, colours, tone, customers), logo (image, linked to the brand), guidelines (PDF, kept in the Library), footage and example videos (resumable multipart uploads with cancel and retry), preferences (appearance, main format, AI consent, render emails), done. Progress is saved per step and resumes on any device. "Finish later" and skip on every optional step. Dashboard "Finish setting up" card (U11). Owner only; invited members skip it |
+| Workspace | `/settings/workspace` | **Wired:** business details, default formats, AI consent, copy ID, leave. Deletion shows "not available yet" (D-W1). Data region from `DATA_REGION_LABEL` (bracketed until set) |
+| Team | `/settings/team` | **Wired:** invite (bulk, per-address results, copy link or Resend email), new link / resend, revoke, role change with confirmation, remove, leave, transfer ownership (typed name + password). Expired invitations marked. 50 invitations per workspace per day |
+| Access tokens | `/settings/tokens` | **Wired:** create (shown once), revoke, expiry, scopes limited by role, development badge |
+| Usage and billing | `/settings/billing` | **Wired:** plan, credits (incl. rolled over and expired), analysis, storage, seats, ledger history. "Online billing isn't set up yet"; no invented card, invoice or renewal |
+| Invitation emails | Resend API | Built, **off** until `RESEND_API_KEY` and `EMAIL_FROM` exist; the copy-link flow works meanwhile |
+| Monitoring | Sentry | Built, **off** until `SENTRY_DSN` (`docs/monitoring.md`) |
+
+Still not built (needs decisions): workspace and account deletion (D-W1 to D-W6), Stripe (D-B2 and
+the billing stage), MCP OAuth for hosted clients (D6).

@@ -1,5 +1,7 @@
 # Migration approval pack: `20261117000001`, `20261118000001` (and `20261119000001`)
 
+> **Update 2026-11-18: all three migrations (1117, 1118, 1119) are APPLIED to the live project**, approved by the owner and applied in that order between 07:35 and 07:50 UTC, with every post-check passing. The execution record, with times, tracker rows and check results, is `docs/review/migration-execution-record-2026-11-18.md`. The text below is the pack as approved, kept unchanged.
+
 **Status at 2026-11-17: none of these migrations is applied to the live `reeldeal` project
 (`jzshbaqfrrgsyiciuzfe`).** This pack is everything needed to decide. Each migration is approved
 separately. The detailed reviews are still in `docs/review/migration-20261117000001-…` and

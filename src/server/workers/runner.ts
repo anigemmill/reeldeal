@@ -20,7 +20,16 @@ import { runRender, type RenderOptions } from "./render";
 */
 export type Worker = { start(): void; stop(opts?: { graceMs?: number }): Promise<void>; runOnce(): Promise<JobRow | null>; readonly running: boolean; readonly workerId: string };
 
-export type WorkerOptions = { kinds?: JobKind[]; workerId?: string; pollMs?: number; render?: RenderOptions; heartbeatMs?: number; staleAfterSeconds?: number };
+export type WorkerOptions = {
+  kinds?: JobKind[];
+  workerId?: string;
+  pollMs?: number;
+  render?: RenderOptions;
+  heartbeatMs?: number;
+  staleAfterSeconds?: number;
+  /** Called for each failed job and loop error (monitoring). Must not throw. */
+  onError?: (e: unknown, info: Record<string, string | number | boolean | null>) => void;
+};
 
 export function createWorker(p: Platform, opts: WorkerOptions = {}): Worker {
   const kinds = opts.kinds ?? ["media_analysis", "render"];
@@ -53,6 +62,8 @@ export function createWorker(p: Platform, opts: WorkerOptions = {}): Worker {
       log.info("job succeeded", { job_id: job.id, ms: Date.now() - started });
     } catch (e) {
       log.warn("job failed", { job_id: job.id, error: (e as Error).message, ms: Date.now() - started });
+      // Render and analysis failures go to monitoring (Sentry when configured): ids and counts only, never content.
+      opts.onError?.(e, { kind: job.kind, job_id: job.id, org_id: job.org_id, attempt: job.attempt, retryable: (e as { retryable?: boolean }).retryable !== false, duration_ms: Date.now() - started });
       if (!(e as { handled?: boolean }).handled) {
         const retryable = (e as { retryable?: boolean }).retryable !== false;
         await p.db.system((sql) => failJob(sql, job.id, { message: retryable ? "Processing failed on our side. Please try again." : (e as Error).message, retryable }));
@@ -75,6 +86,7 @@ export function createWorker(p: Platform, opts: WorkerOptions = {}): Worker {
       timer = setTimeout(tick, job ? 0 : (opts.pollMs ?? 1000));
     } catch (e) {
       log.error("worker loop error", { error: (e as Error).message });
+      opts.onError?.(e, { kind: "loop" });
       timer = setTimeout(tick, 5000);
     }
   };

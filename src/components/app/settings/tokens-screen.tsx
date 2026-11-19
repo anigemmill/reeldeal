@@ -10,6 +10,8 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import type { ActionResult } from "@/server/app/result";
+import { perform } from "./live";
 import { agoFmt, dateFmt, previewOnly, ROLE_LABEL, SampleBadge, useInitialDialog } from "./preview";
 import { SettingsFrame, SettingsSection, type SettingsItem } from "./settings-shell";
 
@@ -33,7 +35,20 @@ export type TokenRow = {
   /** U7: tokens only work in the environment that made them (api_tokens.environment). */
   environment?: "development" | "production";
 };
-export type TokensData = { workspace: string; myRole: "owner" | "admin" | "editor" | "viewer"; tokens: TokenRow[]; newToken: string };
+export type TokensData = {
+  workspace: string;
+  myRole: "owner" | "admin" | "editor" | "viewer";
+  tokens: TokenRow[];
+  /** Review pages only: a sample token for the "copy your token" dialog. Live pages show the real one, once. */
+  newToken: string;
+  /** Live pages: today. Review pages use a fixed date for stable screenshots. */
+  now?: number;
+};
+/** Server actions (src/app/(app)/_actions/settings.ts). Absent on the design review page. */
+export type TokensActions = {
+  create: (input: { name: string; scopes: string[]; expires_in_days: number }) => Promise<ActionResult<{ token: string }>>;
+  revoke: (id: string) => Promise<ActionResult<unknown>>;
+};
 
 const SCOPES: { id: Scope; label: string; hint: string }[] = [
   { id: "mcp:read", label: "Read", hint: "See footage, brands, projects, storyboards, exports and usage." },
@@ -49,10 +64,13 @@ const EXPIRY = [
 ];
 const NOW = Date.parse("2026-11-17T08:00:00Z");
 
-export function TokensScreen({ data, settingsItems }: { data: TokensData; settingsItems?: SettingsItem[] }) {
+export function TokensScreen({ data, settingsItems, actions }: { data: TokensData; settingsItems?: SettingsItem[]; actions?: TokensActions }) {
   const [dialog, setDialog] = useInitialDialog();
   const [revoking, setRevoking] = useState<TokenRow | null>(null);
-  const active = data.tokens.filter((t) => !t.revokedAt && (!t.expiresAt || Date.parse(t.expiresAt) > NOW));
+  const [created, setCreated] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const now = data.now ?? NOW;
+  const active = data.tokens.filter((t) => !t.revokedAt && (!t.expiresAt || Date.parse(t.expiresAt) > now));
   const inactive = data.tokens.filter((t) => !active.includes(t));
   const close = (o: boolean) => !o && setDialog(null);
 
@@ -64,7 +82,7 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
       intro={`Let tools like Claude work in ${data.workspace} on your behalf. A token can do only what its permissions allow, and never more than your role (${ROLE_LABEL[data.myRole]}).`}
       actions={
         <div className="flex flex-wrap items-center gap-2">
-          <SampleBadge />
+          {actions ? null : <SampleBadge />}
           <Button variant="primary" onClick={() => setDialog("create")}>
             <Plus aria-hidden /> Create token
           </Button>
@@ -89,7 +107,7 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
         ) : (
           <ul className="flex flex-col divide-y divide-line rounded-lg border border-line bg-surface">
             {active.map((t) => {
-              const days = t.expiresAt ? Math.ceil((Date.parse(t.expiresAt) - NOW) / 86400000) : null;
+              const days = t.expiresAt ? Math.ceil((Date.parse(t.expiresAt) - now) / 86400000) : null;
               return (
                 <li key={t.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -110,7 +128,7 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
                       ))}
                     </span>
                     <span className="text-xs text-ink-muted">
-                      Created {dateFmt(t.createdAt)} · Last used {agoFmt(t.lastUsedAt)} ·{" "}
+                      Created {dateFmt(t.createdAt)} · Last used {agoFmt(t.lastUsedAt, now)} ·{" "}
                       <span className={cn(days !== null && days <= 7 && "font-semibold text-warning")}>{t.expiresAt ? (days !== null && days <= 7 ? `Expires in ${days} days` : `Expires ${dateFmt(t.expiresAt)}`) : "No expiry"}</span>
                     </span>
                   </div>
@@ -154,8 +172,15 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
         </ul>
       </SettingsSection>
 
-      <CreateDialog open={dialog === "create"} onOpenChange={close} onCreated={() => setDialog("created")} data={data} />
-      <CreatedDialog open={dialog === "created"} onOpenChange={close} token={data.newToken} />
+      <CreateDialog
+        open={dialog === "create"}
+        onOpenChange={close}
+        onCreated={(token) => (setCreated(token), setDialog("created"))}
+        data={data}
+        actions={actions}
+      />
+      {/* The real token lives only in this component's state and is dropped when the dialog closes. */}
+      <CreatedDialog open={dialog === "created"} onOpenChange={(o) => (close(o), !o && setCreated(null))} token={actions ? (created ?? "") : data.newToken} />
       <Modal
         open={revoking !== null}
         onOpenChange={(o) => !o && setRevoking(null)}
@@ -167,7 +192,19 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
             <ModalClose asChild>
               <Button variant="ghost">Cancel</Button>
             </ModalClose>
-            <Button variant="primary" onClick={() => (setRevoking(null), previewOnly("Token not revoked"))}>
+            <Button
+              variant="primary"
+              disabled={busy}
+              onClick={async () => {
+                const t = revoking;
+                if (!t) return;
+                if (!actions) return setRevoking(null), previewOnly("Token not revoked");
+                setBusy(true);
+                await perform(actions.revoke(t.id), `“${t.name}” revoked`);
+                setBusy(false);
+                setRevoking(null);
+              }}
+            >
               Revoke token
             </Button>
           </>
@@ -177,9 +214,24 @@ export function TokensScreen({ data, settingsItems }: { data: TokensData; settin
   );
 }
 
-function CreateDialog({ open, onOpenChange, onCreated, data }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: () => void; data: TokensData }) {
+function CreateDialog({ open, onOpenChange, onCreated, data, actions }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: (token: string) => void; data: TokensData; actions?: TokensActions }) {
   const [scopes, setScopes] = useState<Scope[]>(["mcp:read"]);
   const [expiry, setExpiry] = useState("90");
+  const [name, setName] = useState("");
+  const [sending, setSending] = useState(false);
+  const submit = async () => {
+    if (!scopes.length || sending) return;
+    if (!actions) return onCreated(data.newToken);
+    if (!name.trim()) return void perform(Promise.resolve({ ok: false as const, error: { code: "invalid_input", message: "Name the token so you'll recognise it." } }));
+    setSending(true);
+    const r = await perform(actions.create({ name: name.trim(), scopes, expires_in_days: Number(expiry) }));
+    setSending(false);
+    if (r) {
+      setName("");
+      setScopes(["mcp:read"]);
+      onCreated(r.token);
+    }
+  };
   const viewer = data.myRole === "viewer";
   const toggle = (s: Scope, on: boolean) => setScopes((cur) => (on ? [...new Set([...cur, s])] : cur.filter((x) => x !== s)));
   return (
@@ -193,15 +245,15 @@ function CreateDialog({ open, onOpenChange, onCreated, data }: { open: boolean; 
           <ModalClose asChild>
             <Button variant="ghost">Cancel</Button>
           </ModalClose>
-          <Button variant="primary" disabled={scopes.length === 0} onClick={onCreated}>
+          <Button variant="primary" disabled={scopes.length === 0 || sending} onClick={submit}>
             Create token
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex flex-col gap-5" onSubmit={(e) => (e.preventDefault(), void submit())}>
         <Field label="Name" hint="Where you'll use it, e.g. “Claude Desktop on my laptop”.">
-          <Input maxLength={80} placeholder="Claude Desktop" autoComplete="off" />
+          <Input maxLength={80} placeholder="Claude Desktop" autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
         <fieldset className="flex flex-col gap-3">
           <legend className="mb-1 text-sm font-medium">Permissions</legend>
@@ -244,7 +296,18 @@ function CreatedDialog({ open, onOpenChange, token }: { open: boolean; onOpenCha
           <code className="min-w-0 flex-1 font-mono text-sm break-all" aria-label="New access token">
             {token}
           </code>
-          <Button size="sm" variant="secondary" onClick={() => setCopied(true)}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(token);
+                setCopied(true);
+              } catch {
+                setCopied(false);
+              }
+            }}
+          >
             {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
             {copied ? "Copied" : "Copy"}
           </Button>

@@ -218,3 +218,28 @@ export function useUploads(onSettled: () => void) {
   const active = items.some((x) => ["queued", "preparing", "uploading", "finishing"].includes(x.phase));
   return { items, add, cancel, retry, clearFinished, active };
 }
+
+/**
+ * One small file (a logo or a guidelines PDF: always a single signed PUT, under the multipart
+ * threshold). Returns the media id once the server has checked the stored object.
+ */
+export async function uploadSmallFile(file: File, contentType: string, opts: { title?: string; onProgress?: (loaded: number) => void; signal?: AbortSignal } = {}): Promise<string> {
+  const signal = opts.signal ?? new AbortController().signal;
+  const r = await startUpload({ title: opts.title ?? (file.name.replace(/\.[^.]+$/, "") || file.name), filename: file.name, content_type: contentType, size_bytes: file.size });
+  if (!r.ok) throw new Error(r.error.message);
+  const plan = r.data.upload as Plan;
+  const mediaId = r.data.media_id as string;
+  if (plan.method !== "PUT") {
+    await cancelUpload(mediaId);
+    throw new Error("This file is too large here. Upload it from the Library instead.");
+  }
+  try {
+    await withRetry(() => put(plan.url, file, plan.headers, opts.onProgress ?? (() => {}), signal), signal);
+  } catch (e) {
+    await cancelUpload(mediaId).catch(() => {});
+    throw e;
+  }
+  const done = await finishUpload(mediaId);
+  if (!done.ok) throw new Error(done.error.message);
+  return mediaId;
+}

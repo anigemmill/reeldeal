@@ -183,5 +183,6 @@ export async function completeOnboarding(_: FormState, form: FormData): Promise<
     if (issues.length) return { fieldErrors: Object.fromEntries(issues.map((i) => [i.field, i.message])), values };
     return { error: f.message, values };
   }
-  redirect("/dashboard?welcome=1");
+  // Steps 4–7 (brand, assets, preferences) come next; each can be skipped (/onboarding/setup).
+  redirect("/onboarding/setup");
 }

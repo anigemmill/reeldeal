@@ -12,9 +12,16 @@ import { cancelMediaUpload, completeMediaUpload, createMediaUpload, requestAnaly
 import { submitStoryboard } from "../services/projects";
 import { createVideo, getRenderStatus } from "../services/render";
 import { getUsage } from "../services/usage";
+import { checkAuthRateLimit } from "../auth/rate-limit";
+import { createMyToken, listMyTokens, revokeMyToken } from "../services/access-tokens";
+import { getBillingOverview } from "../services/billing";
+import { acceptInvitation, changeMemberRole, getTeam, inviteMembers, removeMember, revokeInvitation } from "../services/team";
+import { getOnboardingState, getWorkspaceSettings, savePreferences, saveOnboardingStep, updateWorkspaceDetails } from "../services/workspace-settings";
+import { checkDatabaseRole, enforceDatabaseRole } from "./role-guard";
 import type { DemoData } from "../seed";
 import { createTestPlatform } from "../testing";
 import { createWorker } from "../workers/runner";
+import { createPostgresDb } from "./postgres";
 import { claimsFor, type Db } from "./types";
 
 /*
@@ -179,6 +186,65 @@ describe("the whole journey works as reeldeal_web + reeldeal_worker", () => {
   }, 180_000);
 });
 
+/* Mission 6: the customer services added with migrations 1118 and 1119 also run as the restricted web role. */
+describe("team, onboarding, tokens, billing and rollover work as reeldeal_web", () => {
+  let aroha: Ctx;
+  beforeAll(async () => {
+    aroha = { ...(await ctxFor(d.tokens.aroha_owner_full)), principal: { ...(await ctxFor(d.tokens.aroha_owner_full)).principal, via: "session" } };
+  });
+
+  it("invites, accepts, changes a role, removes and revokes", async () => {
+    const newcomer = randomUUID();
+    const email = `invitee-${newcomer.slice(0, 8)}@example.test`;
+    await ownerQuery("insert into auth.users (id, email, email_confirmed_at) values ($1, $2, now())", [newcomer, email]);
+    // The seeded workspace already fills its Creator seats; lend it more for this test (restored below).
+    await ownerQuery("update public.organisations set plan_id = 'agency' where id = $1", [d.ids.orgA]);
+    const r = await inviteMembers(aroha, { emails: [email, `other-${newcomer.slice(0, 6)}@example.test`], role: "viewer" }, { acceptUrlBase: "http://localhost:3000" });
+    expect(r.invitations.map((i) => i.error ?? "ok")).toEqual(["ok", "ok"]);
+    const token = r.invitations[0]!.accept_url!.split("#")[1]!;
+    expect((await acceptInvitation(web, newcomer, { token })).org_id).toBe(d.ids.orgA);
+    await changeMemberRole(aroha, newcomer, "editor");
+    const team = await getTeam(aroha);
+    expect(team.members.find((m) => m.user_id === newcomer)?.role).toBe("editor");
+    await removeMember(aroha, newcomer);
+    await revokeInvitation(aroha, r.invitations[1]!.invitation_id!);
+    expect((await getTeam(aroha)).invitations.some((i) => i.id === r.invitations[1]!.invitation_id)).toBe(false);
+    await ownerQuery("update public.organisations set plan_id = 'creator' where id = $1", [d.ids.orgA]);
+  });
+
+  it("saves onboarding progress, preferences and workspace details", async () => {
+    await saveOnboardingStep(aroha, "brand");
+    expect((await getOnboardingState(web, d.ids.aroha, d.ids.orgA)).stage).toBe("setup");
+    await savePreferences(web, d.ids.aroha, { mode: "studio", email_when_render_ready: false });
+    await updateWorkspaceDetails(aroha, { location: "Queenstown", default_formats: ["9:16", "1:1"] });
+    expect((await getWorkspaceSettings(aroha)).organisation.location).toBe("Queenstown");
+  });
+
+  it("creates and revokes a personal access token from the web session", async () => {
+    const t = await createMyToken(aroha, { name: "Roles test", scopes: ["mcp:read"], expires_in_days: 7 });
+    expect(t.token).toMatch(/^rdl_pat_/);
+    await revokeMyToken(aroha, t.id);
+    expect((await listMyTokens(aroha)).find((x) => x.id === t.id)?.status).toBe("revoked");
+  });
+
+  it("counts auth rate limits (private.rate_limit_hit and peek)", async () => {
+    const who = { ip: "203.0.113.9", email: `limit-${randomUUID().slice(0, 6)}@example.test` };
+    expect(await checkAuthRateLimit(web, "password_reset", who, "hit")).toEqual({ ok: true });
+    expect(await checkAuthRateLimit(web, "sign_in", who, "peek")).toEqual({ ok: true });
+    const [n] = await ownerQuery<{ n: number }>("select count(*)::int as n from private.rate_limits");
+    expect(n.n).toBeGreaterThan(0);
+  });
+
+  it("reads the billing overview and closes finished months (rollover) on a later visit", async () => {
+    const o = await getBillingOverview(aroha);
+    expect(o.plan.id).toBe("creator");
+    const later = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 2, 15));
+    await getUsage(aroha, later);
+    const closes = await ownerQuery<{ period: string }>("select period from public.credit_period_closes where org_id = $1", [d.ids.orgA]);
+    expect(closes.length).toBeGreaterThan(0);
+  });
+});
+
 describe("what reeldeal_web cannot do", () => {
   it.each([
     ["change a plan", "update public.organisations set plan_id = 'agency'"],
@@ -267,6 +333,37 @@ describe.skipIf(!serverEnv.TEST_DATABASE_URL)("real logins as the restricted rol
       expect(rows.map((r) => r.id)).toEqual([d.ids.orgB]);
     } finally {
       await c.end();
+    }
+  });
+
+  it("the production role guard accepts each restricted role for its own service only", async () => {
+    const asDb = (role: Role) => {
+      const u = new URL(serverEnv.TEST_DATABASE_URL!);
+      u.pathname = `/${database}`;
+      u.username = role;
+      u.password = password;
+      return createPostgresDb(u.toString(), { max: 1 });
+    };
+    const webDb = asDb("reeldeal_web");
+    const workerDb = asDb("reeldeal_worker");
+    try {
+      expect((await checkDatabaseRole(webDb, "web")).ok).toBe(true);
+      expect((await checkDatabaseRole(workerDb, "worker")).ok).toBe(true);
+      expect((await checkDatabaseRole(webDb, "worker")).ok).toBe(false);
+      expect((await checkDatabaseRole(workerDb, "web")).ok).toBe(false);
+      // The owner bypasses RLS: refused for both services in production, allowed for admin scripts.
+      const ownerCheck = await checkDatabaseRole(owner.db, "web");
+      expect(ownerCheck).toMatchObject({ ok: false, bypassesRls: true });
+      expect(ownerCheck.message).toMatch(/must connect as reeldeal_web/);
+      await expect(enforceDatabaseRole(owner.db, "web", { production: true, mode: "enforce", warn: () => {} })).rejects.toThrow(/reeldeal_web/);
+      const warned: string[] = [];
+      await enforceDatabaseRole(owner.db, "worker", { production: true, mode: "warn", warn: (m) => warned.push(m) });
+      expect(warned).toHaveLength(1);
+      expect(await enforceDatabaseRole(owner.db, "web", { production: false, mode: "enforce", warn: () => {} })).toBeNull();
+      expect((await checkDatabaseRole(owner.db, "admin")).ok).toBe(true);
+    } finally {
+      await webDb.close();
+      await workerDb.close();
     }
   });
 

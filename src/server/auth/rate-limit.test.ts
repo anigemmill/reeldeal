@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Platform } from "../context";
 import { createTestPlatform } from "../testing";
-import { AUTH_LIMITS, checkAuthRateLimit, clientIp, keyFor } from "./rate-limit";
+import { AUTH_LIMITS, INVITES_PER_WORKSPACE_PER_DAY, checkAuthRateLimit, clientIp, keyFor, takeInvitationBudget } from "./rate-limit";
 
 /* App-side auth rate limits (migration 20261118000001, private.rate_limit_hit). */
 let p: Platform;
@@ -122,5 +122,14 @@ describe("abuse scenarios (sign-in counts failures only)", () => {
       for (let i = 0; i < max; i++) expect((await hit(action, `198.51.100.${200 + i}`, `flood-${action}@example.test`)).ok).toBe(true);
       expect((await hit(action, "198.51.100.254", `flood-${action}@example.test`)).reason).toBe("email");
     }
+  });
+
+  it("caps invitations per workspace per day, separately for each workspace", async () => {
+    const orgA = `00000000-0000-4000-8000-${Date.now().toString().padStart(12, "0").slice(-12)}`;
+    const orgB = orgA.replace(/.$/, (c) => (c === "9" ? "8" : "9"));
+    expect(await takeInvitationBudget(p, orgA, INVITES_PER_WORKSPACE_PER_DAY - 2)).toBe(INVITES_PER_WORKSPACE_PER_DAY - 2);
+    expect(await takeInvitationBudget(p, orgA, 5)).toBe(2);
+    expect(await takeInvitationBudget(p, orgA, 1)).toBe(0);
+    expect(await takeInvitationBudget(p, orgB, 3)).toBe(3);
   });
 });

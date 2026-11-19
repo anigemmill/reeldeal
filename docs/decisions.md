@@ -326,3 +326,9 @@ How it is wired: `docs/app.md`. Decisions:
 - **`infra:check` refuses any Supabase project but Reeldeal's**, before connecting.
 - **Workspace deletion: deactivate first, delete after a recovery period** (recommended 30 days,
   D-W1), keep legal records (`docs/data-retention.md`). Not built until decided.
+
+## 2026-11-19
+
+- **Homepage carousel cards are 9:16** (1080 × 1920, the vertical Reels/Stories/TikTok format), at the
+  owner's request. Cards are 200 × 356 px on phones and 240 × 427 px from `sm` up (`aspect-[9/16]`);
+  the arc's height grew to fit (466 / 560 px). Supersedes the ~3:4 cards in the approved homepage design.

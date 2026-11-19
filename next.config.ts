@@ -49,7 +49,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // The development server logs server-action arguments. Some carry one-time secrets (invitation
   // tokens), so they must never be written to a terminal or a log file. Production doesn't log them.
-  logging: { serverFunctions: false },
+  // The development request log prints full URLs; email links carry a one-time token_hash in the
+  // query string (/auth/callback), so those requests are left out. (Production doesn't log requests;
+  // the hosting platform's own logs are covered in docs/security-review.md.)
+  logging: { serverFunctions: false, incomingRequests: { ignore: [/^\/auth\/callback/] } },
   cacheComponents: true,
   experimental: { globalNotFound: true },
   partialPrefetching: true,

@@ -42,6 +42,8 @@ export type DashboardData = {
   history: { at: string | null; kind: string; amount: number; note: string | null }[];
   suggestions: readonly string[];
   welcome: boolean;
+  /** U11: the owner hasn't finished onboarding steps 4–7; links to where they left off. */
+  setup?: { step: string; label: string } | null;
 };
 
 export function DashboardScreen({ data }: { data: DashboardData }) {
@@ -74,6 +76,19 @@ export function DashboardScreen({ data }: { data: DashboardData }) {
           </dl>
         </div>
       </header>
+      {data.setup ? (
+        <aside aria-labelledby="setup-title" className="flex flex-col items-start gap-3 rounded-lg border border-primary/40 bg-surface p-5 sm:flex-row sm:items-center sm:gap-5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 id="setup-title" className="font-semibold">
+              Finish setting up {data.workspace.name}
+            </h2>
+            <p className="text-sm text-ink-muted">Next: {data.setup.label}. Your brand, logo and preferences make every video look like you. Each step can be skipped.</p>
+          </div>
+          <Button asChild variant="secondary">
+            <Link href={`/onboarding/setup?step=${data.setup.step}`}>Continue setup</Link>
+          </Button>
+        </aside>
+      ) : null}
 
       {firstUse ? <GettingStarted data={data} /> : null}
 

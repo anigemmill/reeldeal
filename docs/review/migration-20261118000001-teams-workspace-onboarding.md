@@ -1,5 +1,7 @@
 # Migration review: teams, workspace, onboarding (`20261118000001`)
 
+> **Update 2026-11-18: APPLIED to the live project** (07:38:52 UTC). See `docs/review/migration-execution-record-2026-11-18.md`. The review below is kept as approved.
+
 **Status: prepared and tested locally. NOT applied to the live `reeldeal` project.** It needs your
 explicit approval, separately from `20261117000001`. The complete SQL is at the end, verbatim.
 

@@ -73,3 +73,26 @@ export function clientIp(h: { get(name: string): string | null }): string | null
   const fwd = h.get("x-forwarded-for")?.split(",")[0]?.trim();
   return fwd || null;
 }
+
+/**
+  Invitations created per workspace per day (Mission 6). Each one can send an email from our
+  domain, and "New link"/"Resend" revoke and re-create, so the seat limit alone doesn't bound how
+  many emails a workspace can trigger. Counts every invitation created. Fails open like the auth limits.
+*/
+export const INVITES_PER_WORKSPACE_PER_DAY = 50;
+
+export async function takeInvitationBudget(p: Platform, orgId: string, count: number): Promise<number> {
+  let granted = 0;
+  try {
+    for (let i = 0; i < count; i++) {
+      const key = `invite:org:${createHmac("sha256", p.signingSecret).update(orgId).digest("base64url").slice(0, 32)}`;
+      const [r] = await p.db.system((sql) => sql.query<{ ok: boolean }>("select private.rate_limit_hit($1, $2, $3) as ok", [key, INVITES_PER_WORKSPACE_PER_DAY, 86400]));
+      if (!r?.ok) break;
+      granted++;
+    }
+  } catch (e) {
+    p.log.warn("invitation limit unavailable; allowing", { error: (e as Error).message });
+    return count;
+  }
+  return granted;
+}
