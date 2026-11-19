@@ -32,6 +32,7 @@ To run again, ask Claude: "run the Te Puia pricing check". Each run gets a new `
 - **GST.** NZ consumer menu prices are GST-inclusive. All comparisons are GST-inclusive.
 - **Respect access limits.** No logins, paywalls or bot-protection workarounds. A site that refuses is recorded as a gap.
 - **Change alerts.** A change is flagged only when both prices are grade A or B and the move is at least $0.50 and at least 3%.
+- **Closed venues.** A check that finds a venue closed records one row whose notes start with `CLOSED:`; the dashboard then shows only that note for the venue.
 - **Human approval.** Recommendations are proposals. Nothing changes a live price.
 
 ## Comparability score (0–100)

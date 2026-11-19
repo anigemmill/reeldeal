@@ -299,8 +299,8 @@ function renderHeader() {
   const pv = new Set(priced.map((r) => r.venue)).size;
   const ab = priced.filter((r) => r.conf !== "C").length;
   const fw = itemStats("flat_white", false).roto, pint = venuePrices("tap_beer_handle_or_glass").filter((v) => v.market !== "bench");
-  const hhVenues = new Set(ROWS.filter((r) => r.ptype === "happy_hour" && r.conf !== "C").map((r) => r.venue)).size;
-  $("#takeaway").textContent = `A flat white costs ${money(fw.min)}–${money(fw.max)} across ${fw.n} Rotorua venues that publish prices (median ${money(fw.median)}). ${hhVenues} venues show a happy hour on a current official source, and Te Puia publishes no café or bar prices, so its position needs its own menu.`;
+  const hhVenues = new Set(ROWS.filter((r) => r.ptype === "happy_hour" && r.conf !== "C" && ["direct", "indirect"].includes(r.cls)).map((r) => r.venue)).size;
+  $("#takeaway").textContent = `A flat white costs ${money(fw.min)}–${money(fw.max)} across ${fw.n} Rotorua venues that publish prices (median ${money(fw.median)}). ${hhVenues} Rotorua venues show a happy hour on a current official source, and Te Puia publishes no café or bar prices, so its position needs its own menu.`;
   $("#meta").replaceChildren(
     el("span", { class: "mono", text: `Checked ${RUN.slice(0, 10)}` }),
     el("span", { text: `${priced.length} prices from ${pv} venues (${venues} checked)` }),

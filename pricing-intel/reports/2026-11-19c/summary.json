@@ -1,0 +1,24 @@
+{
+  "run_id": "2026-11-19c",
+  "observations": 8,
+  "priced": 6,
+  "by_confidence": {
+    "A": 6
+  },
+  "by_price_type": {
+    "standard": 6
+  },
+  "venues": 2,
+  "venues_with_prices": 1,
+  "venues_by_class": {
+    "indirect": 2
+  },
+  "happy_hour_venues": 0,
+  "changes_flagged": 0,
+  "weights": {
+    "same_item": 40,
+    "serving_size": 25,
+    "venue_context": 20,
+    "evidence_quality": 15
+  }
+}
