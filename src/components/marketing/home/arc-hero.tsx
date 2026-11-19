@@ -143,7 +143,7 @@ function Arc({ paused }: { paused: boolean }) {
       ref={root}
       role="region"
       aria-label="Videos made on the platform (sample work)"
-      className="relative mt-11 h-[400px] overflow-hidden [perspective:2200px] [perspective-origin:50%_45%] sm:h-[470px]"
+      className="relative mt-11 h-[466px] overflow-hidden [perspective:2200px] [perspective-origin:50%_45%] sm:h-[560px]"
     >
       <div className="absolute top-[50px] left-1/2 size-0 [transform-style:preserve-3d]">
         {HERO_TILES.map((t, i) => {
@@ -154,7 +154,7 @@ function Arc({ paused }: { paused: boolean }) {
               ref={(el) => {
                 tiles.current[i] = el;
               }}
-              className="absolute top-0 left-0 m-0 h-[290px] w-[218px] [backface-visibility:hidden] sm:h-[340px] sm:w-[256px]"
+              className="absolute top-0 left-0 m-0 aspect-[9/16] w-[200px] [backface-visibility:hidden] sm:w-[240px]"
             >
               <div className="relative size-full overflow-hidden rounded-[10px] bg-ink">
                 <MediaArt asset={getMedia(t.media)} />
