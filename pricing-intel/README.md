@@ -13,7 +13,9 @@ This folder is separate from the Reeldeal app. Nothing here is imported by the N
    copies the raw files to `data/raw/RUN_ID/` as evidence and appends rows to `data/observations.csv`.
 3. **Analyse.** `python3 -I pricing-intel/scripts/analyse.py RUN_ID`
    writes `reports/RUN_ID/` (CSV files plus `competitor_matrix.xlsx`).
-4. **Report.** Claude writes the findings and publishes the dashboard.
+4. **Dashboard.** `python3 -I pricing-intel/scripts/export_dashboard.py RUN_ID` writes `dashboard/data.json`.
+   Claude republishes `dashboard/index.html` with it to the same link:
+   https://claude.ai/artifact/NC8B8BA3NYm9XPicq4FU5R
 
 To run again, ask Claude: "run the Te Puia pricing check". Each run gets a new `RUN_ID` (the date), and the changes table compares it with the previous run.
 
@@ -53,4 +55,5 @@ Until Te Puia supplies volumes and costs, the model shows only a **break-even gr
 | `data/runs.csv` | One row per run |
 | `data/raw/RUN_ID/` | The raw research files for that run |
 | `reports/RUN_ID/` | Analysis outputs and the Excel workbook |
-| `scripts/` | Ingest and analysis code |
+| `scripts/` | Ingest, analysis and dashboard export code |
+| `dashboard/` | The dashboard page and its data file |

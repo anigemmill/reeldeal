@@ -1,0 +1,606 @@
+<title>Rotorua F&amp;B Price Watch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap">
+<style>
+/* Layout: a working sheet. Header and question box on top, tabs below, each tab one job.
+   Crossroads Blue: ice surfaces, electric blue for structure, orange only for the AI. */
+:root {
+  --bg: #F5F8FF; --panel: #FFFFFF; --panel-2: #EEF5FF; --ink: #1A1A1A; --ink-2: #4A5368; --ink-3: #6B7488;
+  --line: #D9E3F5; --line-2: #C3D2EE; --blue: #2038E2; --blue-soft: #DDEBFF; --orange: #FF5A00; --orange-ink: #C24400;
+  --ok: #0E7A5A; --warn: #9A6200; --bad: #B3261E;
+  --s-attr: #2038E2; --s-town: #0E8A6E; --s-bench: #8A3FB8; --ref: #1A1A1A;
+  --font-display: "Space Grotesk", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace; --font-accent: "Instrument Serif", Georgia, serif;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --shadow: 0 10px 30px rgba(32,56,226,.08);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141821; --panel: #1B2030; --panel-2: #222839; --ink: #F5F8FF; --ink-2: #B8C2D9; --ink-3: #8C96AD;
+  --line: #2C3448; --line-2: #3A4460; --blue: #8FA3FF; --blue-soft: #263052; --orange: #FF7A33; --orange-ink: #FF9A5C;
+  --ok: #4CC79A; --warn: #E0A84A; --bad: #FF8A80;
+  --s-attr: #6F86FA; --s-town: #22A07F; --s-bench: #A96AD2; --ref: #F5F8FF; --shadow: none; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141821; --panel: #1B2030; --panel-2: #222839; --ink: #F5F8FF; --ink-2: #B8C2D9; --ink-3: #8C96AD;
+  --line: #2C3448; --line-2: #3A4460; --blue: #8FA3FF; --blue-soft: #263052; --orange: #FF7A33; --orange-ink: #FF9A5C;
+  --ok: #4CC79A; --warn: #E0A84A; --bad: #FF8A80;
+  --s-attr: #6F86FA; --s-town: #22A07F; --s-bench: #A96AD2; --ref: #F5F8FF; --shadow: none; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(26px, 4vw, 38px); line-height: 1.1; }
+h1 em { font-family: var(--font-accent); font-style: italic; font-weight: 400; letter-spacing: 0; }
+h2 { font-size: 20px; } h3 { font-size: 15px; }
+p { margin: 0; }
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.muted { color: var(--ink-2); } .small { font-size: 12.5px; }
+a { color: var(--blue); } a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+header.top { display: grid; gap: 10px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--ink-2); font-size: 13px; }
+.takeaway { font-size: 16px; max-width: 72ch; color: var(--ink); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+
+/* Question box */
+.ask { display: grid; gap: 12px; }
+.ask-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ask-row input { flex: 1 1 280px; min-width: 0; font: inherit; font-size: 15px; padding: 11px 14px; border-radius: var(--r-md);
+  border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); }
+.btn { font: inherit; font-weight: 600; border-radius: var(--r-md); padding: 10px 16px; border: 1px solid var(--line-2);
+  background: var(--panel); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--blue); }
+.btn-ai { background: var(--orange); border-color: var(--orange); color: #fff; }
+.btn-ai:hover { filter: brightness(1.05); border-color: var(--orange); }
+.btn[disabled] { opacity: .55; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 12.5px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line-2);
+  background: var(--panel-2); color: var(--ink); cursor: pointer; }
+.chip:hover { border-color: var(--blue); }
+.chip[aria-pressed="true"] { background: var(--blue-soft); border-color: var(--blue); }
+.answer { white-space: pre-wrap; font-size: 14.5px; max-width: 80ch; border-left: 3px solid var(--orange); padding: 4px 0 4px 14px; }
+.ai-tag { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--orange-ink); }
+.ai-tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+.status { font-size: 12.5px; color: var(--ink-2); }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.tab { font: inherit; font-weight: 500; padding: 10px 14px; border: 0; background: none; color: var(--ink-2); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--blue); }
+section.panel { display: grid; gap: 16px; }
+
+/* Tables */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+  font-weight: 500; background: var(--panel-2); white-space: nowrap; }
+th button { all: unset; cursor: pointer; } th button:focus-visible { outline: 2px solid var(--blue); }
+tr:last-child td { border-bottom: 0; }
+#bench-table td:first-child, #bench-table th:first-child { position: sticky; left: 0; z-index: 1; background: var(--panel); }
+#bench-table th:first-child { background: var(--panel-2); }
+#bench-table tr[aria-selected="true"] td:first-child { background: var(--blue-soft); }
+td.num, th.num { text-align: right; white-space: nowrap; }
+tbody tr.pick { cursor: pointer; } tbody tr.pick:hover { background: var(--panel-2); }
+tbody tr[aria-selected="true"] { background: var(--blue-soft); }
+.n { color: var(--ink-3); font-size: 11.5px; margin-left: 4px; }
+.price-in { width: 76px; font: inherit; font-family: var(--font-mono); padding: 5px 7px; border-radius: 6px;
+  border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); text-align: right; }
+
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.conf-A { color: var(--ok); border-color: currentColor; } .conf-B { color: var(--blue); border-color: currentColor; }
+.conf-C { color: var(--warn); border-color: currentColor; }
+.up { color: var(--bad); } .down { color: var(--ok); } .even { color: var(--ink-2); }
+
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.field { display: grid; gap: 4px; }
+.field select, .field input[type="search"] { font: inherit; padding: 7px 10px; border-radius: var(--r-sm); border: 1px solid var(--line-2);
+  background: var(--panel); color: var(--ink); min-width: 0; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+
+/* Chart */
+.chart-card { display: grid; gap: 10px; }
+.chart-box { position: relative; min-height: 210px; }
+.chart-box svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart-box text { fill: var(--ink-2); font-family: var(--font-mono); font-size: 11px; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r-sm);
+  padding: 8px 10px; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,.15); max-width: 260px; z-index: 2; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.hh { display: grid; gap: 8px; }
+.hh-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.hh-when { font-family: var(--font-mono); font-size: 12.5px; color: var(--blue); }
+.hh ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.calc { display: grid; gap: 12px; }
+.calc-in { display: flex; flex-wrap: wrap; gap: 12px; }
+.calc-in label { display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); }
+.calc-in input { width: 110px; font: inherit; font-family: var(--font-mono); padding: 7px 9px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); }
+.big { font-family: var(--font-display); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+details summary { cursor: pointer; font-weight: 500; }
+.quote { font-size: 12.5px; color: var(--ink-2); font-style: italic; }
+.notice { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; font-size: 13.5px; }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: no-preference) { .tab, .chip, .btn { transition: border-color .15s, background-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="label">Pricing intelligence · Te Puia · Rotorua</span>
+    <h1>Rotorua café and happy-hour <em>prices</em></h1>
+    <p class="takeaway" id="takeaway">Loading the latest check…</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="card ask" id="ask">
+    <div>
+      <h2>Ask about this data</h2>
+      <p class="muted small">Claude answers from the prices on this page only and names the venue and source behind each figure.</p>
+    </div>
+    <form class="ask-row" id="ask-form">
+      <label for="ask-input" class="label" style="position:absolute;left:-9999px">Your question</label>
+      <input id="ask-input" type="text" autocomplete="off" placeholder="e.g. Where is the cheapest happy-hour pint in Rotorua?">
+      <button class="btn btn-ai" id="ask-btn" type="submit">Ask</button>
+      <button class="btn" id="ask-stop" type="button" hidden>Stop</button>
+    </form>
+    <div class="chips" id="ask-examples"></div>
+    <p class="status" id="ask-status" hidden></p>
+    <div id="ask-out" hidden><span class="ai-tag">Claude</span><div class="answer" id="ask-answer"></div></div>
+    <p class="status" id="ask-off" hidden>Questions aren’t available in this view. Open the page in Claude to ask.</p>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Views" id="tabs">
+    <button class="tab" role="tab" id="tab-bench" aria-controls="p-bench" aria-selected="true">Benchmarks</button>
+    <button class="tab" role="tab" id="tab-hh" aria-controls="p-hh" aria-selected="false">Happy hours</button>
+    <button class="tab" role="tab" id="tab-all" aria-controls="p-all" aria-selected="false">All prices</button>
+    <button class="tab" role="tab" id="tab-tp" aria-controls="p-tp" aria-selected="false">Te Puia</button>
+    <button class="tab" role="tab" id="tab-method" aria-controls="p-method" aria-selected="false">Method and gaps</button>
+  </nav>
+
+  <section class="panel" id="p-bench" role="tabpanel" aria-labelledby="tab-bench">
+    <div class="notice">Medians use standard menu prices only, one price per venue (its lowest listed, normally the regular size). Happy-hour and package prices are kept out. Enter Te Puia’s own prices in the right-hand column to see where they sit; entries stay in your browser only.</div>
+    <div class="filters">
+      <label class="check"><input type="checkbox" id="b-incC"> Include low-confidence (C) prices</label>
+      <label class="field"><span class="label">Show</span>
+        <select id="b-cat"><option value="">All items</option><option value="cafe">Café: coffee, tea, cold drinks</option><option value="food">Café: food</option><option value="bar">Bar: beer, wine, spirits</option></select></label>
+    </div>
+    <div class="tbl-wrap"><table id="bench-table">
+      <thead><tr><th>Item</th><th class="num">Rotorua attractions</th><th class="num">Rotorua town</th><th class="num">Regional + national</th><th class="num">Rotorua range</th><th class="num">Te Puia price</th><th class="num">vs Rotorua median</th></tr></thead>
+      <tbody></tbody></table></div>
+    <div class="card chart-card" id="chart-card">
+      <div><h3 id="chart-title">Every venue’s price</h3><p class="muted small" id="chart-sub">Select a row above to plot it.</p></div>
+      <div class="legend"><span><i style="background:var(--s-attr)"></i>Rotorua attractions</span><span><i style="background:var(--s-town)"></i>Rotorua town</span><span><i style="background:var(--s-bench)"></i>Regional + national</span><span id="lg-tp" hidden><i style="background:var(--ref);border-radius:0;width:2px;height:12px"></i>Te Puia (your entry)</span></div>
+      <div class="chart-box" id="chart"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-hh" role="tabpanel" aria-labelledby="tab-hh" hidden>
+    <div class="notice" id="hh-summary"></div>
+    <div class="grid2" id="hh-list"></div>
+    <details id="hh-old-wrap"><summary id="hh-old-count">Older listings</summary><div class="grid2" id="hh-old" style="margin-top:12px"></div></details>
+  </section>
+
+  <section class="panel" id="p-all" role="tabpanel" aria-labelledby="tab-all" hidden>
+    <div class="filters">
+      <label class="field"><span class="label">Search</span><input type="search" id="f-q" placeholder="Venue, item or area"></label>
+      <label class="field"><span class="label">Group</span><select id="f-group"></select></label>
+      <label class="field"><span class="label">Category</span><select id="f-cat"></select></label>
+      <label class="field"><span class="label">Price type</span>
+        <select id="f-ptype"><option value="">All types</option><option value="standard">Standard</option><option value="happy_hour">Happy hour</option><option value="combo_package">Package or combo</option><option value="promotion">Promotion</option></select></label>
+      <label class="field"><span class="label">Confidence</span>
+        <select id="f-conf"><option value="">A, B and C</option><option value="AB">A and B only</option><option value="A">A only</option></select></label>
+      <button class="btn" id="dl" type="button" hidden>Download CSV</button>
+    </div>
+    <p class="status" id="all-count"></p>
+    <div class="tbl-wrap"><table id="all-table">
+      <thead><tr>
+        <th><button data-sort="venue">Venue</button></th><th><button data-sort="group">Group</button></th><th><button data-sort="listed">Item as listed</button></th>
+        <th><button data-sort="size">Size</button></th><th class="num"><button data-sort="price">Price</button></th><th><button data-sort="ptype">Type</button></th>
+        <th><button data-sort="conf">Conf.</button></th><th><button data-sort="menuDate">Menu date</button></th><th>Source</th></tr></thead>
+      <tbody></tbody></table></div>
+  </section>
+
+  <section class="panel" id="p-tp" role="tabpanel" aria-labelledby="tab-tp" hidden>
+    <div class="notice"><b>Te Puia publishes no café or bar prices online.</b> Hiakai Café’s hours are listed but not its menu, and Pātaka Kai has no drinks list or happy hour online. To place Te Puia in the market, enter its prices in the Benchmarks tab or send the current menus to Claude.</div>
+    <div class="card"><h3>Packages that include food or drink</h3><p class="muted small">From Te Puia’s booking pages.</p></div>
+    <div class="tbl-wrap"><table id="tp-table"><thead><tr><th>Package</th><th class="num">Price</th><th>What F&amp;B is included</th><th>Conf.</th><th>Source</th></tr></thead><tbody></tbody></table></div>
+    <div class="card calc">
+      <div><h3>Price-rise break-even</h3><p class="muted small">How much volume a price rise can lose before contribution falls. The margin is your assumption: no real cost data has been supplied yet.</p></div>
+      <div class="calc-in">
+        <label for="c-price">Current price (NZD)<input id="c-price" type="number" min="0" step="0.1" value="6.50"></label>
+        <label for="c-rise">Price rise (%)<input id="c-rise" type="number" min="0" max="100" step="1" value="10"></label>
+        <label for="c-margin">Contribution margin, assumed (%)<input id="c-margin" type="number" min="1" max="100" step="1" value="65"></label>
+      </div>
+      <p id="c-out"></p>
+      <p class="muted small">Formula: volume retained to break even = margin ÷ (margin + rise). No price elasticity is assumed.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="p-method" role="tabpanel" aria-labelledby="tab-method" hidden>
+    <div class="grid2">
+      <div class="card"><h3>How prices are graded</h3><ul class="plain small">
+        <li><span class="pill conf-A">A</span> Official site or menu, current or dated within about 6 months.</li>
+        <li><span class="pill conf-B">B</span> Official source, undated.</li>
+        <li><span class="pill conf-C">C</span> Third-party, or older than about 6 months. Shown, never in medians unless you include it.</li>
+        <li>Every price links to the page or PDF it was read from, with a quote copied from it.</li>
+        <li>NZ menu prices are GST-inclusive, so all comparisons are GST-inclusive.</li>
+        <li>Sites that refused automated reading were left alone and are listed as gaps.</li></ul></div>
+      <div class="card"><h3>Coverage</h3><div id="coverage" class="small"></div></div>
+    </div>
+    <div class="card"><h3>Venues with no published prices</h3><p class="muted small">Checked this run. Most attraction cafés don’t publish menus online.</p>
+      <div class="tbl-wrap" style="margin-top:10px"><table id="gap-table"><thead><tr><th>Venue</th><th>Group</th><th>What was found</th></tr></thead><tbody></tbody></table></div></div>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(props)) { if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else if (k.startsWith("aria-") || k.startsWith("data-")) e.setAttribute(k, v); else e[k] = v; } for (const k of kids) if (k != null) e.append(k); return e; };
+const money = (v) => v == null || isNaN(v) ? "—" : "$" + (Math.round(v * 100) / 100).toFixed(2);
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+
+const ITEMS = [
+  ["flat_white","Flat white","cafe"],["long_black","Long black","cafe"],["cappuccino","Cappuccino","cafe"],["latte","Latte","cafe"],["mochaccino","Mochaccino","cafe"],
+  ["hot_chocolate","Hot chocolate","cafe"],["tea","Tea","cafe"],["fluffy","Fluffy (kids)","cafe"],["iced_coffee","Iced coffee","cafe"],["smoothie","Smoothie","cafe"],["milkshake","Milkshake","cafe"],
+  ["juice","Juice","cafe"],["soft_drink","Soft drink","cafe"],["water","Bottled water","cafe"],["alt_milk_extra","Plant milk extra","cafe"],["extra_shot","Extra shot","cafe"],["large_upsize","Large upsize","cafe"],
+  ["muffin","Muffin","food"],["scone","Scone","food"],["slice_or_cookie","Slice or cookie","food"],["pie","Pie","food"],["sausage_roll","Sausage roll","food"],["toastie","Toastie","food"],
+  ["sandwich_wrap","Sandwich or wrap","food"],["salad","Salad","food"],["big_breakfast","Big breakfast","food"],["eggs_benedict","Eggs benedict","food"],["fries","Fries","food"],["burger","Burger","food"],["kids_meal","Kids meal","food"],
+  ["tap_beer_pint","Tap beer, pint","bar"],["tap_beer_handle_or_glass","Tap beer, handle or glass","bar"],["bottled_beer","Bottled beer","bar"],["jug_beer","Jug of beer","bar"],["cider","Cider","bar"],
+  ["house_wine_glass","House wine, glass","bar"],["wine_bottle","Wine, bottle","bar"],["spirit_and_mixer","Spirit and mixer","bar"],["cocktail","Cocktail","bar"],["bar_snack","Bar snack","bar"],["platter","Platter","bar"]
+];
+const ITEM = Object.fromEntries(ITEMS.map(([k, l, g]) => [k, { label: l, group: g }]));
+const itemLabel = (k) => ITEM[k]?.label || (k === "other" ? "Other" : k);
+const GROUPS = { client: "Te Puia", attr: "Rotorua attractions", town: "Rotorua town cafés", bars: "Rotorua bars and hotels", regional: "Regional", national: "National benchmarks" };
+const groupOf = (r) => r.cls === "client" ? "client" : r.cls === "direct" ? "attr" : r.cls === "indirect" ? (/bars/i.test(r.seg || "") ? "bars" : "town") : r.cls === "regional_benchmark" ? "regional" : "national";
+const marketOf = (r) => ({ attr: "attr", town: "town", bars: "town", regional: "bench", national: "bench" })[groupOf(r)] || null;
+const MARKETS = { attr: "Rotorua attractions", town: "Rotorua town", bench: "Regional + national" };
+const PTYPE = { standard: "Standard", happy_hour: "Happy hour", combo_package: "Package", promotion: "Promotion" };
+const CATS = { coffee: "Coffee", tea: "Tea", hot_chocolate: "Hot chocolate", cold_drink: "Cold drinks", non_alcoholic_drink: "Non-alcoholic drinks", cabinet_food: "Cabinet food", breakfast_brunch: "Breakfast and brunch", lunch_mains: "Lunch and mains", kids: "Kids", snack: "Snacks", beer: "Beer", wine: "Wine", cider: "Cider", spirits: "Spirits", cocktail: "Cocktails", bar_food: "Bar food", package: "Packages", other: "Other" };
+
+let ROWS = [], RUN = "";
+let tpPrices = store.get("tp-prices") || {};
+let selItem = store.get("sel-item") || "flat_white";
+
+const median = (a) => { const s = [...a].sort((x, y) => x - y); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; };
+
+function venuePrices(item, { market = null, incC = false } = {}) {
+  const best = new Map();
+  for (const r of ROWS) {
+    if (r.item !== item || r.ptype !== "standard" || r.price == null || r.cls === "client") continue;
+    if (!incC && r.conf === "C") continue;
+    const m = marketOf(r); if (market && m !== market) continue;
+    const k = r.venue; const cur = best.get(k);
+    if (!cur || r.price < cur.price) best.set(k, { venue: r.venue, price: r.price, market: m, conf: r.conf, size: r.size, menuDate: r.menuDate, url: r.url, listed: r.listed, group: groupOf(r) });
+  }
+  return [...best.values()];
+}
+function itemStats(item, incC) {
+  const out = {};
+  for (const m of Object.keys(MARKETS)) { const v = venuePrices(item, { market: m, incC }); out[m] = { n: v.length, median: median(v.map((x) => x.price)) }; }
+  const roto = venuePrices(item, { incC }).filter((v) => v.market !== "bench");
+  out.roto = { n: roto.length, median: median(roto.map((x) => x.price)), min: roto.length ? Math.min(...roto.map((x) => x.price)) : null, max: roto.length ? Math.max(...roto.map((x) => x.price)) : null, venues: roto };
+  return out;
+}
+
+/* ---------- Header ---------- */
+function renderHeader() {
+  const priced = ROWS.filter((r) => r.price != null);
+  const venues = new Set(ROWS.map((r) => r.venue)).size;
+  const pv = new Set(priced.map((r) => r.venue)).size;
+  const ab = priced.filter((r) => r.conf !== "C").length;
+  const fw = itemStats("flat_white", false).roto, pint = venuePrices("tap_beer_handle_or_glass").filter((v) => v.market !== "bench");
+  const hhVenues = new Set(ROWS.filter((r) => r.ptype === "happy_hour" && r.conf !== "C").map((r) => r.venue)).size;
+  $("#takeaway").textContent = `A flat white costs ${money(fw.min)}–${money(fw.max)} across ${fw.n} Rotorua venues that publish prices (median ${money(fw.median)}). ${hhVenues} venues show a happy hour on a current official source, and Te Puia publishes no café or bar prices, so its position needs its own menu.`;
+  $("#meta").replaceChildren(
+    el("span", { class: "mono", text: `Checked ${RUN}` }),
+    el("span", { text: `${priced.length} prices from ${pv} venues (${venues} checked)` }),
+    el("span", { text: `${ab} graded A or B` }),
+    el("span", { text: "NZD, GST-inclusive" }));
+}
+
+/* ---------- Benchmarks ---------- */
+function renderBench() {
+  const incC = $("#b-incC").checked, cat = $("#b-cat").value;
+  const tb = $("#bench-table tbody"); tb.replaceChildren();
+  for (const [k, label, g] of ITEMS) {
+    if (cat && g !== cat) continue;
+    const s = itemStats(k, incC);
+    if (!s.attr.n && !s.town.n && !s.bench.n) continue;
+    const cell = (x) => { const td = el("td", { class: "num" }); if (x.n) { td.append(el("span", { class: "num", text: money(x.median) }), el("span", { class: "n", text: `n=${x.n}` })); } else td.textContent = "—"; return td; };
+    const inp = el("input", { class: "price-in", type: "number", min: "0", step: "0.1", inputMode: "decimal", value: tpPrices[k] ?? "", "aria-label": `Te Puia price for ${label}` });
+    const diff = el("td", { class: "num" });
+    const paint = () => {
+      const v = parseFloat(inp.value);
+      if (isNaN(v) || s.roto.median == null) { diff.textContent = "—"; diff.className = "num"; return; }
+      const d = v - s.roto.median, pct = d / s.roto.median * 100;
+      const cheaper = s.roto.venues.filter((x) => x.price < v).length;
+      diff.className = "num " + (Math.abs(pct) < 3 ? "even" : d > 0 ? "up" : "down");
+      diff.textContent = `${d >= 0 ? "+" : "−"}${money(Math.abs(d)).slice(1)} (${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(0)}%)`;
+      diff.title = `${cheaper} of ${s.roto.n} Rotorua venues charge less`;
+    };
+    inp.addEventListener("click", (e) => e.stopPropagation());
+    inp.addEventListener("input", () => { const v = inp.value.trim(); if (v === "") delete tpPrices[k]; else tpPrices[k] = v; store.set("tp-prices", tpPrices); paint(); if (selItem === k) drawChart(); });
+    paint();
+    const tpTd = el("td", { class: "num" }, inp);
+    const tr = el("tr", { class: "pick", tabIndex: 0, "aria-selected": String(selItem === k), "data-key": k },
+      el("td", {}, el("b", { text: label })), cell(s.attr), cell(s.town), cell(s.bench),
+      el("td", { class: "num", text: s.roto.n ? `${money(s.roto.min)}–${money(s.roto.max)}` : "—" }), tpTd, diff);
+    const pick = () => { selItem = k; store.set("sel-item", k); tb.querySelectorAll("tr").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.key === k))); drawChart(); };
+    tr.addEventListener("click", pick); tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    tb.append(tr);
+  }
+  drawChart();
+}
+
+function niceTicks(lo, hi, count) {
+  const span = hi - lo || 1, raw = span / count, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) || mag * 10;
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(Math.round(v * 100) / 100); return out;
+}
+function drawChart() {
+  const box = $("#chart"); box.replaceChildren();
+  const incC = $("#b-incC").checked;
+  const pts = venuePrices(selItem, { incC });
+  const tp = parseFloat(tpPrices[selItem]);
+  $("#chart-title").textContent = `${itemLabel(selItem)}: every venue’s price`;
+  $("#chart-sub").textContent = pts.length ? `${pts.length} venues, lowest standard price each. Point at a dot for the venue and source.` : "No standard prices for this item.";
+  $("#lg-tp").hidden = isNaN(tp);
+  if (!pts.length) return;
+  const W = Math.max(300, box.clientWidth || 600), rowH = 52, top = 10, labW = W < 520 ? 0 : 150, left = labW + 14, right = 18;
+  const rows = Object.keys(MARKETS), H = top + rows.length * rowH + 30;
+  const vals = pts.map((p) => p.price).concat(isNaN(tp) ? [] : [tp]);
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * 0.08 || 1; lo = Math.max(0, lo - pad); hi += pad;
+  const x = (v) => left + (v - lo) / (hi - lo) * (W - left - right);
+  const NS = "http://www.w3.org/2000/svg", mk = (t, a = {}) => { const n = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) n.setAttribute(k, v); return n; };
+  const svg = mk("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${itemLabel(selItem)} prices by venue: ${pts.map((p) => p.venue + " " + money(p.price)).join(", ")}` });
+  for (const t of niceTicks(lo, hi, W < 520 ? 4 : 7)) {
+    svg.append(mk("line", { x1: x(t), x2: x(t), y1: top, y2: H - 24, stroke: "var(--line)", "stroke-width": 1 }));
+    const tx = mk("text", { x: x(t), y: H - 8, "text-anchor": "middle" }); tx.textContent = money(t).replace(".00", ""); svg.append(tx);
+  }
+  const color = { attr: "var(--s-attr)", town: "var(--s-town)", bench: "var(--s-bench)" };
+  const tip = el("div", { class: "tip", hidden: true });
+  rows.forEach((m, i) => {
+    const cy = top + i * rowH + rowH / 2;
+    if (labW) { const t = mk("text", { x: 0, y: cy + 4 }); t.textContent = MARKETS[m]; svg.append(t); }
+    else { const t = mk("text", { x: left, y: cy - 14 }); t.textContent = MARKETS[m]; svg.append(t); }
+    svg.append(mk("line", { x1: left, x2: W - right, y1: cy, y2: cy, stroke: "var(--line-2)", "stroke-width": 1 }));
+    const mine = pts.filter((p) => p.market === m).sort((a, b) => a.price - b.price);
+    const seen = {};
+    for (const p of mine) {
+      const key = p.price.toFixed(2); const k = seen[key] = (seen[key] || 0) + 1;
+      const cy2 = cy + (k - 1) * 7 * (k % 2 ? 1 : -1);
+      const c = mk("circle", { cx: x(p.price), cy: cy2, r: 6, fill: color[m], stroke: "var(--panel)", "stroke-width": 2, tabindex: 0 });
+      if (p.conf === "C") { c.setAttribute("fill", "var(--panel)"); c.setAttribute("stroke", color[m]); }
+      const show = () => {
+        tip.replaceChildren(el("b", { text: p.venue }), el("br"), el("span", { class: "mono", text: `${money(p.price)}${p.size ? " · " + p.size : ""}` }), el("br"),
+          el("span", { class: "muted", text: `${p.listed || ""} · grade ${p.conf}${p.menuDate ? " · menu " + p.menuDate : ""}` }));
+        tip.hidden = false;
+        const bx = box.getBoundingClientRect(), cx = x(p.price) / W * bx.width;
+        tip.style.left = Math.min(Math.max(0, cx - 120), bx.width - 250) + "px"; tip.style.top = (cy2 / H * bx.height + 12) + "px";
+      };
+      c.addEventListener("mouseenter", show); c.addEventListener("focus", show);
+      c.addEventListener("mouseleave", () => tip.hidden = true); c.addEventListener("blur", () => tip.hidden = true);
+      svg.append(c);
+    }
+  });
+  if (!isNaN(tp)) {
+    svg.append(mk("line", { x1: x(tp), x2: x(tp), y1: top, y2: H - 24, stroke: "var(--ref)", "stroke-width": 2, "stroke-dasharray": "4 3" }));
+    const t = mk("text", { x: Math.min(x(tp) + 5, W - 90), y: top + 10, style: "fill:var(--ink)" }); t.textContent = `Te Puia ${money(tp)}`; svg.append(t);
+  }
+  box.append(svg, tip);
+}
+
+/* ---------- Happy hours ---------- */
+function renderHH() {
+  const byVenue = new Map();
+  for (const r of ROWS) {
+    if (r.ptype !== "happy_hour" && !(r.hhTimes && r.cls !== "client")) continue;
+    if (!byVenue.has(r.venue)) byVenue.set(r.venue, { venue: r.venue, group: groupOf(r), days: r.hhDays, times: r.hhTimes, items: [], urls: new Set(), conf: new Set(), dates: new Set(), conds: new Set() });
+    const v = byVenue.get(r.venue);
+    v.days = v.days || r.hhDays; v.times = v.times || r.hhTimes;
+    if (r.ptype === "happy_hour") {
+      v.urls.add(r.url); v.conf.add(r.conf); if (r.menuDate) v.dates.add(r.menuDate); if (r.cond) v.conds.add(r.cond);
+      if (r.price != null) {
+        let std = r.std;
+        if (std == null && r.item !== "other") { const s = ROWS.filter((x) => x.venue === r.venue && x.item === r.item && x.ptype === "standard" && x.price != null).map((x) => x.price); if (s.length) std = Math.min(...s); }
+        v.items.push({ r, std });
+      }
+    }
+  }
+  const list = [...byVenue.values()].filter((v) => v.items.length || v.times);
+  const good = list.filter((v) => [...v.conf].some((c) => c !== "C"));
+  const hhPints = list.flatMap((v) => v.items).filter((i) => ["tap_beer_pint", "tap_beer_handle_or_glass", "bottled_beer"].includes(i.r.item) && i.r.conf !== "C");
+  $("#hh-summary").textContent = `${good.length} venues show a happy hour or drinks deal on a current official source, and most run 4–6pm. ` +
+    (hhPints.length ? `Happy-hour beer by the glass or bottle on those sources: ${money(Math.min(...hhPints.map((i) => i.r.price)))}–${money(Math.max(...hhPints.map((i) => i.r.price)))}. ` : "") +
+    `${list.length - good.length} more appear only in older third-party listings, shown separately below; they may have changed.`;
+  const order = { attr: 0, bars: 1, town: 2, regional: 3, national: 4, client: 5 };
+  list.sort((a, b) => (order[a.group] - order[b.group]) || a.venue.localeCompare(b.venue));
+  const card = (v) => {
+    const confs = [...v.conf].sort();
+    const ul = el("ul", { class: "small" }, ...(v.items.length ? v.items.map(({ r, std }) => {
+      const disc = std && std > r.price ? ` (normally ${money(std)}, ${Math.round((1 - r.price / std) * 100)}% off)` : "";
+      return el("li", {}, el("span", { text: `${r.listed}${r.size ? ", " + r.size : ""}: ` }), el("b", { class: "mono", text: money(r.price) }), el("span", { class: "muted", text: disc }));
+    }) : [el("li", { class: "muted", text: "Times advertised, prices not published." })]));
+    const links = el("div", { class: "small" }, ...[...v.urls].slice(0, 3).map((u, i) => el("a", { href: u, target: "_blank", rel: "noopener", text: i ? ` · source ${i + 1}` : "Source" })));
+    return el("div", { class: "card hh" },
+      el("div", { class: "hh-head" }, el("h3", { text: v.venue }), el("span", { class: "label", text: GROUPS[v.group] })),
+      el("div", { class: "hh-when", text: [v.days, v.times].filter(Boolean).join(" · ") || "Days and times not stated" }),
+      ul, v.conds.size ? el("p", { class: "muted small", text: [...v.conds].slice(0, 2).join(" ") }) : null,
+      el("div", { class: "small" }, ...confs.map((c) => el("span", { class: `pill conf-${c}`, text: c, style: "margin-right:6px" })), el("span", { class: "muted", text: v.dates.size ? `dated ${[...v.dates][0]}` : "" })),
+      links);
+  };
+  const old = list.filter((v) => !good.includes(v));
+  $("#hh-list").replaceChildren(...good.map(card));
+  $("#hh-old-count").textContent = `Older listings (${old.length} venues, grade C, may have changed)`;
+  $("#hh-old").replaceChildren(...old.map(card));
+  $("#hh-old-wrap").hidden = !old.length;
+}
+
+/* ---------- All prices ---------- */
+let sortKey = "venue", sortDir = 1;
+function filtered() {
+  const q = $("#f-q").value.trim().toLowerCase(), g = $("#f-group").value, c = $("#f-cat").value, p = $("#f-ptype").value, cf = $("#f-conf").value;
+  return ROWS.filter((r) => r.price != null
+    && (!q || [r.venue, r.listed, r.area, itemLabel(r.item)].join(" ").toLowerCase().includes(q))
+    && (!g || groupOf(r) === g) && (!c || r.cat === c) && (!p || r.ptype === p)
+    && (!cf || (cf === "A" ? r.conf === "A" : r.conf !== "C")));
+}
+function renderAll() {
+  const rows = filtered();
+  const val = (r) => sortKey === "group" ? GROUPS[groupOf(r)] : sortKey === "price" ? r.price : (r[sortKey] || "");
+  rows.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * sortDir; });
+  $("#all-count").textContent = `${rows.length} prices`;
+  const tb = $("#all-table tbody");
+  tb.replaceChildren(...rows.slice(0, 600).map((r) => el("tr", {},
+    el("td", {}, el("b", { text: r.venue }), el("div", { class: "muted small", text: r.area || "" })),
+    el("td", { class: "small", text: GROUPS[groupOf(r)] }),
+    el("td", {}, el("span", { text: r.listed || itemLabel(r.item) }), r.quote ? el("details", { class: "small" }, el("summary", { class: "muted", text: "Quote" }), el("p", { class: "quote", text: r.quote })) : null),
+    el("td", { class: "small", text: r.size || "" }),
+    el("td", { class: "num", text: money(r.price) }),
+    el("td", { class: "small" }, el("span", { text: PTYPE[r.ptype] || r.ptype }), r.hhTimes ? el("div", { class: "muted", text: [r.hhDays, r.hhTimes].filter(Boolean).join(" ") }) : null),
+    el("td", {}, el("span", { class: `pill conf-${r.conf}`, text: r.conf })),
+    el("td", { class: "small mono", text: r.menuDate || "—" }),
+    el("td", { class: "small" }, el("a", { href: r.url, target: "_blank", rel: "noopener", text: "Open" }), el("div", { class: "muted mono", text: (r.checked || "").slice(0, 10) })))));
+}
+function toCSV(rows) {
+  const cols = ["venue", "group", "area", "region", "listed", "item", "size", "price", "ptype", "hhDays", "hhTimes", "cond", "std", "sur", "conf", "menuDate", "checked", "url", "quote"];
+  const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(c === "group" ? GROUPS[groupOf(r)] : r[c])).join(","))].join("\n");
+}
+
+/* ---------- Te Puia ---------- */
+function renderTP() {
+  const rows = ROWS.filter((r) => r.cls === "client" && r.price != null && r.ptype !== "standard").sort((a, b) => a.price - b.price);
+  $("#tp-table tbody").replaceChildren(...rows.map((r) => el("tr", {},
+    el("td", {}, el("b", { text: r.listed })), el("td", { class: "num", text: money(r.price) }),
+    el("td", { class: "small", text: r.cond || r.notes || "" }), el("td", {}, el("span", { class: `pill conf-${r.conf}`, text: r.conf })),
+    el("td", { class: "small" }, el("a", { href: r.url, target: "_blank", rel: "noopener", text: "Open" })))));
+  calc();
+}
+function calc() {
+  const p = parseFloat($("#c-price").value), rise = parseFloat($("#c-rise").value) / 100, m = parseFloat($("#c-margin").value) / 100;
+  const out = $("#c-out");
+  if ([p, rise, m].some(isNaN) || m <= 0) { out.textContent = "Enter a price, a rise and a margin."; return; }
+  const keep = m / (m + rise);
+  out.replaceChildren(el("span", { class: "big", text: `${(keep * 100).toFixed(1)}%` }), el("br"),
+    el("span", { text: `At ${money(p)} → ${money(p * (1 + rise))}, you can sell ${((1 - keep) * 100).toFixed(1)}% fewer before contribution falls (with an assumed ${Math.round(m * 100)}% margin).` }));
+}
+
+/* ---------- Method ---------- */
+function renderMethod() {
+  const priced = ROWS.filter((r) => r.price != null);
+  const by = (f) => { const o = {}; for (const r of priced) o[f(r)] = (o[f(r)] || 0) + 1; return o; };
+  const g = by((r) => GROUPS[groupOf(r)]), c = by((r) => r.conf);
+  $("#coverage").replaceChildren(el("ul", { class: "plain" },
+    ...Object.entries(g).map(([k, v]) => el("li", { text: `${k}: ${v} prices from ${new Set(priced.filter((r) => GROUPS[groupOf(r)] === k).map((r) => r.venue)).size} venues` })),
+    el("li", { text: `Grades: A ${c.A || 0}, B ${c.B || 0}, C ${c.C || 0}` })));
+  const gaps = ROWS.filter((r) => r.price == null);
+  const seen = new Set();
+  $("#gap-table tbody").replaceChildren(...gaps.filter((r) => !seen.has(r.venue) && seen.add(r.venue)).map((r) => el("tr", {},
+    el("td", {}, el("b", { text: r.venue })), el("td", { class: "small", text: GROUPS[groupOf(r)] }), el("td", { class: "small muted", text: (r.notes || "").slice(0, 220) }))));
+}
+
+/* ---------- Tabs ---------- */
+function showTab(id) {
+  document.querySelectorAll(".tab").forEach((t) => { const on = t.id === "tab-" + id; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; });
+  document.querySelectorAll("section.panel").forEach((p) => p.hidden = p.id !== "p-" + id);
+  if (id === "bench") drawChart();
+  try { history.replaceState(null, "", "#" + id); } catch {}
+}
+document.querySelectorAll(".tab").forEach((t) => {
+  t.addEventListener("click", () => showTab(t.id.slice(4)));
+  t.addEventListener("keydown", (e) => { if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return; const tabs = [...document.querySelectorAll(".tab")]; const i = tabs.indexOf(t) + (e.key === "ArrowRight" ? 1 : -1); const n = tabs[(i + tabs.length) % tabs.length]; n.focus(); n.click(); });
+});
+
+/* ---------- Ask Claude ---------- */
+const EXAMPLES = ["Where is the cheapest happy-hour pint in Rotorua?", "How do attraction café coffee prices compare with town cafés?", "Which venues add a public holiday surcharge?", "If Te Puia charged $7 for a flat white, where would that sit?", "What are the biggest gaps in this data?"];
+function compact(r) { return { venue: r.venue, group: GROUPS[groupOf(r)], item: r.item, listed: r.listed, size: r.size, price: r.price, type: r.ptype, hh: r.hhTimes ? [r.hhDays, r.hhTimes].filter(Boolean).join(" ") : undefined, std: r.std ?? undefined, surcharge: r.sur ?? undefined, grade: r.conf, menu_date: r.menuDate ?? undefined, source: r.url }; }
+const TOOLS = [
+  { name: "search_prices", description: "Search price observations. Returns up to 60 compact rows (venue, group, item, size, price NZD GST-incl, type, happy-hour times, grade A/B/C, menu date, source URL). Filter by item key, venue text, group, price type.",
+    inputSchema: { type: "object", properties: { item: { type: "string", description: "Item key, e.g. flat_white, tap_beer_handle_or_glass, house_wine_glass. Use list_items for keys." }, venue_contains: { type: "string" }, group: { type: "string", enum: Object.keys(GROUPS) }, price_type: { type: "string", enum: Object.keys(PTYPE) }, include_c: { type: "boolean", description: "Include grade C (third-party or old) prices. Default false." } } },
+    execute: (a) => { const it = a.item ? String(a.item) : "", vq = a.venue_contains ? String(a.venue_contains).toLowerCase() : "";
+      const rows = ROWS.filter((r) => r.price != null && (!it || r.item === it) && (!vq || r.venue.toLowerCase().includes(vq)) && (!a.group || groupOf(r) === a.group) && (!a.price_type || r.ptype === a.price_type) && (a.include_c || r.conf !== "C"));
+      return { total: rows.length, rows: rows.slice(0, 60).map(compact) }; } },
+  { name: "item_benchmark", description: "Median standard price for one item in each market (Rotorua attractions, Rotorua town, Regional + national), using grade A/B only and one price per venue, plus the Rotorua venues behind it.",
+    inputSchema: { type: "object", properties: { item: { type: "string" } }, required: ["item"] },
+    execute: (a) => { const s = itemStats(String(a.item), false); return { item: a.item, attractions: s.attr, town: s.town, regional_national: s.bench, rotorua: { n: s.roto.n, median: s.roto.median, min: s.roto.min, max: s.roto.max, venues: s.roto.venues.map((v) => ({ venue: v.venue, price: v.price, size: v.size, grade: v.conf, source: v.url })) } }; } },
+  { name: "list_items", description: "List item keys with how many prices each has.",
+    execute: () => { const o = {}; for (const r of ROWS) if (r.price != null) o[r.item] = (o[r.item] || 0) + 1; return o; } },
+  { name: "venues_without_prices", description: "Venues checked this run that publish no prices, with what was found.",
+    execute: () => ROWS.filter((r) => r.price == null).map((r) => ({ venue: r.venue, group: GROUPS[groupOf(r)], note: (r.notes || "").slice(0, 200) })) },
+  { name: "te_puia_entered_prices", description: "Prices the viewer has typed in for Te Puia on this page (not published by Te Puia; the viewer's own entries).",
+    execute: () => tpPrices }
+];
+function rules(q) {
+  return `You are a pricing analyst helping Te Puia (a Rotorua, New Zealand visitor attraction) understand café and happy-hour drink prices in Rotorua and the wider region. Answer the question below using ONLY data from the tools. Rules:
+- Every price is NZD and GST-inclusive. Name the venue for each price you cite, and add its source URL in brackets.
+- Grade A = official and current, B = official but undated, C = third-party or older than ~6 months. Say when you rely on C prices; prefer A/B.
+- Separate verified prices from your own calculations or inferences, and say so plainly.
+- Te Puia publishes no café or bar prices. Only use Te Puia figures from te_puia_entered_prices, and call them "the prices you entered".
+- Sample sizes are small (often 2–6 venues). Say so when it matters. Never invent a price or a venue.
+- Keep it short: a direct answer first, then up to 6 bullet points. Plain text, no tables, no markdown headings.
+Data checked: ${RUN}. Today: ${new Date().toISOString().slice(0, 10)}.
+
+Question: ${q}`;
+}
+async function setupAsk() {
+  const sample = await (window.claude?.use?.("sample") ?? Promise.resolve(null)).catch(() => null);
+  if (!sample) { $("#ask-form").hidden = true; $("#ask-examples").hidden = true; $("#ask-off").hidden = false; return; }
+  const input = $("#ask-input"), btn = $("#ask-btn"), stop = $("#ask-stop"), status = $("#ask-status"), out = $("#ask-out"), ans = $("#ask-answer");
+  let ctl = null;
+  $("#ask-examples").replaceChildren(...EXAMPLES.map((q) => { const b = el("button", { class: "chip", type: "button", text: q }); b.addEventListener("click", () => { input.value = q; run(); }); return b; }));
+  stop.addEventListener("click", () => ctl?.abort());
+  $("#ask-form").addEventListener("submit", (e) => { e.preventDefault(); run(); });
+  async function run() {
+    const q = input.value.trim(); if (!q || ctl) return;
+    ctl = new AbortController(); btn.disabled = true; stop.hidden = false; status.hidden = false; status.textContent = "Thinking…"; out.hidden = false; ans.textContent = "";
+    const tools = TOOLS.map((t) => ({ ...t, execute: (a) => { status.textContent = `Looking at the data (${t.name.replace(/_/g, " ")})…`; return t.execute(a || {}); } }));
+    try {
+      const { truncated } = await sample(rules(q), { tools, signal: ctl.signal, onText: ({ text }) => { ans.textContent = text; status.textContent = "Writing…"; } });
+      status.textContent = truncated ? "The answer was cut short. Try a narrower question." : "Answered from the prices on this page.";
+    } catch (e) {
+      ans.textContent = e?.text || "";
+      const msg = { not_granted: "Questions are turned off for this page.", rate_limited: "Too many questions at once. Wait a moment and ask again.", cancelled: "Stopped.", tools_unavailable: "Questions with data lookups aren’t available in this view." }[e?.code];
+      status.textContent = msg || "Claude couldn’t answer just now. Try again in a moment.";
+      if (e?.code === "not_granted") { $("#ask-form").hidden = true; $("#ask-examples").hidden = true; }
+    } finally { ctl = null; btn.disabled = false; stop.hidden = true; }
+  }
+}
+
+/* ---------- Downloads ---------- */
+async function setupDownload() {
+  const dl = await (window.claude?.use?.("downloads") ?? Promise.resolve(null)).catch(() => null);
+  if (!dl) return;
+  const b = $("#dl"); b.hidden = false;
+  b.addEventListener("click", async () => { try { await dl.save({ filename: `rotorua-fnb-prices-${RUN}.csv`, data: toCSV(filtered()) }); } catch (e) { if (e?.code !== "declined") $("#all-count").textContent = "The download didn’t start. Try again."; } });
+}
+
+/* ---------- Boot ---------- */
+async function boot() {
+  try {
+    const res = await fetch("data.json"); const d = await res.json(); ROWS = d.rows; RUN = d.run;
+  } catch { $("#takeaway").textContent = "The price data didn’t load. Reload the page to try again."; return; }
+  const gsel = $("#f-group"); gsel.replaceChildren(new Option("All groups", ""), ...Object.entries(GROUPS).map(([k, v]) => new Option(v, k)));
+  const cats = [...new Set(ROWS.filter((r) => r.price != null).map((r) => r.cat))].sort();
+  $("#f-cat").replaceChildren(new Option("All categories", ""), ...cats.map((c) => new Option(CATS[c] || c, c)));
+  $("#f-conf").value = "";
+  renderHeader(); renderBench(); renderHH(); renderAll(); renderTP(); renderMethod();
+  ["#b-incC", "#b-cat"].forEach((s) => $(s).addEventListener("change", renderBench));
+  ["#f-q", "#f-group", "#f-cat", "#f-ptype", "#f-conf"].forEach((s) => $(s).addEventListener("input", renderAll));
+  document.querySelectorAll("#all-table th button").forEach((b) => b.addEventListener("click", () => { const k = b.dataset.sort; sortDir = sortKey === k ? -sortDir : 1; sortKey = k; renderAll(); }));
+  ["#c-price", "#c-rise", "#c-margin"].forEach((s) => $(s).addEventListener("input", calc));
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawChart, 120); });
+  const h = (location.hash || "").slice(1); if (["bench", "hh", "all", "tp", "method"].includes(h)) showTab(h);
+  setupAsk(); setupDownload();
+}
+boot();
+})();
+</script>

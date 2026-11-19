@@ -1,0 +1,33 @@
+{
+  "run_id": "2026-11-19",
+  "observations": 480,
+  "priced": 437,
+  "by_confidence": {
+    "A": 263,
+    "C": 118,
+    "B": 56
+  },
+  "by_price_type": {
+    "standard": 381,
+    "happy_hour": 29,
+    "combo_package": 25,
+    "promotion": 2
+  },
+  "venues": 86,
+  "venues_with_prices": 51,
+  "venues_by_class": {
+    "client": 2,
+    "direct": 19,
+    "indirect": 38,
+    "national_premium_benchmark": 7,
+    "regional_benchmark": 20
+  },
+  "happy_hour_venues": 20,
+  "changes_flagged": 0,
+  "weights": {
+    "same_item": 40,
+    "serving_size": 25,
+    "venue_context": 20,
+    "evidence_quality": 15
+  }
+}

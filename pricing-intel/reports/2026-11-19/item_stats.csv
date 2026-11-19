@@ -1,0 +1,137 @@
+market,item,venues,min,p25,median,p75,max
+Rotorua (all),alt_milk_extra,4,1.0,1.0,1.0,1.12,1.5
+Rotorua (all),big_breakfast,4,28.9,32.65,33.95,34.22,34.9
+Rotorua (all),bottled_beer,2,10.0,10.5,11.0,11.5,12.0
+Rotorua (all),burger,4,20.0,25.17,28.2,30.38,33.0
+Rotorua (all),cappuccino,5,5.5,5.5,5.5,6.0,6.7
+Rotorua (all),cider,3,10.0,10.5,11.0,13.5,16.0
+Rotorua (all),cocktail,5,17.0,20.0,20.0,22.0,22.0
+Rotorua (all),eggs_benedict,4,24.9,27.15,29.45,31.22,31.9
+Rotorua (all),extra_shot,3,0.5,1.0,1.5,1.75,2.0
+Rotorua (all),flat_white,5,5.5,5.5,5.5,6.0,6.7
+Rotorua (all),fluffy,4,2.0,2.38,3.0,3.62,4.0
+Rotorua (all),fries,6,7.0,10.12,10.7,12.1,14.0
+Rotorua (all),hot_chocolate,5,5.5,5.5,5.5,6.5,6.5
+Rotorua (all),house_wine_glass,5,12.0,15.0,17.0,18.0,18.0
+Rotorua (all),iced_coffee,5,6.0,6.5,7.0,7.5,8.5
+Rotorua (all),juice,5,5.0,6.0,6.5,8.0,8.0
+Rotorua (all),kids_meal,5,10.0,12.0,15.0,16.9,16.9
+Rotorua (all),large_upsize,3,0.5,0.9,1.3,1.4,1.5
+Rotorua (all),latte,5,5.0,5.5,6.0,6.0,6.7
+Rotorua (all),long_black,5,5.0,5.0,5.5,5.5,5.7
+Rotorua (all),mochaccino,5,5.5,6.0,6.0,6.0,6.7
+Rotorua (all),muffin,1,6.5,6.5,6.5,6.5,6.5
+Rotorua (all),other,3,0.2,5.6,11.0,11.0,11.0
+Rotorua (all),pie,1,9.5,9.5,9.5,9.5,9.5
+Rotorua (all),salad,5,8.0,15.0,22.5,26.9,33.0
+Rotorua (all),sandwich_wrap,2,14.5,17.12,19.75,22.38,25.0
+Rotorua (all),sausage_roll,1,10.0,10.0,10.0,10.0,10.0
+Rotorua (all),scone,1,6.5,6.5,6.5,6.5,6.5
+Rotorua (all),slice_or_cookie,2,5.5,6.25,7.0,7.75,8.5
+Rotorua (all),smoothie,4,9.5,11.38,12.0,12.25,13.0
+Rotorua (all),soft_drink,7,4.5,5.0,5.5,6.25,8.0
+Rotorua (all),spirit_and_mixer,2,12.0,13.0,14.0,15.0,16.0
+Rotorua (all),tap_beer_handle_or_glass,3,11.0,11.5,12.0,14.0,16.0
+Rotorua (all),tap_beer_pint,1,15.0,15.0,15.0,15.0,15.0
+Rotorua (all),tea,4,5.0,5.38,5.75,6.0,6.0
+Rotorua (all),toastie,1,14.5,14.5,14.5,14.5,14.5
+Rotorua (all),water,5,4.0,5.5,6.0,8.0,9.0
+Rotorua (all),wine_bottle,5,46.0,65.0,65.0,68.0,70.0
+Rotorua attractions,alt_milk_extra,1,1.5,1.5,1.5,1.5,1.5
+Rotorua attractions,cappuccino,1,6.7,6.7,6.7,6.7,6.7
+Rotorua attractions,cider,1,11.0,11.0,11.0,11.0,11.0
+Rotorua attractions,cocktail,1,22.0,22.0,22.0,22.0,22.0
+Rotorua attractions,extra_shot,1,2.0,2.0,2.0,2.0,2.0
+Rotorua attractions,flat_white,1,6.7,6.7,6.7,6.7,6.7
+Rotorua attractions,fluffy,1,2.0,2.0,2.0,2.0,2.0
+Rotorua attractions,fries,1,10.0,10.0,10.0,10.0,10.0
+Rotorua attractions,hot_chocolate,1,6.5,6.5,6.5,6.5,6.5
+Rotorua attractions,house_wine_glass,1,18.0,18.0,18.0,18.0,18.0
+Rotorua attractions,iced_coffee,1,8.5,8.5,8.5,8.5,8.5
+Rotorua attractions,juice,1,8.0,8.0,8.0,8.0,8.0
+Rotorua attractions,latte,1,6.7,6.7,6.7,6.7,6.7
+Rotorua attractions,long_black,1,5.7,5.7,5.7,5.7,5.7
+Rotorua attractions,mochaccino,1,6.7,6.7,6.7,6.7,6.7
+Rotorua attractions,muffin,1,6.5,6.5,6.5,6.5,6.5
+Rotorua attractions,other,2,0.2,2.9,5.6,8.3,11.0
+Rotorua attractions,pie,1,9.5,9.5,9.5,9.5,9.5
+Rotorua attractions,salad,1,15.0,15.0,15.0,15.0,15.0
+Rotorua attractions,sandwich_wrap,1,14.5,14.5,14.5,14.5,14.5
+Rotorua attractions,sausage_roll,1,10.0,10.0,10.0,10.0,10.0
+Rotorua attractions,scone,1,6.5,6.5,6.5,6.5,6.5
+Rotorua attractions,slice_or_cookie,1,8.5,8.5,8.5,8.5,8.5
+Rotorua attractions,soft_drink,1,8.0,8.0,8.0,8.0,8.0
+Rotorua attractions,tap_beer_handle_or_glass,1,11.0,11.0,11.0,11.0,11.0
+Rotorua attractions,tea,1,6.0,6.0,6.0,6.0,6.0
+Rotorua attractions,toastie,1,14.5,14.5,14.5,14.5,14.5
+Rotorua attractions,water,1,8.0,8.0,8.0,8.0,8.0
+Rotorua attractions,wine_bottle,1,65.0,65.0,65.0,65.0,65.0
+Rotorua town,alt_milk_extra,3,1.0,1.0,1.0,1.0,1.0
+Rotorua town,big_breakfast,4,28.9,32.65,33.95,34.22,34.9
+Rotorua town,bottled_beer,2,10.0,10.5,11.0,11.5,12.0
+Rotorua town,burger,4,20.0,25.17,28.2,30.38,33.0
+Rotorua town,cappuccino,4,5.5,5.5,5.5,5.62,6.0
+Rotorua town,cider,2,10.0,11.5,13.0,14.5,16.0
+Rotorua town,cocktail,4,17.0,19.25,20.0,20.5,22.0
+Rotorua town,eggs_benedict,4,24.9,27.15,29.45,31.22,31.9
+Rotorua town,extra_shot,2,0.5,0.75,1.0,1.25,1.5
+Rotorua town,flat_white,4,5.5,5.5,5.5,5.62,6.0
+Rotorua town,fluffy,3,2.5,3.0,3.5,3.75,4.0
+Rotorua town,fries,5,7.0,10.5,10.9,12.5,14.0
+Rotorua town,hot_chocolate,4,5.5,5.5,5.5,5.75,6.5
+Rotorua town,house_wine_glass,4,12.0,14.25,16.0,17.25,18.0
+Rotorua town,iced_coffee,4,6.0,6.38,6.75,7.12,7.5
+Rotorua town,juice,4,5.0,5.75,6.25,6.88,8.0
+Rotorua town,kids_meal,5,10.0,12.0,15.0,16.9,16.9
+Rotorua town,large_upsize,3,0.5,0.9,1.3,1.4,1.5
+Rotorua town,latte,4,5.0,5.38,5.75,6.0,6.0
+Rotorua town,long_black,4,5.0,5.0,5.25,5.5,5.5
+Rotorua town,mochaccino,4,5.5,5.88,6.0,6.0,6.0
+Rotorua town,other,1,11.0,11.0,11.0,11.0,11.0
+Rotorua town,salad,4,8.0,18.88,24.7,28.42,33.0
+Rotorua town,sandwich_wrap,1,25.0,25.0,25.0,25.0,25.0
+Rotorua town,slice_or_cookie,1,5.5,5.5,5.5,5.5,5.5
+Rotorua town,smoothie,4,9.5,11.38,12.0,12.25,13.0
+Rotorua town,soft_drink,6,4.5,5.0,5.25,5.5,7.0
+Rotorua town,spirit_and_mixer,2,12.0,13.0,14.0,15.0,16.0
+Rotorua town,tap_beer_handle_or_glass,2,12.0,13.0,14.0,15.0,16.0
+Rotorua town,tap_beer_pint,1,15.0,15.0,15.0,15.0,15.0
+Rotorua town,tea,3,5.0,5.25,5.5,5.75,6.0
+Rotorua town,water,4,4.0,5.12,5.75,6.75,9.0
+Rotorua town,wine_bottle,4,46.0,60.25,66.5,68.5,70.0
+Regional + national,alt_milk_extra,2,0.9,0.92,0.95,0.98,1.0
+Regional + national,bottled_beer,3,9.0,9.5,10.0,10.5,11.0
+Regional + national,burger,3,19.5,24.25,29.0,29.0,29.0
+Regional + national,cappuccino,2,6.0,6.05,6.1,6.15,6.2
+Regional + national,cider,4,8.5,11.12,12.5,13.25,14.0
+Regional + national,cocktail,2,16.0,17.25,18.5,19.75,21.0
+Regional + national,eggs_benedict,2,21.0,22.25,23.5,24.75,26.0
+Regional + national,extra_shot,1,1.0,1.0,1.0,1.0,1.0
+Regional + national,flat_white,2,6.0,6.05,6.1,6.15,6.2
+Regional + national,fluffy,2,2.0,2.25,2.5,2.75,3.0
+Regional + national,fries,5,7.0,7.7,11.0,12.0,15.0
+Regional + national,hot_chocolate,2,6.0,6.05,6.1,6.15,6.2
+Regional + national,house_wine_glass,3,12.0,12.5,13.0,15.5,18.0
+Regional + national,iced_coffee,2,7.0,7.12,7.25,7.38,7.5
+Regional + national,juice,1,6.5,6.5,6.5,6.5,6.5
+Regional + national,kids_meal,2,8.5,9.75,11.0,12.25,13.5
+Regional + national,latte,2,6.0,6.05,6.1,6.15,6.2
+Regional + national,long_black,2,5.2,5.28,5.35,5.42,5.5
+Regional + national,milkshake,1,10.0,10.0,10.0,10.0,10.0
+Regional + national,mochaccino,2,6.5,6.5,6.5,6.5,6.5
+Regional + national,muffin,1,6.8,6.8,6.8,6.8,6.8
+Regional + national,other,1,34.0,34.0,34.0,34.0,34.0
+Regional + national,pie,1,8.0,8.0,8.0,8.0,8.0
+Regional + national,salad,1,14.0,14.0,14.0,14.0,14.0
+Regional + national,sandwich_wrap,1,9.0,9.0,9.0,9.0,9.0
+Regional + national,sausage_roll,1,6.5,6.5,6.5,6.5,6.5
+Regional + national,scone,1,6.0,6.0,6.0,6.0,6.0
+Regional + national,slice_or_cookie,1,4.8,4.8,4.8,4.8,4.8
+Regional + national,smoothie,1,11.0,11.0,11.0,11.0,11.0
+Regional + national,soft_drink,3,4.0,5.0,6.0,6.0,6.0
+Regional + national,spirit_and_mixer,1,14.0,14.0,14.0,14.0,14.0
+Regional + national,tap_beer_handle_or_glass,2,8.0,8.5,9.0,9.5,10.0
+Regional + national,tap_beer_pint,1,17.0,17.0,17.0,17.0,17.0
+Regional + national,tea,2,4.8,5.1,5.4,5.7,6.0
+Regional + national,toastie,1,17.5,17.5,17.5,17.5,17.5
+Regional + national,water,1,6.0,6.0,6.0,6.0,6.0
