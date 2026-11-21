@@ -375,7 +375,7 @@ async function main() {
     for (const [path, heading] of [["/terms", "Terms of Service."], ["/privacy", "Privacy Policy."]] as const) {
       await lp.goto(`${BASE}${path}`);
       const text = (await lp.locator("main:visible").textContent()) ?? ""; // textContent: the label is CSS-uppercased
-      check(`${path} exists, is marked as a draft placeholder and is not indexed`, (await lp.getByRole("heading", { level: 1 }).innerText()).replace(/\s+/g, " ").includes(heading) && text.includes("Draft: placeholders only") && /noindex/.test((await lp.locator('meta[name="robots"]').getAttribute("content")) ?? ""));
+      check(`${path} exists, is marked as a draft for legal review and is not indexed`, (await lp.getByRole("heading", { level: 1 }).innerText()).replace(/\s+/g, " ").includes(heading) && text.includes("Draft for legal review") && /noindex/.test((await lp.locator('meta[name="robots"]').getAttribute("content")) ?? ""));
       await axe(lp, path);
     }
     await L.close();

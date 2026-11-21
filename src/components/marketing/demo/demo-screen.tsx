@@ -1,7 +1,8 @@
 import { Accent, MarketingPage, SectionEyebrow } from "@/components/marketing/shared";
+import { ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Container, Eyebrow } from "@/components/ui/misc";
-import { DEMO_EMAIL, DEMO_POINTS } from "@/content/demo";
-import { DemoForm } from "./demo-form";
+import { DEMO_BOOKING_URL, DEMO_EMAIL, DEMO_POINTS, DEMO_STEPS } from "@/content/demo";
 
 /* Book a demo and contact (design/website/W-Demo.dc.html). */
 export function DemoScreen() {
@@ -27,16 +28,34 @@ export function DemoScreen() {
             </ul>
             <div className="flex flex-col gap-2 rounded-[22px] border border-line bg-surface p-5.5 text-[15px]">
               <Eyebrow>Prefer email?</Eyebrow>
-              {/* Not a mailto link until the owner supplies the address. */}
-              <span className="font-semibold">{DEMO_EMAIL}</span>
+              <a href={`mailto:${DEMO_EMAIL}`} className="w-fit font-semibold underline-offset-4 hover:underline">
+                {DEMO_EMAIL}
+              </a>
               <span className="text-ink-muted">We reply within one working day.</span>
             </div>
           </div>
 
           <div className="min-w-0 flex-[1.1_1_520px] rounded-[30px] bg-grad-blue p-[3px]">
             <div className="rounded-[27px] bg-surface p-6 sm:p-10">
-              <h2 className="sr-only">Booking details</h2>
-              <DemoForm />
+              <h2 className="mb-2 font-display text-[28px] leading-tight font-semibold tracking-[-0.02em]">Choose a time</h2>
+              <p className="mb-7 text-base text-ink-muted">Bookings are handled by Cal.com, which opens in a new tab.</p>
+              <ol className="mb-8 flex flex-col gap-4">
+                {DEMO_STEPS.map((step, i) => (
+                  <li key={step} className="flex gap-4 text-base">
+                    <span aria-hidden className="w-7 flex-none font-mono text-sm leading-6 text-ink-muted">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+              <Button asChild variant="action" shape="pill" size="lg" className="h-14 w-full text-base">
+                <a href={DEMO_BOOKING_URL} target="_blank" rel="noopener noreferrer">
+                  Book a demo on Cal.com
+                  <ArrowUpRight aria-hidden className="size-5" />
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              </Button>
             </div>
           </div>
         </Container>

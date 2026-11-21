@@ -326,3 +326,23 @@ How it is wired: `docs/app.md`. Decisions:
 - **`infra:check` refuses any Supabase project but Reeldeal's**, before connecting.
 - **Workspace deletion: deactivate first, delete after a recovery period** (recommended 30 days,
   D-W1), keep legal records (`docs/data-retention.md`). Not built until decided.
+
+## Owner answers on launch copy (2026-11-21)
+
+- **Prices include GST** (`gstIncluded: true` in `config/pricing.json`).
+- **Contact email:** anigemmill@theoutsidein.nz (Demo page).
+- **Instagram** links to https://www.instagram.com/theoutsidein.nz/. **LinkedIn link removed.**
+- **Newsletter sign-up hidden** from the footer until there is more to announce.
+- **Founder section is off the About page** until the owner supplies the story, quote and photo.
+  "The problem" now uses the brief's own framing instead of a bracket.
+- **Tagline** (default page description): "Turn your raw footage into finished reels, ads and website
+  videos. AI video production for businesses."
+- **Booking:** Cal.com (https://cal.com/ani-gemmill-yg4gmo). The Demo page links out to it instead of the
+  design's in-page form, so availability and confirmations are real. The sample time slots are gone.
+- **Address:** theoutsidein.nz/reeldeal. The live main site is on Netlify (apex; `www` redirects to
+  it), so a Netlify proxy rule forwards `/reeldeal` to the Reeldeal Vercel project at
+  `reeldeal.theoutsidein.nz`. Reeldeal runs with `NEXT_PUBLIC_BASE_PATH=/reeldeal`.
+  Steps and approvals: `docs/launch-domain.md`.
+- **Terms and Privacy:** first draft written for a New Zealand business (Privacy Act 2020, CGA and FTA
+  business-use exclusions, NZ law). Labelled "Draft for legal review" on screen and kept out of search
+  engines until a lawyer signs it off.

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Container, Eyebrow } from "@/components/ui/misc";
 import { INDUSTRIES, STEPS, TEASER_PLANS } from "@/content/home";
 import { getMedia } from "@/content/media";
+import { gstNote } from "@/content/pricing-page";
 import { getPlan, pricing, signupHref } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
@@ -299,7 +300,7 @@ export function PricingTeaser() {
           <Link href="/pricing" className="font-semibold text-ink underline">
             pricing page
           </Link>
-          . Prices in {pricing.currency}, [GST INCLUSIVE OR EXCLUSIVE: TO CONFIRM].
+          . Prices in {pricing.currency}. {gstNote()}
         </p>
       </Container>
     </section>

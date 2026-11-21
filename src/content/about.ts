@@ -10,7 +10,9 @@ export const ABOUT = {
     { media: "forest-ride", grow: "sm:flex-1" },
     { media: "coast-sail", grow: "sm:flex-[1.3]" },
   ] satisfies { media: MediaId; grow: string }[],
-  problem: "[Founder story: operators sitting on hundreds of great clips, with no time or budget to turn them into content. Replace with the real story.]",
+  /* Founder story, quote and photo are left off until the owner supplies them (2026-11-21). */
+  problem:
+    "Tourism operators sit on hundreds of great clips, with no time or budget to turn them into content. The footage is there. The hours to edit it are not.",
   belief:
     "AI should do the slow, repetitive part of video production. People should keep the parts that need taste: the story, the brand and the final yes.",
   principles: [
@@ -19,10 +21,4 @@ export const ABOUT = {
     { title: "You stay in control", text: "AI suggests and builds. You approve. Nothing is published without you." },
     { title: "Your content is yours", text: "Clear ownership, private by default, and easy to take with you." },
   ],
-  founder: {
-    quote: "[A line from the founder on why this matters to them.]",
-    name: "[Founder name]",
-    role: "founder",
-    photo: "[FOUNDER PHOTO]",
-  },
 } as const;

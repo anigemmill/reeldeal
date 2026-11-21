@@ -1,7 +1,7 @@
 {
-  "_note": "Master pricing (NZD/month). Source: docs/pricing-source.md. Keep configurable; validate margins before launch. GST inclusive/exclusive not yet confirmed.",
+  "_note": "Master pricing (NZD/month). Source: docs/pricing-source.md. Keep configurable; validate margins before launch. Prices include GST (owner, 2026-11-21).",
   "currency": "NZD",
-  "gstIncluded": null,
+  "gstIncluded": true,
   "annualDiscount": { "monthsFree": 2 },
   "recommendedPlan": "creator",
   "plans": [

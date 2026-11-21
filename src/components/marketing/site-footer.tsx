@@ -32,25 +32,7 @@ export function SiteFooter() {
             <p className="mb-4 text-[15px] leading-relaxed text-ink-muted">
               AI video production for businesses. Upload your footage, describe the video, publish everywhere.
             </p>
-            {/* No mailing-list provider yet: the form is shown disabled rather than pretending to work. */}
-            <form className="flex gap-1.5 rounded-pill border border-line py-1.5 pr-1.5 pl-4" aria-describedby="newsletter-note">
-              <label htmlFor="newsletter-email" className="sr-only">
-                Email for product updates
-              </label>
-              <input
-                id="newsletter-email"
-                type="email"
-                disabled
-                placeholder="Email for product updates"
-                className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
-              />
-              <Button type="submit" variant="primary" shape="pill" size="sm" disabled>
-                Subscribe
-              </Button>
-            </form>
-            <p id="newsletter-note" className="mt-2 pl-4 text-xs text-ink-muted">
-              [NEWSLETTER PROVIDER] Sign-ups open soon.
-            </p>
+            {/* Newsletter sign-up hidden until there is more to announce (owner, 2026-11-21). */}
           </div>
           <nav aria-label="Footer" className="grid flex-[2_1_560px] grid-cols-2 gap-7 text-sm sm:grid-cols-4">
             {FOOTER_NAV.map((col) => (
@@ -71,9 +53,9 @@ export function SiteFooter() {
           <span className="flex gap-4.5">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            {/* Social links are not links until the owner supplies the URLs. */}
-            <span title="[INSTAGRAM URL]">Instagram</span>
-            <span title="[LINKEDIN URL]">LinkedIn</span>
+            <a href="https://www.instagram.com/theoutsidein.nz/" className="hover:underline">
+              Instagram
+            </a>
           </span>
         </div>
       </Container>

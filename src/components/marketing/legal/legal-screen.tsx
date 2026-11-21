@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { MarketingPage, SectionEyebrow } from "@/components/marketing/shared";
 import { Container } from "@/components/ui/misc";
-import { LEGAL_STATUS, type LegalDoc } from "@/content/legal";
+import { LEGAL_CONTACT, LEGAL_STATUS, type LegalBlock, type LegalDoc } from "@/content/legal";
 
 /*
-  Terms of Service and Privacy Policy layout. The content is placeholders only
-  (src/content/legal.ts): the draft notice stays until the owner supplies final text.
+  Terms of Service and Privacy Policy layout. The text (src/content/legal.ts) is a first
+  draft: the draft notice stays until the owner's legal adviser signs it off.
 */
 export function LegalScreen({ doc }: { doc: LegalDoc }) {
   const other = doc.slug === "terms" ? { href: "/privacy", label: "Privacy Policy" } : { href: "/terms", label: "Terms of Service" };
@@ -52,11 +52,19 @@ export function LegalScreen({ doc }: { doc: LegalDoc }) {
                 <span className="mr-2 font-mono text-sm font-normal text-ink-muted">{String(i + 1).padStart(2, "0")}</span>
                 {s.heading}
               </h2>
-              <p className="mt-3 rounded-md border border-dashed border-line-strong bg-surface-muted px-4 py-3 font-mono text-[13px] leading-relaxed text-ink-muted">{s.placeholder}</p>
+              <div className="mt-3 flex flex-col gap-3 text-base leading-relaxed">
+                {s.body.map((b, j) => (
+                  <Block key={j} block={b} />
+                ))}
+              </div>
             </section>
           ))}
           <p className="border-t border-line pt-6 text-sm text-ink-muted">
-            Questions: {LEGAL_STATUS.contact}. See also the{" "}
+            Questions:{" "}
+            <a href={`mailto:${LEGAL_CONTACT}`} className="text-link underline underline-offset-4">
+              {LEGAL_CONTACT}
+            </a>
+            . See also the{" "}
             <Link href={other.href} className="text-link underline underline-offset-4">
               {other.label}
             </Link>
@@ -65,5 +73,16 @@ export function LegalScreen({ doc }: { doc: LegalDoc }) {
         </article>
       </Container>
     </MarketingPage>
+  );
+}
+
+function Block({ block }: { block: LegalBlock }) {
+  if (typeof block === "string") return <p>{block}</p>;
+  return (
+    <ul className="flex list-disc flex-col gap-2 pl-5 marker:text-ink-muted">
+      {block.list.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
   );
 }

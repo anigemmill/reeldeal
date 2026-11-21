@@ -24,10 +24,10 @@ shots need new entries in that file.
 | Product | 1 | 27 | 28 |
 | Solutions (Tourism) | 0 | 13 | 13 |
 | Showcase | 13 | 0 | 13 |
-| About | 0 | 4 | 4 |
-| **All pages** | **26** | **69** | **95** |
+| About | 0 | 3 | 3 |
+| **All pages** | **26** | **68** | **94** |
 
-**95 slots in total.** Many small thumbnails can reuse frames from the bigger shots, so a
+**94 slots in total.** Many small thumbnails can reuse frames from the bigger shots, so a
 practical shoot is about **35–40 distinct shots**. Plan for: 12–14 short vertical clips,
 about 15 landscape hero-quality stills or clips, and 4 interiors or food and drink.
 Showcase needs **13 real finished videos** with the customers' permission.
@@ -83,19 +83,14 @@ business's name, industry, format, length and whether it was made in Autopilot o
 | Gallery, wide | 1 | Still | Landscape 5:4 | 582 × 460 | 1600 × 1260 |
 | Gallery, narrow | 1 | Still | Portrait 2:3 | 291 × 460 | 800 × 1260 |
 | Gallery, medium | 1 | Still | Portrait 4:5 | 379 × 460 | 1000 × 1260 |
-| Founder photo | 1 | Still | Portrait 4:5 | ~220 × 260 | 800 × 1000 |
 
 ## Copy and details still bracketed
 
 | Where | Gap |
 |---|---|
-| Every page (footer) | `[NEWSLETTER PROVIDER]`: mailing-list service for sign-ups |
-| Footer | `[INSTAGRAM URL]`, `[LINKEDIN URL]` |
-| Home, Pricing | GST: prices including or excluding GST |
 | Showcase | `[CUSTOMER VIDEOS]`; featured story `[Customer]`, story text, `[N]` clips, `[N]` videos, `[T]` time |
-| About | `[Founder story]`, `[FOUNDER PHOTO]`, founder quote, `[Founder name]` |
-| Demo | `[hello@yourdomain]` contact email; `[BOOKING PROVIDER]` (Calendly, Cal.com or similar) |
-| Site-wide | `[TAGLINE]` in the default page description; confirm the name "Reeldeal" |
+| Terms, Privacy | First draft written; needs legal review. Still bracketed: legal entity name, NZBN and address, effective date, recovery period [30 days], backup period [7 days], security log retention [12 months], top-up expiry [90 days], Sentry |
+| Site-wide | Confirm the name "Reeldeal" |
 
 ## Not yet on the site
 

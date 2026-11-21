@@ -5,7 +5,7 @@
 import { formatEnvIssues, publicSchema, serverSchema } from "../src/env/schema";
 
 const pick = (keys: string[]) => Object.fromEntries(keys.map((k) => [k, process.env[k] || undefined]));
-const pub = publicSchema.safeParse(pick(["NEXT_PUBLIC_SITE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]));
+const pub = publicSchema.safeParse(pick(["NEXT_PUBLIC_BASE_PATH", "NEXT_PUBLIC_SITE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]));
 const srv = serverSchema.safeParse(pick(Object.keys(serverSchema.shape)));
 
 const problems = [pub, srv].flatMap((r) => (r.success ? [] : [formatEnvIssues(r.error)]));

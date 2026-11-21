@@ -48,8 +48,8 @@ for (const [label, path] of [
   ["Sign-up (with Terms consent)", "/sign-up"],
   ["Check your inbox", "/verify-email"],
   ["Expired or used link", "/verify-email?link=invalid"],
-  ["Terms of Service (placeholder)", "/terms"],
-  ["Privacy Policy (placeholder)", "/privacy"],
+  ["Terms of Service (draft)", "/terms"],
+  ["Privacy Policy (draft)", "/privacy"],
 ] as const)
   for (const viewport of ["desktop", "mobile"] as const) shots.push({ group: "Implemented: sign-up, verification, legal", label, path, viewport, theme: "site", full: true });
 
