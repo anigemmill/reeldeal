@@ -58,6 +58,14 @@ def main(run_id):
             has_info = o["price"] is not None or o["ptype"] in ("happy_hour", "promotion") or o["hhTimes"]
             key = (o["venue"], o["url"] if has_info else "(gap)")
             by_venue.setdefault(key, {}).setdefault(r["run_id"], []).append(o)
+    # Paid ads come and go: keep only those seen in the latest Ad Library check.
+    ad_runs = [r for (v, u), per_run in by_venue.items() for r, rs in per_run.items()
+               if any(o["stype"] == "paid_ad" for o in rs)]
+    if ad_runs:
+        last_ad_run = max(ad_runs, key=runs.index)
+        by_venue = {k: v for k, v in by_venue.items()
+                    if not any(o["stype"] == "paid_ad" for rs in v.values() for o in rs)
+                    or last_ad_run in v}
     # A venue whose latest check records it as closed keeps only that note.
     closed = set()
     for (venue, url), per_run in by_venue.items():

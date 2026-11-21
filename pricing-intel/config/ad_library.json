@@ -1,0 +1,25 @@
+{
+  "_about": "Search terms and advertiser mapping for the Meta Ad Library check. Ads are kept only if their text mentions one of keep_if_text_mentions. Advertisers map to the venue names used in observations.csv.",
+  "country": "NZ",
+  "searches": [
+    "Rotorua", "Eat Streat", "Rotorua restaurant", "Rotorua bar", "Rotorua cafe", "Rotorua happy hour",
+    "Rotorua drinks", "Rotorua Christmas function", "Rotorua dinner", "Rotorua lunch", "Tutanekai",
+    "Te Puia", "Whakarewarewa", "Rotorua hot pools", "Rotorua attraction", "Rotorua cruise", "Rotorua hangi",
+    "Atticus Finch", "Feasting Fox", "Pig & Whistle", "Sobar", "Barrel & Co", "CBK Craft Bar", "Mac's Steakhouse",
+    "Fainting Goat", "Fat Brother", "Regent Room", "Wild Rice", "White Tiger", "Number 8 Wire", "Poco Tapas",
+    "Black Label Barbecue", "Hennessy's", "BREW Craft Beer", "Duke's Bar", "Crates N Cues", "Social Club Rotorua",
+    "Abracadabra", "Greenhouse Kitchen", "Super Casual", "Good Eastern Taphouse", "Ruck n Maul", "Kasper's",
+    "Side Pocket", "Alexandra's", "Secret Spot", "Fat Dog Cafe", "Capers", "Artisan Cafe", "Capizzi", "Colibries",
+    "Leonardo's", "Lone Star Rotorua", "Mamma Rosa", "Factory Smokehouse", "Urbano Bistro", "Yamato",
+    "Skyline Rotorua", "Stratosfare", "Mitai", "Te Pā Tū", "Polynesian Spa", "Wai-O-Tapu", "Waimangu", "Hell's Gate",
+    "Agrodome", "Redwoods Treewalk", "Paradise Valley Springs", "Velocity Valley", "Katoa Jet", "Pure Cruise",
+    "Rotorua Duck Tours", "Volcanic Air", "Rotorua Canopy Tours", "Waikite", "Manupirua", "Wai Ariki", "First Table Rotorua"
+  ],
+  "keep_if_text_mentions": ["Rotorua", "Eat Streat", "Tutanekai", "Whakarewarewa", "Ngongotah"],
+  "advertisers": {
+    "Atticus Finch Rotorua": {"venue": "Atticus Finch", "venue_type": "restaurant"},
+    "The Feasting Fox": {"venue": "The Feasting Fox", "venue_type": "restaurant"},
+    "Katoa Jet": {"venue": "Katoa Jet", "venue_type": "attraction_bar"}
+  },
+  "channel_advertisers": ["First Table", "GrabOne", "Bookme", "Groupon", "Viator", "Klook", "Trip.com"]
+}

@@ -34,6 +34,7 @@ SEGMENTS = {
     "08_bars": ("indirect", "Rotorua bars and hotels"),
     "09_attractions_a": ("direct", "Rotorua attractions"),
     "10_attractions_b": ("direct", "Rotorua attractions"),
+    "11_ad_library": ("indirect", "Paid ads (Meta Ad Library)"),
 }
 
 FIELDS = [

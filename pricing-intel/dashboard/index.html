@@ -183,6 +183,9 @@ ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 
   <section class="panel" id="p-hh" role="tabpanel" aria-labelledby="tab-hh" hidden>
     <div class="notice" id="hh-summary"></div>
+    <div class="card"><h3>Paid ads running now</h3><p class="muted small" id="ads-sub">Active ads in Meta’s public Ad Library that mention Rotorua venues. Ordinary Facebook and Instagram posts need a login and aren’t included.</p></div>
+    <div class="tbl-wrap"><table id="ads-table"><thead><tr><th>Advertiser</th><th>Running since</th><th>What the ad says</th><th>Ad</th></tr></thead><tbody></tbody></table></div>
+    <h3>Happy hours on venues’ own sources</h3>
     <div class="grid2" id="hh-list"></div>
     <details id="hh-old-wrap"><summary id="hh-old-count">Older listings</summary><div class="grid2" id="hh-old" style="margin-top:12px"></div></details>
   </section>
@@ -401,6 +404,17 @@ function drawChart() {
 }
 
 /* ---------- Happy hours ---------- */
+function renderAds() {
+  const ads = ROWS.filter((r) => r.stype === "paid_ad").sort((a, b) => (b.menuDate || "").localeCompare(a.menuDate || ""));
+  const checked = ads.length ? (ads[0].checked || "").slice(0, 10) : null;
+  $("#ads-sub").textContent = `Active ads in Meta’s public Ad Library that mention Rotorua${checked ? `, checked ${checked}` : ""}. Ordinary Facebook and Instagram posts need a login and aren’t included.`;
+  $("#ads-table tbody").replaceChildren(...(ads.length ? ads.map((r) => el("tr", {},
+    el("td", {}, el("b", { text: r.biz }), r.venue !== r.biz ? el("div", { class: "muted small", text: `for ${r.venue}` }) : null),
+    el("td", { class: "small mono", text: (r.menuDate || "").replace("ad running since ", "") }),
+    el("td", { class: "small", text: (r.cond || "").slice(0, 280) }),
+    el("td", { class: "small" }, el("a", { href: r.url, target: "_blank", rel: "noopener", text: "View ad" })))) :
+    [el("tr", {}, el("td", { colSpan: 4, class: "muted", text: "No active ads found." }))]));
+}
 function renderHH() {
   const byVenue = new Map();
   for (const r of ROWS) {
@@ -539,6 +553,8 @@ const TOOLS = [
   { name: "item_benchmark", description: "Median standard price for one item in each market (Rotorua attractions, Rotorua town, Regional + national), using grade A/B only and one price per venue, plus the Rotorua venues behind it.",
     inputSchema: { type: "object", properties: { item: { type: "string" } }, required: ["item"] },
     execute: (a) => { const s = itemStats(String(a.item), false); return { item: a.item, attractions: s.attr, town: s.town, regional_national: s.bench, rotorua: { n: s.roto.n, median: s.roto.median, min: s.roto.min, max: s.roto.max, venues: s.roto.venues.map((v) => ({ venue: v.venue, price: v.price, size: v.size, grade: v.conf, source: v.url })) } }; } },
+  { name: "paid_ads", description: "Active paid ads in Meta's public Ad Library that mention Rotorua venues: advertiser, venue, running-since date, ad text and link.",
+    execute: () => ROWS.filter((r) => r.stype === "paid_ad").map((r) => ({ advertiser: r.biz, venue: r.venue, since: r.menuDate, text: (r.cond || "").slice(0, 400), source: r.url })) },
   { name: "list_items", description: "List item keys with how many prices each has.",
     execute: () => { const o = {}; for (const r of ROWS) if (r.price != null) o[r.item] = (o[r.item] || 0) + 1; return o; } },
   { name: "venues_without_prices", description: "Venues checked this run that publish no prices, with what was found.",
@@ -599,7 +615,7 @@ async function boot() {
   const cats = [...new Set(ROWS.filter((r) => r.price != null).map((r) => r.cat))].sort();
   $("#f-cat").replaceChildren(new Option("All categories", ""), ...cats.map((c) => new Option(CATS[c] || c, c)));
   $("#f-conf").value = "";
-  renderHeader(); renderBench(); renderHH(); renderAll(); renderTP(); renderMethod();
+  renderHeader(); renderBench(); renderAds(); renderHH(); renderAll(); renderTP(); renderMethod();
   ["#b-incC", "#b-cat"].forEach((s) => $(s).addEventListener("change", renderBench));
   ["#f-q", "#f-group", "#f-cat", "#f-ptype", "#f-conf"].forEach((s) => $(s).addEventListener("input", renderAll));
   document.querySelectorAll("#all-table th button").forEach((b) => b.addEventListener("click", () => { const k = b.dataset.sort; sortDir = sortKey === k ? -sortDir : 1; sortKey = k; renderAll(); }));
