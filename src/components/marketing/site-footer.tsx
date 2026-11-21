@@ -71,8 +71,11 @@ export function SiteFooter() {
           <span className="flex gap-4.5">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            {/* Social links are not links until the owner supplies the URLs. */}
-            <span title="[INSTAGRAM URL]">Instagram</span>
+            {/* Instagram points to The Outside In for now (owner, 2026-11-21). */}
+            <a href="https://theoutsidein.nz" className="hover:underline">
+              Instagram
+            </a>
+            {/* Not a link until the owner supplies the URL. */}
             <span title="[LINKEDIN URL]">LinkedIn</span>
           </span>
         </div>

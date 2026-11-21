@@ -326,3 +326,14 @@ How it is wired: `docs/app.md`. Decisions:
 - **`infra:check` refuses any Supabase project but Reeldeal's**, before connecting.
 - **Workspace deletion: deactivate first, delete after a recovery period** (recommended 30 days,
   D-W1), keep legal records (`docs/data-retention.md`). Not built until decided.
+
+## Owner answers on launch copy (2026-11-21)
+
+- **Prices include GST** (`gstIncluded: true` in `config/pricing.json`).
+- **Contact email:** anigemmill@theoutsidein.nz (Demo page).
+- **Instagram** links to https://theoutsidein.nz for now. LinkedIn still to confirm.
+- **Founder section is off the About page** until the owner supplies the story, quote and photo.
+  "The problem" now uses the brief's own framing instead of a bracket.
+- **Booking:** Cal.com. Not wired yet; needs the booking link.
+- **Address:** theoutsidein.nz/reeldeal (a sub-path of the existing site). Not set up yet: depends on
+  where theoutsidein.nz is hosted.

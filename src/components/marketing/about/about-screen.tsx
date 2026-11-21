@@ -1,13 +1,11 @@
-import Link from "next/link";
 import { Accent, MarketingPage, SectionEyebrow } from "@/components/marketing/shared";
 import { MediaArt, PlaceholderTag } from "@/components/media/media-art";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/misc";
 import { ABOUT } from "@/content/about";
 import { getMedia } from "@/content/media";
 import { cn } from "@/lib/utils";
 
-/* About page (design/website/W-About.dc.html). Bracketed text is owner copy still needed. */
+/* About page (design/website/W-About.dc.html). The founder section is off until the owner supplies it. */
 export function AboutScreen() {
   return (
     <MarketingPage>
@@ -73,23 +71,6 @@ export function AboutScreen() {
         </Container>
       </section>
 
-      <section aria-label="From the founder" className="py-20 sm:py-28">
-        <Container className="flex flex-wrap items-center gap-8">
-          {/* No photo yet: a labelled placeholder, not a stock face. */}
-          <div className="flex h-[260px] w-[220px] shrink-0 items-center justify-center rounded-xl bg-surface-muted font-mono text-xs text-ink-soft">
-            {ABOUT.founder.photo}
-          </div>
-          <figure className="min-w-0 flex-[1_1_420px]">
-            <blockquote className="mb-5 font-accent text-[clamp(28px,3vw,40px)] leading-[1.2]">“{ABOUT.founder.quote}”</blockquote>
-            <figcaption className="mb-6 text-[15px] text-ink-muted">
-              {ABOUT.founder.name}, {ABOUT.founder.role}
-            </figcaption>
-            <Button asChild shape="pill" size="lg" className="border-0 bg-ink font-semibold text-bg hover:bg-ink/90">
-              <Link href="/demo">Get in touch</Link>
-            </Button>
-          </figure>
-        </Container>
-      </section>
     </MarketingPage>
   );
 }

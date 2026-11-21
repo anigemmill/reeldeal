@@ -4,7 +4,7 @@
   provider is connected, so they are not real availability.
 */
 
-export const DEMO_EMAIL = "[hello@yourdomain]";
+export const DEMO_EMAIL = "anigemmill@theoutsidein.nz";
 
 export const DEMO_POINTS = [
   { text: "A walkthrough of Autopilot and Studio", dot: "bg-ai" },
