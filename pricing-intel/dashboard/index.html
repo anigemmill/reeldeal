@@ -184,7 +184,7 @@ ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
   <section class="panel" id="p-hh" role="tabpanel" aria-labelledby="tab-hh" hidden>
     <div class="notice" id="hh-summary"></div>
     <div class="card"><h3>Paid ads running now</h3><p class="muted small" id="ads-sub">Active ads in Meta’s public Ad Library that mention Rotorua venues. Ordinary Facebook and Instagram posts need a login and aren’t included.</p></div>
-    <div class="tbl-wrap"><table id="ads-table"><thead><tr><th>Advertiser</th><th>Running since</th><th>What the ad says</th><th>Ad</th></tr></thead><tbody></tbody></table></div>
+    <div class="tbl-wrap"><table id="ads-table"><thead><tr><th>Advertiser</th><th>Newest ad</th><th>Offers and ads</th><th>Ad</th></tr></thead><tbody></tbody></table></div>
     <h3>Happy hours on venues’ own sources</h3>
     <div class="grid2" id="hh-list"></div>
     <details id="hh-old-wrap"><summary id="hh-old-count">Older listings</summary><div class="grid2" id="hh-old" style="margin-top:12px"></div></details>
@@ -405,14 +405,27 @@ function drawChart() {
 
 /* ---------- Happy hours ---------- */
 function renderAds() {
-  const ads = ROWS.filter((r) => r.stype === "paid_ad").sort((a, b) => (b.menuDate || "").localeCompare(a.menuDate || ""));
-  const checked = ads.length ? (ads[0].checked || "").slice(0, 10) : null;
-  $("#ads-sub").textContent = `Active ads in Meta’s public Ad Library that mention Rotorua${checked ? `, checked ${checked}` : ""}. Ordinary Facebook and Instagram posts need a login and aren’t included.`;
-  $("#ads-table tbody").replaceChildren(...(ads.length ? ads.map((r) => el("tr", {},
-    el("td", {}, el("b", { text: r.biz }), r.venue !== r.biz ? el("div", { class: "muted small", text: `for ${r.venue}` }) : null),
-    el("td", { class: "small mono", text: (r.menuDate || "").replace("ad running since ", "") }),
-    el("td", { class: "small", text: (r.cond || "").slice(0, 280) }),
-    el("td", { class: "small" }, el("a", { href: r.url, target: "_blank", rel: "noopener", text: "View ad" })))) :
+  const ads = ROWS.filter((r) => r.stype === "paid_ad");
+  const checked = ads.length ? ads.map((r) => r.checked || "").sort().pop().slice(0, 10) : null;
+  $("#ads-sub").textContent = `Active ads in Meta’s public Ad Library from Rotorua food, drink and visitor businesses${checked ? `, checked ${checked}` : ""}. Ordinary Facebook and Instagram posts need a login and aren’t included.`;
+  const groups = new Map();
+  for (const r of ads) { if (!groups.has(r.biz)) groups.set(r.biz, []); groups.get(r.biz).push(r); }
+  const rows = [...groups.entries()].map(([biz, rs]) => {
+    const offers = rs.filter((r) => r.price != null);
+    const creatives = rs.filter((r) => r.price == null);
+    const since = rs.map((r) => (r.menuDate || "").replace("ad running since ", "")).filter(Boolean).sort();
+    return { biz, rs, offers, creatives, newest: since[since.length - 1] || "", venue: rs[0].venue };
+  }).sort((a, b) => (b.offers.length - a.offers.length) || b.newest.localeCompare(a.newest));
+  $("#ads-table tbody").replaceChildren(...(rows.length ? rows.map((g) => el("tr", {},
+    el("td", {}, el("b", { text: g.biz }), g.venue !== g.biz ? el("div", { class: "muted small", text: `for ${g.venue}` }) : null,
+      el("div", { class: "muted small", text: `${g.creatives.length} ad${g.creatives.length === 1 ? "" : "s"}` })),
+    el("td", { class: "small mono", text: g.newest }),
+    el("td", { class: "small" },
+      g.offers.length ? el("ul", { class: "plain" }, ...g.offers.map((o) => el("li", {}, el("span", { text: `${o.listed}: ` }), el("b", { class: "mono", text: money(o.price) }),
+        o.hhTimes ? el("span", { class: "muted", text: ` · ${o.hhTimes}` }) : null))) : el("span", { class: "muted", text: "No prices in the ads." }),
+      el("details", {}, el("summary", { class: "muted", text: "Show ads" }),
+        ...g.creatives.slice(0, 6).map((c) => el("p", { class: "quote", text: (c.cond || "").slice(0, 260) })))),
+    el("td", { class: "small" }, ...g.creatives.slice(0, 3).map((c, i) => el("div", {}, el("a", { href: c.url, target: "_blank", rel: "noopener", text: i ? `Ad ${i + 1}` : "View ad" })))))) :
     [el("tr", {}, el("td", { colSpan: 4, class: "muted", text: "No active ads found." }))]));
 }
 function renderHH() {

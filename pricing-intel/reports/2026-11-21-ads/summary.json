@@ -1,0 +1,26 @@
+{
+  "run_id": "2026-11-21-ads",
+  "observations": 72,
+  "priced": 14,
+  "by_confidence": {
+    "A": 14
+  },
+  "by_price_type": {
+    "promotion": 13,
+    "happy_hour": 1
+  },
+  "venues": 18,
+  "venues_with_prices": 5,
+  "venues_by_class": {
+    "direct": 4,
+    "indirect": 14
+  },
+  "happy_hour_venues": 1,
+  "changes_flagged": 0,
+  "weights": {
+    "same_item": 40,
+    "serving_size": 25,
+    "venue_context": 20,
+    "evidence_quality": 15
+  }
+}

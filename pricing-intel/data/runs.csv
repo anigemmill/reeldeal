@@ -2,3 +2,4 @@ run_id,ingested_at_utc,rows,segments
 2026-11-19,2026-11-19T07:13:50+00:00,480,"{""01_te_puia"": 28, ""02_attractions"": 101, ""03_town_cafes"": 140, ""04_happy_hours"": 79, ""05_regional"": 132}"
 2026-11-19b,2026-11-19T19:15:49+00:00,733,"{""06_eat_streat"": 173, ""07_restaurants_a"": 101, ""07_restaurants_b"": 112, ""08_bars"": 137, ""09_attractions_a"": 146, ""10_attractions_b"": 64}"
 2026-11-19c,2026-11-19T19:48:44+00:00,8,"{""06_eat_streat"": 8}"
+2026-11-21-ads,2026-11-21T03:40:28+00:00,72,"{""11_ad_library"": 72}"

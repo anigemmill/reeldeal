@@ -17,6 +17,20 @@ This folder is separate from the Reeldeal app. Nothing here is imported by the N
    Claude republishes `dashboard/index.html` with it to the same link:
    https://claude.ai/artifact/NC8B8BA3NYm9XPicq4FU5R
 
+### Paid ads (Meta Ad Library)
+
+Every run also checks Meta's public Ad Library (no login) for active ads from Rotorua food, drink and visitor businesses:
+
+1. `node pricing-intel/scripts/ad_library.js OUT_DIR` runs three passes: keyword searches from `config/ad_library.json`,
+   each known advertiser's page of active ads, and every ad in `data/ad_library_seen.json` looked up by ID.
+   Keyword search is unreliable for automated visitors, so empty searches are retried and the ID pass is the safety net.
+2. A person reviews `OUT_DIR/11_ad_library.json`: drops ads that aren't food, drink or hospitality, and adds priced rows
+   for explicit deals, with the price quoted from the ad. `--rebuild OUT_DIR` re-applies the filter without searching again.
+3. Ingest it like any other segment, then `node pricing-intel/scripts/ad_library.js --record OUT_DIR` adds the ads to the seen list.
+
+The dashboard shows only ads from the latest check, so ads that stop running drop out. Ordinary Facebook and Instagram
+posts need a login and are not collected.
+
 To run again, ask Claude: "run the Te Puia pricing check". Each run gets a new `RUN_ID` (the date), and the changes table compares it with the previous run.
 
 ## Rules
