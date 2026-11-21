@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/marketing/site-header";
 import { Button } from "@/components/ui/button";
 import { Container, Eyebrow } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
+import { PRIMARY_CTA, SIGN_UP_OPEN } from "@/content/site";
 
 /*
   Building blocks shared by every marketing page (design/website/*.dc.html).
@@ -76,16 +77,21 @@ export function PageIntro({
   );
 }
 
-/** The two conversion paths every page ends in: Start free (self-serve) and Book a demo (sales-led). */
+/**
+ * The conversion paths every page ends in: Start free (self-serve) and Book a demo (sales-led).
+ * While sign-up is closed (SIGN_UP_OPEN), only Book a demo.
+ */
 export function CtaPair({ className, onDark }: { className?: string; onDark?: boolean }) {
   return (
     <div className={cn("flex flex-wrap gap-2.5", className)}>
       <Button asChild variant="primary" shape="pill" size="lg" className="font-semibold">
-        <Link href="/signup">Start free</Link>
+        <Link href={PRIMARY_CTA.href}>{PRIMARY_CTA.label}</Link>
       </Button>
-      <Button asChild variant="secondary" shape="pill" size="lg" className={cn(onDark && "bg-transparent")}>
-        <Link href="/demo">Book a demo</Link>
-      </Button>
+      {SIGN_UP_OPEN && (
+        <Button asChild variant="secondary" shape="pill" size="lg" className={cn(onDark && "bg-transparent")}>
+          <Link href="/demo">Book a demo</Link>
+        </Button>
+      )}
     </div>
   );
 }

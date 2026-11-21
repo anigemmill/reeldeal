@@ -9,6 +9,7 @@ import { getMedia } from "@/content/media";
 import { gstNote } from "@/content/pricing-page";
 import { getPlan, pricing, signupHref } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
+import { SIGN_UP_OPEN } from "@/content/site";
 
 /* Static homepage sections (design/website/W-Home.dc.html). */
 
@@ -284,7 +285,7 @@ export function PricingTeaser() {
                     <span className="text-sm">videos a month</span>
                   </div>
                   <Button asChild variant={recommended ? "action" : "primary"} shape="pill" size="lg" className="mt-auto font-semibold">
-                    <Link href={signupHref(plan.id)}>Choose {plan.name}</Link>
+                    {SIGN_UP_OPEN ? <Link href={signupHref(plan.id)}>Choose {plan.name}</Link> : <Link href="/demo">Book a demo</Link>}
                   </Button>
                 </div>
               </div>
@@ -292,11 +293,16 @@ export function PricingTeaser() {
           })}
         </div>
         <p className="mt-6 text-[15px] text-ink-muted">
-          Just looking?{" "}
-          <Link href="/signup" className="font-semibold text-ink underline decoration-ai underline-offset-[3px]">
-            Start on Free
-          </Link>{" "}
-          with {getPlan("free")!.videoCredits.amount} videos, no card needed. Agency and Enterprise plans on the{" "}
+          {SIGN_UP_OPEN && (
+            <>
+              Just looking?{" "}
+              <Link href="/signup" className="font-semibold text-ink underline decoration-ai underline-offset-[3px]">
+                Start on Free
+              </Link>{" "}
+              with {getPlan("free")!.videoCredits.amount} videos, no card needed.{" "}
+            </>
+          )}
+          Agency and Enterprise plans on the{" "}
           <Link href="/pricing" className="font-semibold text-ink underline">
             pricing page
           </Link>

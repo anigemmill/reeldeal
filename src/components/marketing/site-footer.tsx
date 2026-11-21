@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Container, Eyebrow } from "@/components/ui/misc";
-import { FOOTER_NAV } from "@/content/site";
+import { FOOTER_NAV, PRIMARY_CTA, SIGN_UP_OPEN } from "@/content/site";
 
 /*
   Marketing footer (design/components/Footer.dc.html): a Dark Studio surface with
@@ -19,11 +19,13 @@ export function SiteFooter() {
           </h2>
           <div className="flex flex-wrap gap-2.5">
             <Button asChild shape="pill" size="lg" className="border-0 bg-ink font-semibold text-bg hover:bg-ink/90">
-              <Link href="/signup">Start free</Link>
+              <Link href={PRIMARY_CTA.href}>{PRIMARY_CTA.label}</Link>
             </Button>
-            <Button asChild shape="pill" size="lg" className="border-0 bg-surface hover:bg-surface/90">
-              <Link href="/demo">Book a demo</Link>
-            </Button>
+            {SIGN_UP_OPEN && (
+              <Button asChild shape="pill" size="lg" className="border-0 bg-surface hover:bg-surface/90">
+                <Link href="/demo">Book a demo</Link>
+              </Button>
+            )}
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import { Container, Eyebrow } from "@/components/ui/misc";
 import { WALL_FEATURED, WALL_PROMPTS, WALL_WORDS } from "@/content/home";
 import { getMedia, type MediaId } from "@/content/media";
 import { cn } from "@/lib/utils";
+import { SIGN_UP_OPEN } from "@/content/site";
 
 /*
   Prompt wall (design/components/PromptWall.dc.html): a dark section of slowly
@@ -87,7 +88,7 @@ export function PromptWall() {
             brand.
           </p>
           <Button asChild variant="action" shape="pill" size="lg">
-            <Link href="/signup">Try a prompt</Link>
+            {SIGN_UP_OPEN ? <Link href="/signup">Try a prompt</Link> : <Link href="/demo">Book a demo</Link>}
           </Button>
         </div>
 
