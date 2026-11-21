@@ -36,6 +36,16 @@ const csp = [
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
+// Behind theoutsidein.nz/reeldeal the main site forwards requests here, so form posts (server
+// actions) arrive with the public site's Origin. Allow exactly that host.
+const publicHost = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL).host : "";
+  } catch {
+    return "";
+  }
+})();
+
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -47,11 +57,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Served under a sub-path in production (theoutsidein.nz/reeldeal); validated in src/env/schema.ts.
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || undefined,
   // The development server logs server-action arguments. Some carry one-time secrets (invitation
   // tokens), so they must never be written to a terminal or a log file. Production doesn't log them.
   logging: { serverFunctions: false },
   cacheComponents: true,
-  experimental: { globalNotFound: true },
+  experimental: { globalNotFound: true, ...(publicHost ? { serverActions: { allowedOrigins: [publicHost] } } : {}) },
   partialPrefetching: true,
   poweredByHeader: false,
   // Server-only packages loaded at runtime rather than bundled (database drivers, WASM).

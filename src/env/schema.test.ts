@@ -21,3 +21,10 @@ describe("environment schema", () => {
     expect(serverSchema.parse({}).R2_SIGNED_URL_TTL_SECONDS).toBe(300);
   });
 });
+
+describe("NEXT_PUBLIC_BASE_PATH", () => {
+  it("accepts a leading-slash path and rejects other shapes", () => {
+    expect(publicSchema.safeParse({ NEXT_PUBLIC_BASE_PATH: "/reeldeal" }).success).toBe(true);
+    for (const bad of ["reeldeal", "/reeldeal/", "/Reel Deal", "/"]) expect(publicSchema.safeParse({ NEXT_PUBLIC_BASE_PATH: bad }).success).toBe(false);
+  });
+});

@@ -2,6 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/safe-redirect";
 import { supabaseServer } from "@/server/app/supabase";
+import { withBasePath } from "@/lib/base-path";
 
 /*
   Landing point for links emailed by Supabase Auth. Exchanges the one-time code (PKCE)
@@ -34,7 +35,7 @@ function flowOf(url: URL, type: EmailOtpType | null, next: string): Flow {
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const next = safeNextPath(url.searchParams.get("next"));
-  const to = (path: string) => NextResponse.redirect(new URL(path, url.origin));
+  const to = (path: string) => NextResponse.redirect(new URL(withBasePath(path), url.origin));
 
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");

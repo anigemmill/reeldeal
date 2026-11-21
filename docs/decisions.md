@@ -339,9 +339,9 @@ How it is wired: `docs/app.md`. Decisions:
   videos. AI video production for businesses."
 - **Booking:** Cal.com (https://cal.com/ani-gemmill-yg4gmo). The Demo page links out to it instead of the
   design's in-page form, so availability and confirmations are real. The sample time slots are gone.
-- **Address:** theoutsidein.nz/reeldeal (a sub-path of the existing site, hosted with Crazy Domains).
-  Not set up yet: needs a proxy in front of theoutsidein.nz (see the chat recommendation), and
-  `basePath: "/reeldeal"` in `next.config.ts` once that is chosen.
+- **Address:** www.theoutsidein.nz/reeldeal. The main site is already on Vercel, so it forwards
+  `/reeldeal` to the Reeldeal project (multi-zone). Reeldeal runs with `NEXT_PUBLIC_BASE_PATH=/reeldeal`.
+  Steps and approvals: `docs/launch-domain.md`.
 - **Terms and Privacy:** first draft written for a New Zealand business (Privacy Act 2020, CGA and FTA
   business-use exclusions, NZ law). Labelled "Draft for legal review" on screen and kept out of search
   engines until a lawyer signs it off.

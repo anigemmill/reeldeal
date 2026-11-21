@@ -1,3 +1,4 @@
+import { withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 import type { MediaAsset } from "@/content/media";
 import { Scene } from "./scene";
@@ -8,7 +9,8 @@ import { Scene } from "./scene";
 */
 export function MediaArt({ asset, className, sizes }: { asset: MediaAsset; className?: string; sizes?: string }) {
   if (asset.src) {
-    const src = asset.kind === "video" ? (asset.poster ?? asset.src) : asset.src;
+    // Files in /public need the base path; storage URLs pass through unchanged.
+    const src = withBasePath(asset.kind === "video" ? (asset.poster ?? asset.src) : asset.src);
     // Plain <img>: real assets will come from object storage via signed URLs (Phase 3).
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={asset.alt} sizes={sizes} className={cn("absolute inset-0 size-full object-cover", className)} />;

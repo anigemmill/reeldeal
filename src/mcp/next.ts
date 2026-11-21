@@ -3,6 +3,7 @@ import { serverEnv as env } from "@/env/server";
 import type { Platform } from "@/server/context";
 import { getPlatform } from "@/server/app/platform";
 import { handleMcpHttp, protectedResourceMetadata, type HttpConfig } from "./http";
+import { withBasePath } from "@/lib/base-path";
 
 /*
   Next.js (Vercel) adapter for the remote MCP endpoint. Stateless Streamable HTTP:
@@ -18,7 +19,7 @@ import { handleMcpHttp, protectedResourceMetadata, type HttpConfig } from "./htt
 const PATS_ALLOWED = env.NODE_ENV !== "production";
 
 export function httpConfig(req: Request): HttpConfig {
-  const resourceUrl = env.MCP_PUBLIC_URL ?? new URL("/api/mcp", req.url).toString();
+  const resourceUrl = env.MCP_PUBLIC_URL ?? new URL(withBasePath("/api/mcp"), req.url).toString();
   const issuer = env.SUPABASE_JWT_ISSUER;
   const jwksUrl = env.SUPABASE_JWKS_URL;
   return {
