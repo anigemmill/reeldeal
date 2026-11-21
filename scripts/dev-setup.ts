@@ -12,6 +12,7 @@ import { serverEnv as env } from "../src/env/server";
 import { verifyAccessToken } from "../src/server/auth/tokens";
 import { createPgliteDb } from "../src/server/db/pglite";
 import { migrate } from "../src/server/db/migrate";
+import { guardMigrationTarget } from "../src/server/db/migration-guard";
 import { createPostgresDb, execPostgresFile } from "../src/server/db/postgres";
 import type { Db } from "../src/server/db/types";
 import { createPlatform } from "../src/server/platform";
@@ -25,7 +26,9 @@ async function main() {
   if (env.DATABASE_URL) {
     const url = env.DATABASE_URL;
     db = createPostgresDb(url);
-    await migrate(db, (sql) => execPostgresFile(url, sql), (m) => console.log(`✓ ${m}`));
+    const exec = (sql: string) => execPostgresFile(url, sql);
+    await guardMigrationTarget(db, url, exec); // refuses another product's database
+    await migrate(db, exec, (m) => console.log(`✓ ${m}`));
     const [{ n }] = await db.system((sql) => sql.query<{ n: number }>("select count(*)::int as n from public.organisations"));
     if (n > 0 && !reset) throw new Error("This database already has workspaces. Use a fresh database for demo data.");
   } else {

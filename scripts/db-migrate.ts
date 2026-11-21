@@ -11,6 +11,7 @@
 import { execFileSync } from "node:child_process";
 import { serverEnv } from "../src/env/server";
 import { migrate, pendingMigrations } from "../src/server/db/migrate";
+import { guardMigrationTarget } from "../src/server/db/migration-guard";
 import { createPostgresDb, execPostgresFile } from "../src/server/db/postgres";
 
 async function main() {
@@ -20,7 +21,11 @@ async function main() {
   const local = ["localhost", "127.0.0.1", "::1"].includes(u.hostname);
   console.log(`Target: ${u.hostname}:${u.port || 5432}${u.pathname} as ${decodeURIComponent(u.username)} (${local ? "local" : "remote"})`);
   const db = createPostgresDb(url, { max: 1 });
+  const exec = (sql: string) => execPostgresFile(url, sql);
   try {
+    // Refuses another product's database (e.g. the account service's) before reading or writing anything else.
+    const target = await guardMigrationTarget(db, url, exec, { record: false });
+    console.log(`Verified: ${target.product} / ${target.environment}${target.project_ref ? ` / ${target.project_ref}` : ""}`);
     const pending = await pendingMigrations(db);
     console.log(pending.length ? `Pending:\n${pending.map((p) => `  ${p}`).join("\n")}` : "Database is up to date");
     if (!pending.length || process.argv.includes("--plan")) return;
@@ -29,7 +34,8 @@ async function main() {
       return;
     }
     execFileSync(process.execPath, ["--import", "tsx", "scripts/check-migrations.ts"], { stdio: "inherit" });
-    const applied = await migrate(db, (sql) => execPostgresFile(url, sql), (m) => console.log(`✓ ${m}`), { allowLocalShim: local });
+    await guardMigrationTarget(db, url, exec); // records the identity marker if it is missing
+    const applied = await migrate(db, exec, (m) => console.log(`✓ ${m}`), { allowLocalShim: local });
     console.log(`Applied ${applied.length} migration(s)`);
   } finally {
     await db.close();

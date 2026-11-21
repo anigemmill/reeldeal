@@ -1,0 +1,7 @@
+{
+  "$comment": "Supabase projects this product's migrations may be applied to, by environment (src/server/db/migration-target.ts). Add an environment only when its project exists. Never list another product's project.",
+  "product": "reel_deal",
+  "projects": {
+    "production": "jzshbaqfrrgsyiciuzfe"
+  }
+}
