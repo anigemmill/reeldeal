@@ -331,11 +331,17 @@ How it is wired: `docs/app.md`. Decisions:
 
 - **Prices include GST** (`gstIncluded: true` in `config/pricing.json`).
 - **Contact email:** anigemmill@theoutsidein.nz (Demo page).
-- **Instagram** links to https://theoutsidein.nz for now. LinkedIn still to confirm.
+- **Instagram** links to https://www.instagram.com/theoutsidein.nz/. **LinkedIn link removed.**
+- **Newsletter sign-up hidden** from the footer until there is more to announce.
 - **Founder section is off the About page** until the owner supplies the story, quote and photo.
   "The problem" now uses the brief's own framing instead of a bracket.
 - **Tagline** (default page description): "Turn your raw footage into finished reels, ads and website
   videos. AI video production for businesses."
-- **Booking:** Cal.com. Not wired yet; needs the booking link.
-- **Address:** theoutsidein.nz/reeldeal (a sub-path of the existing site). Not set up yet: depends on
-  where theoutsidein.nz is hosted.
+- **Booking:** Cal.com (https://cal.com/ani-gemmill-yg4gmo). The Demo page links out to it instead of the
+  design's in-page form, so availability and confirmations are real. The sample time slots are gone.
+- **Address:** theoutsidein.nz/reeldeal (a sub-path of the existing site, hosted with Crazy Domains).
+  Not set up yet: needs a proxy in front of theoutsidein.nz (see the chat recommendation), and
+  `basePath: "/reeldeal"` in `next.config.ts` once that is chosen.
+- **Terms and Privacy:** first draft written for a New Zealand business (Privacy Act 2020, CGA and FTA
+  business-use exclusions, NZ law). Labelled "Draft for legal review" on screen and kept out of search
+  engines until a lawyer signs it off.

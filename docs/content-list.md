@@ -88,10 +88,8 @@ business's name, industry, format, length and whether it was made in Autopilot o
 
 | Where | Gap |
 |---|---|
-| Every page (footer) | `[NEWSLETTER PROVIDER]`: mailing-list service for sign-ups |
-| Footer | `[LINKEDIN URL]` (Instagram links to theoutsidein.nz for now) |
 | Showcase | `[CUSTOMER VIDEOS]`; featured story `[Customer]`, story text, `[N]` clips, `[N]` videos, `[T]` time |
-| Demo | `[BOOKING PROVIDER]`: Cal.com chosen; booking link still needed |
+| Terms, Privacy | First draft written; needs legal review. Still bracketed: legal entity name, NZBN and address, effective date, recovery period [30 days], backup period [7 days], security log retention [12 months], top-up expiry [90 days], Sentry |
 | Site-wide | Confirm the name "Reeldeal" |
 
 ## Not yet on the site
