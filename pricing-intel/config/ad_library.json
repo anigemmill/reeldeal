@@ -1,25 +1,266 @@
 {
-  "_about": "Search terms and advertiser mapping for the Meta Ad Library check. Ads are kept only if their text mentions one of keep_if_text_mentions. Advertisers map to the venue names used in observations.csv.",
-  "country": "NZ",
-  "searches": [
-    "Rotorua", "Eat Streat", "Rotorua restaurant", "Rotorua bar", "Rotorua cafe", "Rotorua happy hour",
-    "Rotorua drinks", "Rotorua Christmas function", "Rotorua dinner", "Rotorua lunch", "Tutanekai",
-    "Te Puia", "Whakarewarewa", "Rotorua hot pools", "Rotorua attraction", "Rotorua cruise", "Rotorua hangi",
-    "Atticus Finch", "Feasting Fox", "Pig & Whistle", "Sobar", "Barrel & Co", "CBK Craft Bar", "Mac's Steakhouse",
-    "Fainting Goat", "Fat Brother", "Regent Room", "Wild Rice", "White Tiger", "Number 8 Wire", "Poco Tapas",
-    "Black Label Barbecue", "Hennessy's", "BREW Craft Beer", "Duke's Bar", "Crates N Cues", "Social Club Rotorua",
-    "Abracadabra", "Greenhouse Kitchen", "Super Casual", "Good Eastern Taphouse", "Ruck n Maul", "Kasper's",
-    "Side Pocket", "Alexandra's", "Secret Spot", "Fat Dog Cafe", "Capers", "Artisan Cafe", "Capizzi", "Colibries",
-    "Leonardo's", "Lone Star Rotorua", "Mamma Rosa", "Factory Smokehouse", "Urbano Bistro", "Yamato",
-    "Skyline Rotorua", "Stratosfare", "Mitai", "Te Pā Tū", "Polynesian Spa", "Wai-O-Tapu", "Waimangu", "Hell's Gate",
-    "Agrodome", "Redwoods Treewalk", "Paradise Valley Springs", "Velocity Valley", "Katoa Jet", "Pure Cruise",
-    "Rotorua Duck Tours", "Volcanic Air", "Rotorua Canopy Tours", "Waikite", "Manupirua", "Wai Ariki", "First Table Rotorua"
-  ],
-  "keep_if_text_mentions": ["Rotorua", "Eat Streat", "Tutanekai", "Whakarewarewa", "Ngongotah"],
-  "advertisers": {
-    "Atticus Finch Rotorua": {"venue": "Atticus Finch", "venue_type": "restaurant"},
-    "The Feasting Fox": {"venue": "The Feasting Fox", "venue_type": "restaurant"},
-    "Katoa Jet": {"venue": "Katoa Jet", "venue_type": "attraction_bar"}
+ "_about": "Meta Ad Library check. Three passes: keyword searches (discovery), each known advertiser's page of active ads, and every ad seen in an earlier check looked up by its ID. Ads must mention Rotorua (or come from a known advertiser). Advertisers with all_ads=false (attractions) are kept only when the ad mentions food or drink.",
+ "country": "NZ",
+ "searches": [
+  "Rotorua",
+  "Eat Streat",
+  "Rotorua restaurant",
+  "Rotorua bar",
+  "Rotorua cafe",
+  "Rotorua happy hour",
+  "Rotorua drinks",
+  "Rotorua Christmas function",
+  "Rotorua dinner",
+  "Rotorua lunch",
+  "Tutanekai",
+  "Te Puia",
+  "Whakarewarewa",
+  "Rotorua hot pools",
+  "Rotorua attraction",
+  "Rotorua cruise",
+  "Rotorua hangi",
+  "Atticus Finch",
+  "Feasting Fox",
+  "Pig & Whistle",
+  "Sobar",
+  "Barrel & Co",
+  "CBK Craft Bar",
+  "Mac's Steakhouse",
+  "Fainting Goat",
+  "Fat Brother",
+  "Regent Room",
+  "Wild Rice",
+  "White Tiger",
+  "Number 8 Wire",
+  "Poco Tapas",
+  "Black Label Barbecue",
+  "Hennessy's",
+  "BREW Craft Beer",
+  "Duke's Bar",
+  "Crates N Cues",
+  "Social Club Rotorua",
+  "Abracadabra",
+  "Greenhouse Kitchen",
+  "Super Casual",
+  "Good Eastern Taphouse",
+  "Ruck n Maul",
+  "Kasper's",
+  "Side Pocket",
+  "Alexandra's",
+  "Secret Spot",
+  "Fat Dog Cafe",
+  "Capers",
+  "Artisan Cafe",
+  "Capizzi",
+  "Colibries",
+  "Leonardo's",
+  "Lone Star Rotorua",
+  "Mamma Rosa",
+  "Factory Smokehouse",
+  "Urbano Bistro",
+  "Yamato",
+  "Skyline Rotorua",
+  "Stratosfare",
+  "Mitai",
+  "Te Pā Tū",
+  "Polynesian Spa",
+  "Wai-O-Tapu",
+  "Waimangu",
+  "Hell's Gate",
+  "Agrodome",
+  "Redwoods Treewalk",
+  "Paradise Valley Springs",
+  "Velocity Valley",
+  "Katoa Jet",
+  "Pure Cruise",
+  "Rotorua Duck Tours",
+  "Volcanic Air",
+  "Rotorua Canopy Tours",
+  "Waikite",
+  "Manupirua",
+  "Wai Ariki",
+  "First Table Rotorua"
+ ],
+ "keep_if_text_mentions": [
+  "Rotorua",
+  "Eat Streat",
+  "Tutanekai",
+  "Whakarewarewa",
+  "Ngongotah"
+ ],
+ "advertisers": {
+  "The Feasting Fox": {
+   "venue": "The Feasting Fox",
+   "venue_type": "restaurant",
+   "all_ads": true,
+   "page_id": "1274026555804604"
   },
-  "channel_advertisers": ["First Table", "GrabOne", "Bookme", "Groupon", "Viator", "Klook", "Trip.com"]
+  "Atticus Finch Rotorua": {
+   "venue": "Atticus Finch",
+   "venue_type": "restaurant",
+   "all_ads": true,
+   "page_id": "1423588591249286"
+  },
+  "Prince's Gate": {
+   "venue": "Duke's Bar & Restaurant",
+   "venue_type": "hotel_bar",
+   "all_ads": true,
+   "page_id": "549164845122541"
+  },
+  "Pullman Rotorua": {
+   "venue": "Pullman Rotorua bar / Barrel & Co",
+   "venue_type": "hotel_bar",
+   "all_ads": true,
+   "page_id": "113037003423464"
+  },
+  "Rydges Rotorua": {
+   "venue": "Rydges Rotorua",
+   "venue_type": "hotel_bar",
+   "all_ads": true,
+   "page_id": "123454531022727"
+  },
+  "Good Eastern Taphouse": {
+   "venue": "Good Eastern Taphouse",
+   "venue_type": "bar_pub",
+   "all_ads": true,
+   "page_id": "1962575384042807"
+  },
+  "Hennessy's Irish Bar": {
+   "venue": "Hennessy's Irish Bar",
+   "venue_type": "bar_pub",
+   "all_ads": true,
+   "page_id": "307343242692937"
+  },
+  "Artisan Cafe": {
+   "venue": "Artisan Cafe & Restaurant",
+   "venue_type": "cafe",
+   "all_ads": true,
+   "page_id": "347264198731200"
+  },
+  "Zippy Central Cafe": {
+   "venue": "Zippy Central Cafe and Bar",
+   "venue_type": "cafe",
+   "all_ads": true,
+   "page_id": "161712607240256"
+  },
+  "Bold flavours Bistro and Café - Rotorua": {
+   "venue": "Bold Flavours Bistro and Café",
+   "venue_type": "restaurant",
+   "all_ads": true,
+   "page_id": "103906681607082"
+  },
+  "Four Square Fordlands": {
+   "venue": "Four Square Fordlands",
+   "venue_type": "other",
+   "all_ads": true,
+   "page_id": "104179998892812"
+  },
+  "First Table": {
+   "venue": "First Table (dining deals)",
+   "venue_type": "other",
+   "all_ads": true,
+   "page_id": "284694335066932"
+  },
+  "Skyline Rotorua": {
+   "venue": "Stratosfare Restaurant & Bar",
+   "venue_type": "attraction_bar",
+   "all_ads": false,
+   "page_id": "150854318268306"
+  },
+  "Secret Spot Hot Tubs Rotorua": {
+   "venue": "Secret Spot Hot Tubs",
+   "venue_type": "attraction_bar",
+   "all_ads": false,
+   "page_id": "1964214603833019"
+  },
+  "Te Pā Tū - New Zealand": {
+   "venue": "Te Pā Tū – Tū Te Rā Summer Harvest Celebration (beverages)",
+   "venue_type": "attraction_bar",
+   "all_ads": false,
+   "page_id": "117189068309244"
+  },
+  "Polynesian Spa": {
+   "venue": "88Ra Café",
+   "venue_type": "attraction_cafe",
+   "all_ads": false,
+   "page_id": "126535590125"
+  },
+  "Wai Ariki Hot Springs and Spa": {
+   "venue": "Te Rourou Café",
+   "venue_type": "attraction_cafe",
+   "all_ads": false,
+   "page_id": "491329794555151"
+  },
+  "Waimangu Volcanic Valley Rotorua New Zealand": {
+   "venue": "Waimangu Café",
+   "venue_type": "attraction_cafe",
+   "all_ads": false,
+   "page_id": "125335127492981"
+  },
+  "Rotorua Duck Tours": {
+   "venue": "Rotorua Duck Tours",
+   "venue_type": "attraction_bar",
+   "all_ads": false,
+   "page_id": "113913995294292"
+  },
+  "Rotorua Canopy Tours": {
+   "venue": "Rotorua Canopy Tours",
+   "venue_type": "attraction_bar",
+   "all_ads": false,
+   "page_id": "344028845658512"
+  },
+  "Katoa Jet": {
+   "venue": "Katoa Jet",
+   "venue_type": "attraction_bar",
+   "all_ads": false,
+   "page_id": null
+  }
+ },
+ "channel_advertisers": [
+  "First Table",
+  "GrabOne",
+  "Bookme",
+  "Groupon",
+  "Viator",
+  "Klook",
+  "Trip.com"
+ ],
+ "food_drink_words": [
+  "dining",
+  "dine",
+  "dinner",
+  "lunch",
+  "breakfast",
+  "brunch",
+  "buffet",
+  "café",
+  "cafe",
+  "bar",
+  "drink",
+  "drinks",
+  "happy hour",
+  "cocktail",
+  "beer",
+  "wine",
+  "pint",
+  "coffee",
+  "food",
+  "feast",
+  "platter",
+  "hāngī",
+  "hangi",
+  "menu",
+  "restaurant",
+  "graze",
+  "high tea",
+  "function"
+ ],
+ "exclude_words": [
+  "hiring",
+  "chef wanted",
+  "now hiring",
+  "job",
+  "looking for café owners",
+  "franchise"
+ ]
 }
