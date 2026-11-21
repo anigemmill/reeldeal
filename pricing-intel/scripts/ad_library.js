@@ -34,14 +34,17 @@ if (process.argv[2] === '--record') {
   console.log(`recorded ${Object.keys(SEEN).length} ads in ${SEEN_PATH}`);
   process.exit(0);
 }
-const OUT = process.argv[2];
-if (!OUT) { console.error('usage: node ad_library.js OUT_DIR | --record OUT_DIR'); process.exit(1); }
+const REBUILD = process.argv[2] === '--rebuild';
+const OUT = REBUILD ? process.argv[3] : process.argv[2];
+if (!OUT) { console.error('usage: node ad_library.js OUT_DIR | --rebuild OUT_DIR | --record OUT_DIR'); process.exit(1); }
 fs.mkdirSync(OUT, { recursive: true });
 
 const MONTHS = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
 const isoDate = (s) => { const m = /([A-Z][a-z]{2}) (\d{1,2}), (\d{4})/.exec(s || ''); return m ? `${m[3]}-${MONTHS[m[1]]}-${m[2].padStart(2, '0')}` : null; };
 const lc = (s) => (s || '').toLowerCase();
-const has = (text, words) => words.some((w) => lc(text).includes(lc(w)));
+const esc = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Whole-word match, so "bar" does not match "raised the bar" or "crowbar".
+const has = (text, words) => words.some((w) => new RegExp('(^|[^\\p{L}])' + esc(lc(w)) + '($|[^\\p{L}])', 'u').test(lc(text)));
 const ADV = CFG.advertisers;
 
 function parseAds(text) {
@@ -71,11 +74,17 @@ function judge(a) {
   if (has(a.text, CFG.exclude_words)) return 'dropped: recruitment or franchise ad';
   if (!known && !has(a.text, CFG.keep_if_text_mentions)) return 'dropped: does not mention Rotorua';
   if (known && known.all_ads) return 'kept: known food or drink venue';
-  if (has(a.text, CFG.food_drink_words)) return 'kept: mentions food or drink';
+  // Known attractions need one food or drink term; unknown advertisers need two different ones.
+  const n = CFG.food_drink_words.filter((w) => has(a.text, [w])).length;
+  if (n >= (known ? 1 : 2)) return 'kept: mentions food or drink';
   return 'dropped: no food or drink in the ad';
 }
 
 (async () => {
+  if (REBUILD) {
+    const raw = JSON.parse(fs.readFileSync(path.join(OUT, 'ad_library_raw.json'), 'utf8'));
+    return writeRows(raw.checked, raw.log, raw.ads.map(({ verdict, ...a }) => a));
+  }
   const browser = await chromium.launch();
   const ads = new Map();
   const log = [];
@@ -83,12 +92,23 @@ function judge(a) {
   const base = 'https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=' + CFG.country;
 
   for (const q of CFG.searches) {
-    try { const f = parseAds(await readPage(browser, base + '&q=' + encodeURIComponent(q) + '&search_type=keyword_unordered')); f.forEach((a) => add(a, 'search: ' + q)); log.push({ pass: 'keyword', q, found: f.length }); }
+    try {
+      const url = base + '&q=' + encodeURIComponent(q) + '&search_type=keyword_unordered';
+      let f = parseAds(await readPage(browser, url));
+      // The Ad Library sometimes returns nothing to an automated visitor; try once more after a pause.
+      if (!f.length) { await new Promise((r) => setTimeout(r, 10000)); f = parseAds(await readPage(browser, url)); }
+      f.forEach((a) => add(a, 'search: ' + q)); log.push({ pass: 'keyword', q, found: f.length });
+    }
     catch (e) { log.push({ pass: 'keyword', q, error: String(e).slice(0, 120) }); }
   }
   for (const [name, a] of Object.entries(ADV)) {
     if (!a.page_id) continue;
-    try { const f = parseAds(await readPage(browser, base + '&view_all_page_id=' + a.page_id + '&search_type=page', 10)); f.forEach((x) => add(x, 'advertiser page')); log.push({ pass: 'page', q: name, found: f.length }); }
+    try {
+      const url = base + '&view_all_page_id=' + a.page_id + '&search_type=page';
+      let f = parseAds(await readPage(browser, url, 10));
+      if (!f.length) { await new Promise((r) => setTimeout(r, 10000)); f = parseAds(await readPage(browser, url, 10)); }
+      f.forEach((x) => add(x, 'advertiser page')); log.push({ pass: 'page', q: name, found: f.length });
+    }
     catch (e) { log.push({ pass: 'page', q: name, error: String(e).slice(0, 120) }); }
   }
   for (const [id, s] of Object.entries(SEEN)) {
@@ -102,9 +122,11 @@ function judge(a) {
     } catch (e) { log.push({ pass: 'by_id', q: id, error: String(e).slice(0, 120) }); }
   }
   await browser.close();
+  writeRows(new Date().toISOString().replace(/\.\d+Z$/, 'Z'), log, [...ads.values()]);
+})();
 
-  const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
-  const all = [...ads.values()].map((a) => ({ ...a, verdict: judge(a) }));
+function writeRows(now, log, found) {
+  const all = found.map((a) => ({ ...a, verdict: judge(a) }));
   fs.writeFileSync(path.join(OUT, 'ad_library_raw.json'), JSON.stringify({ checked: now, log, ads: all }, null, 1));
 
   // One row per distinct creative: Meta often runs the same text as several ads.
@@ -133,4 +155,4 @@ function judge(a) {
     earlier_ads_rechecked: log.filter((l) => l.pass === 'by_id').length, errors: log.filter((l) => l.error).length, ads_seen: all.length, ads_kept: kept.length, rows: rows.length };
   console.log(JSON.stringify(summary));
   for (const r of rows) console.log(`- ${r.business} | ${r.menu_date_or_last_updated} | ${r.conditions.slice(0, 120)}`);
-})();
+}
