@@ -26,7 +26,7 @@ export const publicSchema = z
       .string()
       .regex(/^\/[a-z0-9-]+(\/[a-z0-9-]+)*$/, 'Use a path like "/reeldeal": a leading slash, no trailing slash')
       .optional(),
-    /** The site's full public URL, including NEXT_PUBLIC_BASE_PATH (e.g. https://www.theoutsidein.nz/reeldeal). */
+    /** The site's full public URL, including NEXT_PUBLIC_BASE_PATH (e.g. https://theoutsidein.nz/reeldeal). */
     NEXT_PUBLIC_SITE_URL: optionalUrl,
     NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
     /** Supabase anon key: public by design; Row Level Security protects data. */

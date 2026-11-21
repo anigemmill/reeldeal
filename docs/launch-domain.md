@@ -1,26 +1,32 @@
 # Going live at theoutsidein.nz/reeldeal
 
-Status at 2026-11-21: **the Reeldeal code is ready; nothing in Vercel, DNS or the main site has
-changed.** Every step below needs the owner's go-ahead.
+Status at 2026-11-21: **the Reeldeal code is ready (on branch `claude/eloquent-bohr-5zzwa2`, not yet on
+`main`). Vercel: domain and production variables added (owner approved). DNS and the main site are
+unchanged.**
+
+**Correction (2026-11-21):** the live main site is on **Netlify**, not Vercel. `theoutsidein.nz` (apex,
+75.2.60.5) is served by Netlify and `www` redirects to it. Only `app.theoutsidein.nz` points at the
+Vercel project `tourism-ai-growth-platform`. So the public address is **theoutsidein.nz/reeldeal** and
+the forwarding rule goes on the Netlify site.
 
 ## How it fits together
 
 ```
-visitor ──> www.theoutsidein.nz/reeldeal/...      (main site: Vercel project tourism-ai-growth-platform)
-                 │  rewrite /reeldeal/*
+visitor ──> theoutsidein.nz/reeldeal/...          (main site: Netlify)
+                 │  proxy rewrite /reeldeal/*
                  ▼
             reeldeal.theoutsidein.nz/reeldeal/... (Reeldeal: Vercel project reeldeal, basePath /reeldeal)
 ```
 
-The visitor only ever sees `www.theoutsidein.nz/reeldeal`. This is Vercel's standard "multi-zone"
-set-up: two projects behind one domain.
+The visitor only ever sees `theoutsidein.nz/reeldeal`.
 
 What exists today (read-only check, 2026-11-21):
 
 | Thing | Where |
 |---|---|
-| `www.theoutsidein.nz` (apex redirects to www) and `app.theoutsidein.nz` | Vercel project `tourism-ai-growth-platform`, team ANI |
-| Reeldeal | Vercel project `reeldeal`, only on `reeldeal-three.vercel.app`, with Vercel Authentication on everything except custom domains |
+| `theoutsidein.nz` (live site; `www` redirects to it) | Netlify (`outsideinnz.netlify.app`) |
+| `app.theoutsidein.nz` | Vercel project `tourism-ai-growth-platform`, team ANI |
+| Reeldeal | Vercel project `reeldeal`, on `reeldeal-three.vercel.app` and now `reeldeal.theoutsidein.nz`, with Vercel Authentication on everything except custom domains. **No production deployment yet** (every build so far is a branch preview) |
 | DNS for theoutsidein.nz | Freeparking (`ns.freeparking.co.nz`), part of Crazy Domains |
 
 ## Why Reeldeal needs its own subdomain
@@ -34,33 +40,40 @@ site.)
 ## Steps
 
 1. **DNS (owner, Crazy Domains / Freeparking):** add a CNAME record
-   `reeldeal` → `cname.vercel-dns.com`.
-2. **Vercel, project `reeldeal`:**
-   - add the domain `reeldeal.theoutsidein.nz`
-   - Production environment variables:
-     - `NEXT_PUBLIC_BASE_PATH=/reeldeal`
-     - `NEXT_PUBLIC_SITE_URL=https://www.theoutsidein.nz/reeldeal`
-   - redeploy production.
-3. **Main site, project `tourism-ai-growth-platform`:** add to its `next.config` (or the equivalent
-   Vercel rewrites):
+   `reeldeal` → `cname.vercel-dns.com`. (Vercel also offers the project-specific
+   `626fb0dbf86fea55.vercel-dns-016.com`; either works.)
+2. **Vercel, project `reeldeal`: done 2026-11-21.**
+   - domain `reeldeal.theoutsidein.nz` added
+   - Production variables: `NEXT_PUBLIC_BASE_PATH=/reeldeal`,
+     `NEXT_PUBLIC_SITE_URL=https://theoutsidein.nz/reeldeal`
+3. **Production deployment:** merge the branch into `main` (production builds from `main`), then
+   check the deployment at `reeldeal.theoutsidein.nz/reeldeal`.
+4. **Main site on Netlify:** add a proxy rule. In `public/_redirects` (or the publish folder):
 
-   ```ts
-   async rewrites() {
-     return [
-       { source: "/reeldeal", destination: "https://reeldeal.theoutsidein.nz/reeldeal" },
-       { source: "/reeldeal/:path*", destination: "https://reeldeal.theoutsidein.nz/reeldeal/:path*" },
-     ];
-   }
+   ```
+   /reeldeal    https://reeldeal.theoutsidein.nz/reeldeal          200!
+   /reeldeal/*  https://reeldeal.theoutsidein.nz/reeldeal/:splat   200!
    ```
 
-   and to its `robots.txt`: `Sitemap: https://www.theoutsidein.nz/reeldeal/sitemap.xml`, plus the
-   `Disallow` lines Reeldeal's own `/reeldeal/robots.txt` lists (crawlers only read the domain's root
-   robots file).
-4. **Supabase Auth:** Site URL `https://www.theoutsidein.nz/reeldeal`; redirect URL
-   `https://www.theoutsidein.nz/reeldeal/auth/callback`.
-5. **R2 CORS:** add the origin `https://www.theoutsidein.nz` (separate approval, as for localhost).
-6. **Check:** every website page, sign-up, the email link, sign-in, an upload and a download, all at
-   `www.theoutsidein.nz/reeldeal`.
+   or in `netlify.toml`:
+
+   ```toml
+   [[redirects]]
+   from = "/reeldeal/*"
+   to = "https://reeldeal.theoutsidein.nz/reeldeal/:splat"
+   status = 200
+   force = true
+   ```
+
+   (plus the same block for `/reeldeal` on its own). Put them above any catch-all rule such as
+   `/* /index.html 200`. Also add to the main site's `robots.txt`:
+   `Sitemap: https://theoutsidein.nz/reeldeal/sitemap.xml`, plus the `Disallow` lines Reeldeal's own
+   `/reeldeal/robots.txt` lists (crawlers only read the domain's root robots file).
+5. **When the app opens to customers:** Supabase Auth Site URL `https://theoutsidein.nz/reeldeal`;
+   redirect URL `https://theoutsidein.nz/reeldeal/auth/callback`. R2 CORS origin
+   `https://theoutsidein.nz` (separate approval).
+6. **Check:** every website page at `theoutsidein.nz/reeldeal`; later sign-up, the email link,
+   sign-in, an upload and a download.
 
 ## What changed in the code
 
@@ -78,7 +91,7 @@ site.)
 
 ## Things to know
 
-- Reeldeal also answers at `reeldeal.theoutsidein.nz/reeldeal`. Search engines are pointed at the
-  www address by the sitemap and page metadata.
-- Cookies are shared on `www.theoutsidein.nz` with the main site. Names don't collide (Reeldeal's
+- Reeldeal also answers at `reeldeal.theoutsidein.nz/reeldeal`. Search engines are pointed at
+  `theoutsidein.nz/reeldeal` by the sitemap and page metadata.
+- Cookies are shared on `theoutsidein.nz` with the main site. Names don't collide (Reeldeal's
   are `sb-<project>-…` and `rd_…`), but anything the main site sets on `/` is also sent to Reeldeal.
