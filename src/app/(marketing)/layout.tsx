@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   // "Reeldeal" is the working name; confirm before launch (CLAUDE.md).
   title: { default: "Reeldeal", template: "%s · Reeldeal" },
-  description: "[TAGLINE] AI video production for businesses.",
+  description: "Turn your raw footage into finished reels, ads and website videos. AI video production for businesses.",
   openGraph: { type: "website", siteName: "Reeldeal", locale: "en_NZ" },
   twitter: { card: "summary_large_image" },
 };

@@ -92,7 +92,7 @@ business's name, industry, format, length and whether it was made in Autopilot o
 | Footer | `[LINKEDIN URL]` (Instagram links to theoutsidein.nz for now) |
 | Showcase | `[CUSTOMER VIDEOS]`; featured story `[Customer]`, story text, `[N]` clips, `[N]` videos, `[T]` time |
 | Demo | `[BOOKING PROVIDER]`: Cal.com chosen; booking link still needed |
-| Site-wide | `[TAGLINE]` in the default page description; confirm the name "Reeldeal" |
+| Site-wide | Confirm the name "Reeldeal" |
 
 ## Not yet on the site
 

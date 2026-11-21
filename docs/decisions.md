@@ -334,6 +334,8 @@ How it is wired: `docs/app.md`. Decisions:
 - **Instagram** links to https://theoutsidein.nz for now. LinkedIn still to confirm.
 - **Founder section is off the About page** until the owner supplies the story, quote and photo.
   "The problem" now uses the brief's own framing instead of a bracket.
+- **Tagline** (default page description): "Turn your raw footage into finished reels, ads and website
+  videos. AI video production for businesses."
 - **Booking:** Cal.com. Not wired yet; needs the booking link.
 - **Address:** theoutsidein.nz/reeldeal (a sub-path of the existing site). Not set up yet: depends on
   where theoutsidein.nz is hosted.
