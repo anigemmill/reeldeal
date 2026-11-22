@@ -1,10 +1,14 @@
 # Transactional email with Resend (D4)
 
-**Status (2026-11-22): domain added in Resend, waiting for DNS.** `mail.theoutsidein.nz` was added to
-Outside In's existing Resend account (the one Findable uses), region `ap-northeast-1` (Tokyo, the
-only Asia-Pacific region Resend offers), domain id `6854cc65-ec50-46d1-b3da-fada67f69dc5`. No DNS
-record, Supabase setting, Reeldeal API key or real email has been created, changed or sent yet. Every step marked **(approval)** needs your go-ahead.
-The branded templates are built and tested locally (see "Tested locally" below).
+**Status (2026-11-22): connected, not yet tested with a real inbox.** `mail.theoutsidein.nz` is
+verified in Outside In's Resend account (the one Findable uses), region `ap-northeast-1` (Tokyo, the
+only Asia-Pacific region Resend offers), domain id `6854cc65-ec50-46d1-b3da-fada67f69dc5`. Supabase
+Auth on `reeldeal` sends through Resend SMTP with the key "Reeldeal production (Supabase Auth SMTP)"
+(sending only, limited to this domain; stored only in Supabase). Sender `Reeldeal
+<no-reply@mail.theoutsidein.nz>`; emails sent limit 100 an hour; the branded templates, subjects, Site
+URL `https://theoutsidein.nz/reeldeal`, the `/reeldeal/auth/callback` redirect and an 8-character
+minimum password are set. Supabase's SMTP settings have no Reply-To, so replies go to the no-reply
+address; add a Reply-To later if it matters. Not done yet: the first real send (section 9).
 
 ## 1. What Resend will send
 

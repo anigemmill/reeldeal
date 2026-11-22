@@ -110,7 +110,7 @@ What is already true:
 | Vercel production variables | Only `NEXT_PUBLIC_BASE_PATH` and `NEXT_PUBLIC_SITE_URL`. **No Supabase URL or key, no `DATABASE_URL`, no `SIGNING_SECRET`**, so the sign-in pages can't reach Supabase in production |
 | Email | Nothing connected (`docs/email-resend.md`). Root domain mail is Google Workspace (MX `aspmx.l.google.com`) |
 
-Order (each step needs the owner, or the owner's go-ahead for me to do it):
+Order (each step needs the owner, or the owner's go-ahead for me to do it). **Steps 1–3 done 2026-11-22.**
 
 1. **Resend** (owner): create the account, add the domain `mail.theoutsidein.nz` in the
    Asia-Pacific region, create the production API key (sending only). Values: `docs/email-resend.md` §3.
