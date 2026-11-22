@@ -346,3 +346,7 @@ How it is wired: `docs/app.md`. Decisions:
 - **Terms and Privacy:** first draft written for a New Zealand business (Privacy Act 2020, CGA and FTA
   business-use exclusions, NZ law). Labelled "Draft for legal review" on screen and kept out of search
   engines until a lawyer signs it off.
+- **Sign-up closed on the website until sign-in is live** (`SIGN_UP_OPEN = false` in `src/content/site.ts`).
+  Every "Start free", plan, "Try a prompt" and hero-prompt button goes to Book a demo, and the
+  Sign in links are hidden. `/sign-in` and `/sign-up` still exist. Flip the switch once Supabase Auth,
+  Resend email and the database are live in production.

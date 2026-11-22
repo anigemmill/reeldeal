@@ -7,6 +7,7 @@ import { MediaArt } from "@/components/media/media-art";
 import { Eyebrow } from "@/components/ui/misc";
 import { HERO_PROMPTS, HERO_TILES } from "@/content/home";
 import { getMedia } from "@/content/media";
+import { PRIMARY_CTA, SIGN_UP_OPEN } from "@/content/site";
 
 /*
   Homepage hero (design/components/ArcHero.dc.html): a curved 3D slider of
@@ -212,8 +213,8 @@ function PromptBar({ paused }: { paused: boolean }) {
         <span aria-hidden className="rd-motion ml-0.5 inline-block h-5 w-0.5 translate-y-[3px] bg-ai" style={{ animation: "rd-caret 1s steps(1) infinite" }} />
       </span>
       <Link
-        href="/signup"
-        aria-label="Create a video like this (start free)"
+        href={PRIMARY_CTA.href}
+        aria-label={SIGN_UP_OPEN ? "Create a video like this (start free)" : "Book a demo to make a video like this"}
         className="inline-flex size-11.5 shrink-0 items-center justify-center rounded-full bg-action text-action-foreground transition-colors hover:bg-action/90"
       >
         <ArrowUp className="size-[18px]" strokeWidth={2.4} aria-hidden />

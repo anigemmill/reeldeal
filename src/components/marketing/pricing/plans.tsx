@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { PlanCard } from "@/content/pricing-page";
 import { signupHref } from "@/lib/pricing/links";
 import { cn } from "@/lib/utils";
+import { SIGN_UP_OPEN } from "@/content/site";
 
 /* Billing toggle and plan cards (W-Pricing "PLANS"). Prices are pre-formatted from config/pricing.json. */
 export function PlanCards({ plans, monthsFree }: { plans: PlanCard[]; monthsFree: number }) {
@@ -70,7 +71,11 @@ export function PlanCards({ plans, monthsFree }: { plans: PlanCard[]; monthsFree
                   size="lg"
                   className="font-semibold"
                 >
-                  <Link href={signupHref(p.id, period)}>{p.free ? "Start free" : `Choose ${p.name}`}</Link>
+                  {SIGN_UP_OPEN ? (
+                    <Link href={signupHref(p.id, period)}>{p.free ? "Start free" : `Choose ${p.name}`}</Link>
+                  ) : (
+                    <Link href="/demo">Book a demo</Link>
+                  )}
                 </Button>
                 <ul className="flex flex-col gap-2.5 border-t border-line pt-4 text-sm leading-snug">
                   {p.features.map((f) => (

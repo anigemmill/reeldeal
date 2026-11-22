@@ -8,6 +8,7 @@ import { getMedia } from "@/content/media";
 import type { IndustrySolution, SolutionSeason } from "@/content/solutions";
 import { cn } from "@/lib/utils";
 import { FitSwitcher } from "./fit-switcher";
+import { PRIMARY_CTA, SIGN_UP_OPEN } from "@/content/site";
 
 /*
   An industry solution page (design/website/W-Solutions.dc.html). Tourism is the
@@ -48,11 +49,13 @@ function Hero({ solution }: { solution: IndustrySolution }) {
             <p className="mb-7.5 max-w-[460px] text-lg leading-relaxed text-ink-soft">{solution.lead}</p>
             <div className="flex flex-wrap gap-2.5">
               <Button asChild variant="primary" shape="pill" size="lg" className="font-semibold">
-                <Link href="/signup">Start free</Link>
+                <Link href={PRIMARY_CTA.href}>{PRIMARY_CTA.label}</Link>
               </Button>
-              <Button asChild shape="pill" size="lg" className="border-0 bg-ink text-bg hover:bg-ink/90">
-                <Link href="/demo">Book a demo</Link>
-              </Button>
+              {SIGN_UP_OPEN && (
+                <Button asChild shape="pill" size="lg" className="border-0 bg-ink text-bg hover:bg-ink/90">
+                  <Link href="/demo">Book a demo</Link>
+                </Button>
+              )}
             </div>
           </div>
           <ul className="flex flex-wrap gap-x-4.5 gap-y-2 text-sm text-ink-soft">

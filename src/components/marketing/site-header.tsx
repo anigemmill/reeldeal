@@ -8,7 +8,7 @@ import { Logo } from "@/components/brand/logo";
 import { MediaArt } from "@/components/media/media-art";
 import { Button } from "@/components/ui/button";
 import { getMedia } from "@/content/media";
-import { MAIN_NAV } from "@/content/site";
+import { MAIN_NAV, PRIMARY_CTA, SIGN_UP_OPEN } from "@/content/site";
 import { cn } from "@/lib/utils";
 
 /* Marketing header (design/components/Nav.dc.html) with the full-screen mobile menu (W-Menu). */
@@ -37,14 +37,18 @@ export function SiteHeader({ className }: { className?: string }) {
       </nav>
 
       <div className="flex items-center gap-2 text-sm font-medium">
-        <Link href="/login" className="hidden rounded-sm px-2 py-2.5 sm:inline-block">
-          Sign in
-        </Link>
-        <Button asChild variant="secondary" shape="pill" size="sm" className="hidden h-10 md:inline-flex">
-          <Link href="/demo">Book a demo</Link>
-        </Button>
+        {SIGN_UP_OPEN && (
+          <>
+            <Link href="/login" className="hidden rounded-sm px-2 py-2.5 sm:inline-block">
+              Sign in
+            </Link>
+            <Button asChild variant="secondary" shape="pill" size="sm" className="hidden h-10 md:inline-flex">
+              <Link href="/demo">Book a demo</Link>
+            </Button>
+          </>
+        )}
         <Button asChild variant="primary" shape="pill" size="sm" className="h-10 px-4.5 font-semibold">
-          <Link href="/signup">Start free</Link>
+          <Link href={PRIMARY_CTA.href}>{PRIMARY_CTA.label}</Link>
         </Button>
         <MobileMenu />
       </div>
@@ -93,15 +97,19 @@ function MobileMenu() {
             </div>
             <div className="flex gap-2">
               <Button asChild variant="primary" shape="pill" size="lg" className="flex-1">
-                <Link href="/signup">Start free</Link>
+                <Link href={PRIMARY_CTA.href}>{PRIMARY_CTA.label}</Link>
               </Button>
-              <Button asChild variant="secondary" shape="pill" size="lg" className="flex-1 bg-transparent">
-                <Link href="/demo">Book a demo</Link>
-              </Button>
+              {SIGN_UP_OPEN && (
+                <Button asChild variant="secondary" shape="pill" size="lg" className="flex-1 bg-transparent">
+                  <Link href="/demo">Book a demo</Link>
+                </Button>
+              )}
             </div>
-            <Link href="/login" className="py-2 text-center text-[15px] text-ink-muted">
-              Sign in
-            </Link>
+            {SIGN_UP_OPEN && (
+              <Link href="/login" className="py-2 text-center text-[15px] text-ink-muted">
+                Sign in
+              </Link>
+            )}
           </div>
         </Dialog.Content>
       </Dialog.Portal>
