@@ -136,7 +136,7 @@ Project `reeldeal` → **Authentication**:
 - Crossroads Blue literal hex colours, because email clients can't read CSS variables
 - system-safe fonts with Space Grotesk and Inter first
 - a single blue button with a plain-text link under it
-- bracketed owner copy where needed (`[COMPANY LEGAL NAME AND POSTAL ADDRESS]`)
+- footer: "Outside In Limited, Rotorua, New Zealand" (owner, 2026-11-22)
 
 The links use `{{ .TokenHash }}` and go to `/auth/callback`, not Supabase's default
 `{{ .ConfirmationURL }}`. **This matters.** The default links only work in the browser that asked
@@ -179,4 +179,4 @@ pass and inbox placement in Gmail and Outlook.
 2. The final domain, or a development domain you own.
 3. DNS: you add the records Resend shows, or approve me to.
 4. Approval to configure Supabase Auth SMTP and templates on the `reeldeal` project.
-5. `[SUPPORT EMAIL]`, `[DMARC REPORT ADDRESS]`, and `[COMPANY LEGAL NAME AND POSTAL ADDRESS]` for the email footer.
+5. `[SUPPORT EMAIL]`, `[DMARC REPORT ADDRESS]`.
