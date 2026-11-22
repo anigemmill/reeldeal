@@ -47,6 +47,17 @@ Send from a **dedicated subdomain**, `mail.[DOMAIN]`. This:
 
 `[DOMAIN]` depends on the final product name and domain (open decision).
 
+**For launch at theoutsidein.nz/reeldeal (2026-11-22):** sending domain `mail.theoutsidein.nz`,
+From `Reeldeal <no-reply@mail.theoutsidein.nz>`, Reply-To `anigemmill@theoutsidein.nz` (the
+confirmed contact address; owner to confirm it for email replies too).
+
+DNS checked 2026-11-22 (read-only): the root domain's mail is Google Workspace (MX
+`aspmx.l.google.com` and alternates). It has **no SPF record and no DMARC record**, and nothing exists
+yet under `mail.`. Nothing to inherit or clash with, so `_dmarc.mail` as below is safe. Separately,
+and outside Reeldeal: the root domain would benefit from `v=spf1 include:_spf.google.com ~all` and its
+own DMARC record, because Workspace mail sent today without SPF is more likely to be marked as spam.
+That changes the root domain, so it is the owner's call.
+
 ## 4. DNS records needed (approval; you add them, or approve me to)
 
 Resend shows the exact values once the domain is added. Expect:
