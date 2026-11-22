@@ -1,7 +1,9 @@
 # Transactional email with Resend (D4)
 
-**Status: prepared, nothing connected.** No account, domain, DNS record, Supabase setting or real
-email has been created, changed or sent. Every step marked **(approval)** needs your go-ahead.
+**Status (2026-11-22): domain added in Resend, waiting for DNS.** `mail.theoutsidein.nz` was added to
+Outside In's existing Resend account (the one Findable uses), region `ap-northeast-1` (Tokyo, the
+only Asia-Pacific region Resend offers), domain id `6854cc65-ec50-46d1-b3da-fada67f69dc5`. No DNS
+record, Supabase setting, Reeldeal API key or real email has been created, changed or sent yet. Every step marked **(approval)** needs your go-ahead.
 The branded templates are built and tested locally (see "Tested locally" below).
 
 ## 1. What Resend will send
@@ -86,11 +88,23 @@ Resend shows the exact values once the domain is added. Expect:
 - Verification usually takes minutes, but DNS can take up to 48 hours. Start this early: it is
   the slowest dependency for launch.
 
+### Records Resend issued for `mail.theoutsidein.nz` (2026-11-22)
+
+Hosts are relative to `theoutsidein.nz` (if Freeparking wants full names, add `.theoutsidein.nz`).
+
+| Type | Host | Value |
+|---|---|---|
+| TXT | `resend._domainkey.mail` | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC/amCzrcw0SNUE/e6+Q45NWLtwErfa33M7vuTbbtcNdVTgfylapQLZWi1EB9jErmn5YAdJ5EyG7bZLZ5bAr3NrYb5WMmD5GaZQDPGNEM4bqYmBDOxDL+S1gGhhxlyNQTl1cPrq8JOSJxH6hCag55sy7HyABMwzkSiwMzvheju6rQIDAQAB` |
+| MX | `send.mail` | `feedback-smtp.ap-northeast-1.amazonses.com`, priority 10 |
+| TXT | `send.mail` | `v=spf1 include:amazonses.com ~all` |
+| CNAME | `rsend.mail` | `send.forge.rmta.net` |
+| TXT | `_dmarc.mail` | `v=DMARC1; p=none; rua=mailto:anigemmill@theoutsidein.nz` (ours, not Resend's; monitoring only) |
+
 ## 5. Sending region
 
 Resend sends from a small set of regions (US East is the default; others, including an
 Asia-Pacific region, are offered when adding the domain: check the list in the dashboard).
-Recommendation: **the Asia-Pacific region closest to Sydney**, where the Supabase project and the
+Chosen: `ap-northeast-1` (Tokyo), Resend's only Asia-Pacific region. Original recommendation: **the Asia-Pacific region closest to Sydney**, where the Supabase project and the
 customers are. That keeps processing close to the rest of the stack, and is worth noting in the
 Privacy Policy's list of processors. The region is fixed per domain and changes the hostname in
 the MX record above.
