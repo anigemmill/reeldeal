@@ -58,6 +58,15 @@ and outside Reeldeal: the root domain would benefit from `v=spf1 include:_spf.go
 own DMARC record, because Workspace mail sent today without SPF is more likely to be marked as spam.
 That changes the root domain, so it is the owner's call.
 
+**Existing Resend account (found 2026-11-22):** Findable already sends through Outside In's Resend
+account from `updates.theoutsidein.nz` (DKIM at `resend._domainkey.updates`, bounce MX and SPF at
+`send.updates`; no DMARC record of its own). Findable's privacy notice lists Resend in the United States, so that
+domain is in the US region. Recommendation: use the **same account** but add Reeldeal as its **own
+domain** (`mail.theoutsidein.nz`) with its own domain-limited API key, so a problem with one
+product's sending (abuse of sign-up, a leaked key, bounces) can't hurt the other's. Check the plan
+first: a domain limit on the current plan would mean upgrading, or sharing `updates.theoutsidein.nz`
+as a stopgap (no DNS work, shared reputation, US region).
+
 ## 4. DNS records needed (approval; you add them, or approve me to)
 
 Resend shows the exact values once the domain is added. Expect:
