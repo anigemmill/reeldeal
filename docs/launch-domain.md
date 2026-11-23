@@ -137,8 +137,7 @@ Order (each step needs the owner, or the owner's go-ahead for me to do it). **St
 
 Notes from 2026-11-23:
 
-- Vercel runs Reeldeal's functions in `iad1` (Washington, US) while the database is in Sydney, so every
-  database call crosses the Pacific. Setting the project's Function Region to `syd1` (Settings →
-  Functions) would cut that latency. Not changed yet: owner's call.
+- Vercel functions run in `syd1` (Sydney), next to the database (changed from `iad1`, owner's request,
+  2026-11-23; project setting Settings → Functions → Function Region).
 - Findable's Vercel project (`tourism-ai-growth-platform`) has its own `DATABASE_URL`. Check the project
   name at the top of the page before adding variables.
