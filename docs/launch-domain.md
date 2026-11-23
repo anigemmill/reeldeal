@@ -110,7 +110,7 @@ What is already true:
 | Vercel production variables | Only `NEXT_PUBLIC_BASE_PATH` and `NEXT_PUBLIC_SITE_URL`. **No Supabase URL or key, no `DATABASE_URL`, no `SIGNING_SECRET`**, so the sign-in pages can't reach Supabase in production |
 | Email | Nothing connected (`docs/email-resend.md`). Root domain mail is Google Workspace (MX `aspmx.l.google.com`) |
 
-Order (each step needs the owner, or the owner's go-ahead for me to do it). **Steps 1–3 done 2026-11-22.**
+Order (each step needs the owner, or the owner's go-ahead for me to do it). **Steps 1–3 done 2026-11-22; steps 4–5 done 2026-11-23** (`reeldeal_web` can log in; production has `DATABASE_URL` and `SIGNING_SECRET` as sensitive variables, plus the Supabase URL and publishable key). Remaining: step 6.
 
 1. **Resend** (owner): create the account, add the domain `mail.theoutsidein.nz` in the
    Asia-Pacific region, create the production API key (sending only). Values: `docs/email-resend.md` §3.
@@ -134,3 +134,11 @@ Order (each step needs the owner, or the owner's go-ahead for me to do it). **St
    confirmation emails through Supabase's built-in mailer with the wrong link address.
 6. **Test with addresses you own** (`docs/auth.md`, "Live test plan"), then flip
    `SIGN_UP_OPEN = true` in `src/content/site.ts` and redeploy.
+
+Notes from 2026-11-23:
+
+- Vercel runs Reeldeal's functions in `iad1` (Washington, US) while the database is in Sydney, so every
+  database call crosses the Pacific. Setting the project's Function Region to `syd1` (Settings →
+  Functions) would cut that latency. Not changed yet: owner's call.
+- Findable's Vercel project (`tourism-ai-growth-platform`) has its own `DATABASE_URL`. Check the project
+  name at the top of the page before adding variables.
