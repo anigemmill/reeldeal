@@ -10,10 +10,17 @@ const auth = {
 };
 vi.mock("@/server/app/supabase", () => ({ supabaseServer: async () => ({ auth }) }));
 
-const { GET } = await import("./route");
+const { GET, POST } = await import("./route");
 const ORIGIN = "https://app.reeldeal.test";
 const call = async (query: string) => {
   const res = await GET(new NextRequest(`${ORIGIN}/auth/callback${query}`));
+  return { status: res.status, location: res.headers.get("location") };
+};
+/** The Confirm button on /confirm-link: a form post back to the callback. */
+const confirm = async (fields: Record<string, string>, origin: string | null = ORIGIN) => {
+  const headers = new Headers();
+  if (origin) headers.set("origin", origin);
+  const res = await POST(new NextRequest(`${ORIGIN}/auth/callback`, { method: "POST", body: new URLSearchParams(fields), headers }));
   return { status: res.status, location: res.headers.get("location") };
 };
 const at = (path: string) => `${ORIGIN}${path}`;
@@ -32,9 +39,10 @@ describe("sign-up confirmation", () => {
     expect(r.status).toBe(307);
     expect(r.location).toBe(at("/onboarding?verified=1"));
   });
-  it("token-hash link (custom email template) is verified with its type", async () => {
-    const r = await call("?token_hash=th&type=email");
+  it("token-hash link (custom email template) is verified with its type, once Confirm is pressed", async () => {
+    const r = await confirm({ token_hash: "th", type: "email", flow: "signup" });
     expect(auth.verifyOtp).toHaveBeenCalledWith({ type: "email", token_hash: "th" });
+    expect(r.status).toBe(303);
     expect(r.location).toBe(at("/onboarding?verified=1"));
   });
   it("links sent before flows existed (next=/onboarding) still work", async () => {
@@ -53,7 +61,7 @@ describe("sign-up confirmation", () => {
     expect((await call("?flow=signup&error=access_denied&error_code=otp_expired")).location).toBe(at("/verify-email?link=invalid"));
   });
   it("an unknown OTP type is never passed to Supabase", async () => {
-    const r = await call("?token_hash=th&type=bogus&flow=signup");
+    const r = await confirm({ token_hash: "th", type: "bogus", flow: "signup" });
     expect(auth.verifyOtp).not.toHaveBeenCalled();
     expect(r.location).toBe(at("/verify-email?link=invalid"));
   });
@@ -76,7 +84,7 @@ describe("email change", () => {
   });
   it("token-hash link while the other address is still unconfirmed", async () => {
     auth.getUser.mockResolvedValue({ data: { user: { email_confirmed_at: "x", new_email: "new@example.test" } } });
-    const r = await call("?token_hash=th&type=email_change");
+    const r = await confirm({ token_hash: "th", type: "email_change", flow: "email_change" });
     expect(auth.verifyOtp).toHaveBeenCalledWith({ type: "email_change", token_hash: "th" });
     expect(r.location).toBe(at("/settings/account?email=one_confirmed"));
   });
@@ -109,5 +117,45 @@ describe("redirect safety", () => {
   });
   it("a request with no code or token is refused", async () => {
     expect((await call("?next=/dashboard")).location).toBe(at("/sign-in?expired=1"));
+  });
+});
+
+describe("link scanners (work email opens every link before the person does)", () => {
+  it.each([
+    ["?token_hash=th&type=email", "signup"],
+    ["?token_hash=th&type=recovery", "recovery"],
+    ["?token_hash=th&type=email_change", "email_change"],
+  ])("opening %s uses nothing up: it shows the Confirm page", async (query, flow) => {
+    const r = await call(query);
+    expect(auth.verifyOtp).not.toHaveBeenCalled();
+    expect(auth.exchangeCodeForSession).not.toHaveBeenCalled();
+    const to = new URL(r.location!);
+    expect(to.origin).toBe(ORIGIN);
+    expect(to.pathname).toBe("/confirm-link");
+    expect(to.searchParams.get("token_hash")).toBe("th");
+    expect(to.searchParams.get("flow")).toBe(flow);
+  });
+  it("opening the link twice (scanner, then person) still leaves it usable", async () => {
+    await call("?token_hash=th&type=email");
+    await call("?token_hash=th&type=email");
+    expect(auth.verifyOtp).not.toHaveBeenCalled();
+    expect((await confirm({ token_hash: "th", type: "email", flow: "signup" })).location).toBe(at("/onboarding?verified=1"));
+    expect(auth.verifyOtp).toHaveBeenCalledTimes(1);
+  });
+  it("the Confirm page keeps next, made safe", async () => {
+    const to = new URL((await call(`?token_hash=th&type=email&next=${encodeURIComponent("//evil.com")}`)).location!);
+    expect(to.searchParams.get("next")).toBe("/dashboard");
+  });
+  it("a post from another site is refused (login CSRF)", async () => {
+    const r = await confirm({ token_hash: "th", type: "email", flow: "signup" }, "https://evil.example");
+    expect(r.status).toBe(403);
+    expect(auth.verifyOtp).not.toHaveBeenCalled();
+  });
+  it("an expired token on Confirm goes to the expired screen", async () => {
+    auth.verifyOtp.mockResolvedValue({ error: new Error("expired") });
+    expect((await confirm({ token_hash: "old", type: "email", flow: "signup" })).location).toBe(at("/verify-email?link=invalid"));
+  });
+  it("a reset link continues to the reset page after Confirm", async () => {
+    expect((await confirm({ token_hash: "th", type: "recovery", flow: "recovery" })).location).toBe(at("/reset-password"));
   });
 });

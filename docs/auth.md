@@ -18,6 +18,15 @@ re-verifies the user with Supabase Auth (`getUser`). Tokens never reach browser 
 
 `/auth/callback` handles every emailed link (`flow=` or `type=`). It accepts PKCE codes and
 token-hash links, always redirects on its own origin, and maps each failure to the right screen.
+
+**Link scanners (2026-11-23).** Work email (Microsoft 365 Safe Links and similar) opens every link in
+an incoming message to check it. A token-hash link is single use, so when opening it verified the
+token, the scanner used it up and the person got "link expired" (seen in the first live sign-up). Now
+a GET with a token hash only shows `/confirm-link` ("Confirm my email", "Continue to reset my
+password", "Confirm my new email"). The button is a plain form POST back to `/auth/callback`, which
+verifies and redirects with 303. The POST is refused (403) when its `Origin` is neither the app's own
+origin nor the origin in `NEXT_PUBLIC_SITE_URL` (login CSRF). PKCE codes still verify on GET: a scanner
+can't use them without the asking browser's code-verifier cookie.
 Tests: `src/app/auth/callback/route.test.ts` (22).
 
 ## Email links work on any device

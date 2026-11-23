@@ -147,6 +147,9 @@ The links use `{{ .TokenHash }}` and go to `/auth/callback`, not Supabase's defa
 for them (PKCE). The browser tests showed that someone who signs up on a laptop and opens the
 email on their phone would get "link expired". Token-hash links work on any device.
 
+Opening a link only shows a Confirm page; the token is used when the person presses its button,
+so work email link scanners can't use it up first (`docs/auth.md`, "Link scanners").
+
 Not used: magic link, invite (Reeldeal sends its own invitations), reauthentication.
 
 ## 8. Findings that shaped this

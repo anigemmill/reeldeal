@@ -350,3 +350,14 @@ How it is wired: `docs/app.md`. Decisions:
   Every "Start free", plan, "Try a prompt" and hero-prompt button goes to Book a demo, and the
   Sign in links are hidden. `/sign-in` and `/sign-up` still exist. Flip the switch once Supabase Auth,
   Resend email and the database are live in production.
+
+## First live sign-up (2026-11-23)
+
+- **Emailed links open a Confirm page; the button uses the token.** The first real sign-up (a work
+  address on Microsoft 365) found its link "expired": the mail scanner had opened it first and used
+  the one-time token. Verifying only on a button press (form POST, same-site origin check) fixes it
+  for confirmation, password reset and email change links. One extra click for everyone, in return
+  for links that work on business email.
+- **Production storage is R2 bucket `reeldeal-media` (Oceania).** The app refuses to run signed-in
+  pages without R2 in production, by design.
+- **Functions run in Sydney (`syd1`)**, next to the database.
