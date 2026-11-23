@@ -5,8 +5,26 @@ import { claimsFor, type Db, type Sql } from "./types";
   Postgres driver (Supabase in production via its pooler, or a local server).
   prepare: false keeps it compatible with transaction-mode connection pooling.
 */
+
+/**
+ * TLS for the connection. Remote databases are always encrypted (Supabase refuses plain
+ * connections for the restricted roles: "SSL connection is required"); a database on this
+ * machine (the local stack) is not. An explicit sslmode in the URL wins.
+ */
+export function sslFor(url: string): "require" | false | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return undefined;
+  }
+  if (parsed.searchParams.has("sslmode")) return undefined;
+  const host = parsed.hostname.replace(/^\[|\]$/g, "");
+  return host === "localhost" || host === "127.0.0.1" || host === "::1" ? false : "require";
+}
+
 export function createPostgresDb(url: string, options: { max?: number } = {}): Db {
-  const pg = postgres(url, { prepare: false, max: options.max ?? 5, idle_timeout: 20, onnotice: () => {} });
+  const pg = postgres(url, { prepare: false, max: options.max ?? 5, idle_timeout: 20, onnotice: () => {}, ssl: sslFor(url) });
   const wrap = (tx: postgres.TransactionSql): Sql => ({
     query: async <T>(text: string, params: readonly unknown[] = []) =>
       (await tx.unsafe(text, params as postgres.ParameterOrJSON<never>[])) as unknown as T[],
@@ -34,7 +52,7 @@ export function createPostgresDb(url: string, options: { max?: number } = {}): D
 
 /** Run a whole SQL file (multiple statements) outside a transaction wrapper. */
 export async function execPostgresFile(url: string, text: string) {
-  const pg = postgres(url, { prepare: false, max: 1, onnotice: () => {} });
+  const pg = postgres(url, { prepare: false, max: 1, onnotice: () => {}, ssl: sslFor(url) });
   try {
     await pg.unsafe(text);
   } finally {
