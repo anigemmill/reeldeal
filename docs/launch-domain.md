@@ -139,5 +139,11 @@ Notes from 2026-11-23:
 
 - Vercel functions run in `syd1` (Sydney), next to the database (changed from `iad1`, owner's request,
   2026-11-23; project setting Settings → Functions → Function Region).
+- Media storage (2026-11-23): R2 bucket `reeldeal-media` (Oceania, private), created by the owner with
+  CORS PUT from `https://theoutsidein.nz`, abort incomplete multipart uploads after 7 days (prefix
+  `org/`), and an Object Read & Write token limited to that bucket. Production has `R2_ACCOUNT_ID`,
+  `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and `R2_BUCKET` as sensitive variables. Without them every
+  signed-in page failed ("R2 storage is required in production"). The dev bucket stays
+  `reeldeal-dev-media`.
 - Findable's Vercel project (`tourism-ai-growth-platform`) has its own `DATABASE_URL`. Check the project
   name at the top of the page before adding variables.
