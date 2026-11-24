@@ -1,7 +1,7 @@
 # Going live at theoutsidein.nz/reeldeal
 
 Status at 2026-11-22: **the website is live at https://theoutsidein.nz/reeldeal** (DNS CNAME, the
-Netlify proxy in `anigemmill/outside-in-website` and the production deployment from `main` are all in
+Netlify proxy in `anigemmill/outside-in-website` and the production deployment from the default branch are all in
 place; both addresses answer 200). **Sign-in is not open yet:** see "Opening sign-in" below.
 
 **Correction (2026-11-21):** the live main site is on **Netlify**, not Vercel. `theoutsidein.nz` (apex,
@@ -46,7 +46,7 @@ site.)
    - domain `reeldeal.theoutsidein.nz` added
    - Production variables: `NEXT_PUBLIC_BASE_PATH=/reeldeal`,
      `NEXT_PUBLIC_SITE_URL=https://theoutsidein.nz/reeldeal`
-3. **Production deployment:** merge the branch into `main` (production builds from `main`), then
+3. **Production deployment:** merge into the repository's default branch, `claude/new-session-p7jbcx` (there is no `main`; Vercel production builds from the default branch), then
    check the deployment at `reeldeal.theoutsidein.nz/reeldeal`.
 4. **Main site on Netlify:** add a proxy rule. In `public/_redirects` (or the publish folder):
 
