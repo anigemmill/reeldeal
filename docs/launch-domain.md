@@ -1,8 +1,8 @@
 # Going live at theoutsidein.nz/reeldeal
 
-Status at 2026-11-21: **the Reeldeal code is ready (on branch `claude/eloquent-bohr-5zzwa2`, not yet on
-`main`). Vercel: domain and production variables added (owner approved). DNS and the main site are
-unchanged.**
+Status at 2026-11-22: **the website is live at https://theoutsidein.nz/reeldeal** (DNS CNAME, the
+Netlify proxy in `anigemmill/outside-in-website` and the production deployment from the default branch are all in
+place; both addresses answer 200). **Sign-in is not open yet:** see "Opening sign-in" below.
 
 **Correction (2026-11-21):** the live main site is on **Netlify**, not Vercel. `theoutsidein.nz` (apex,
 75.2.60.5) is served by Netlify and `www` redirects to it. Only `app.theoutsidein.nz` points at the
@@ -46,7 +46,7 @@ site.)
    - domain `reeldeal.theoutsidein.nz` added
    - Production variables: `NEXT_PUBLIC_BASE_PATH=/reeldeal`,
      `NEXT_PUBLIC_SITE_URL=https://theoutsidein.nz/reeldeal`
-3. **Production deployment:** merge the branch into `main` (production builds from `main`), then
+3. **Production deployment:** merge into the repository's default branch, `claude/new-session-p7jbcx` (there is no `main`; Vercel production builds from the default branch), then
    check the deployment at `reeldeal.theoutsidein.nz/reeldeal`.
 4. **Main site on Netlify:** add a proxy rule. In `public/_redirects` (or the publish folder):
 
@@ -95,3 +95,55 @@ site.)
   `theoutsidein.nz/reeldeal` by the sitemap and page metadata.
 - Cookies are shared on `theoutsidein.nz` with the main site. Names don't collide (Reeldeal's
   are `sb-<project>-…` and `rd_…`), but anything the main site sets on `/` is also sent to Reeldeal.
+
+## Opening sign-in (checked 2026-11-22, read-only)
+
+What is already true:
+
+| Thing | State |
+|---|---|
+| Supabase project `jzshbaqfrrgsyiciuzfe` (`reeldeal`, Sydney, Postgres 17) | Healthy. The connector reaches it again |
+| Migrations | All 10 in the repo are applied (both trackers agree), through `20261119000001_credit_rollover` |
+| Tables | 22 in `public`, RLS on every one, 0 rows, 0 `anon` grants, 0 auth users |
+| Security advisor | One INFO: `reeldeal_meta.migrations` has RLS on and no policies. Intended (no client should read it) |
+| Runtime roles `reeldeal_web`, `reeldeal_worker` | Exist, **cannot log in yet** (no password set) |
+| Vercel production variables | Only `NEXT_PUBLIC_BASE_PATH` and `NEXT_PUBLIC_SITE_URL`. **No Supabase URL or key, no `DATABASE_URL`, no `SIGNING_SECRET`**, so the sign-in pages can't reach Supabase in production |
+| Email | Nothing connected (`docs/email-resend.md`). Root domain mail is Google Workspace (MX `aspmx.l.google.com`) |
+
+Order (each step needs the owner, or the owner's go-ahead for me to do it). **Steps 1–3 done 2026-11-22; steps 4–5 done 2026-11-23** (`reeldeal_web` can log in; production has `DATABASE_URL` and `SIGNING_SECRET` as sensitive variables, plus the Supabase URL and publishable key). Remaining: step 6.
+
+1. **Resend** (owner): create the account, add the domain `mail.theoutsidein.nz` in the
+   Asia-Pacific region, create the production API key (sending only). Values: `docs/email-resend.md` §3.
+2. **DNS at Freeparking** (owner): add the four records Resend shows (§4). Additions only.
+3. **Supabase Auth** (dashboard, owner, or me with a short-lived access token):
+   - URL Configuration: Site URL `https://theoutsidein.nz/reeldeal`; Redirect URLs
+     `https://theoutsidein.nz/reeldeal/auth/callback`
+   - SMTP, templates, email settings and rate limits as in `docs/email-resend.md` §6. The templates
+     build links from `{{ .SiteURL }}`, so they already include `/reeldeal`.
+4. **Database login for the app** (owner, SQL editor; the password never goes in chat or git):
+   `alter role reeldeal_web with login password '…';`
+   Production `DATABASE_URL` is then the transaction pooler (port 6543) with user
+   `reeldeal_web.jzshbaqfrrgsyiciuzfe`, saved in Vercel as a **sensitive** variable.
+5. **Vercel production variables** (I can add these on approval):
+   - `NEXT_PUBLIC_SUPABASE_URL=https://jzshbaqfrrgsyiciuzfe.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = the project's publishable key (public by design)
+   - `SIGNING_SECRET`: 32+ random characters, generated straight into Vercel as sensitive, never shown
+   - `DATABASE_URL` from step 4 (owner pastes it into Vercel)
+
+   Add these only after steps 1–3: before that, a visit to `/reeldeal/sign-up` would send
+   confirmation emails through Supabase's built-in mailer with the wrong link address.
+6. **Test with addresses you own** (`docs/auth.md`, "Live test plan"), then flip
+   `SIGN_UP_OPEN = true` in `src/content/site.ts` and redeploy.
+
+Notes from 2026-11-23:
+
+- Vercel functions run in `syd1` (Sydney), next to the database (changed from `iad1`, owner's request,
+  2026-11-23; project setting Settings → Functions → Function Region).
+- Media storage (2026-11-23): R2 bucket `reeldeal-media` (Oceania, private), created by the owner with
+  CORS PUT from `https://theoutsidein.nz`, abort incomplete multipart uploads after 7 days (prefix
+  `org/`), and an Object Read & Write token limited to that bucket. Production has `R2_ACCOUNT_ID`,
+  `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and `R2_BUCKET` as sensitive variables. Without them every
+  signed-in page failed ("R2 storage is required in production"). The dev bucket stays
+  `reeldeal-dev-media`.
+- Findable's Vercel project (`tourism-ai-growth-platform`) has its own `DATABASE_URL`. Check the project
+  name at the top of the page before adding variables.

@@ -3,12 +3,20 @@ import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/safe-redirect";
 import { supabaseServer } from "@/server/app/supabase";
 import { withBasePath } from "@/lib/base-path";
+import { publicEnv } from "@/env/public";
 
 /*
   Landing point for links emailed by Supabase Auth. Exchanges the one-time code (PKCE)
   or token hash for a session cookie, then sends the person to the right screen for the
   flow. Redirects are always built on this request's own origin, and `next` must be a
   path on this site (src/lib/safe-redirect.ts).
+
+  Link scanners: work email (Microsoft 365 Safe Links and similar) opens every link in an
+  incoming email to check it. Token-hash links are single use, so a GET that verified them
+  let the scanner use up the link before the person tapped it ("link expired"). A GET with a
+  token hash therefore only shows /confirm-link, whose button POSTs back here; only that POST
+  verifies. PKCE codes still verify on GET: they need the code-verifier cookie of the browser
+  that asked, which a scanner doesn't have.
 
   flow (set by our own emailRedirectTo, or inferred from `type` for token-hash links):
     signup        ok → /onboarding?verified=1
@@ -22,8 +30,8 @@ import { withBasePath } from "@/lib/base-path";
 const OTP_TYPES: readonly EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
 type Flow = "signup" | "recovery" | "email_change" | "other";
 
-function flowOf(url: URL, type: EmailOtpType | null, next: string): Flow {
-  const f = url.searchParams.get("flow");
+function flowOf(params: URLSearchParams, type: EmailOtpType | null, next: string): Flow {
+  const f = params.get("flow");
   if (f === "signup" || f === "recovery" || f === "email_change") return f;
   if (type === "signup" || type === "email") return "signup";
   if (type === "recovery" || next === "/reset-password") return "recovery";
@@ -34,14 +42,58 @@ function flowOf(url: URL, type: EmailOtpType | null, next: string): Flow {
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
-  const next = safeNextPath(url.searchParams.get("next"));
-  const to = (path: string) => NextResponse.redirect(new URL(withBasePath(path), url.origin));
+  const params = url.searchParams;
+  const tokenHash = params.get("token_hash");
+  const type = OTP_TYPES.find((t) => t === params.get("type")) ?? null;
+  if (tokenHash && type && !params.get("code")) {
+    // Don't use the one-time token on a GET (see above): ask the person to press Confirm.
+    const confirm = new URL(withBasePath("/confirm-link"), url.origin);
+    confirm.searchParams.set("token_hash", tokenHash);
+    confirm.searchParams.set("type", type);
+    confirm.searchParams.set("flow", flowOf(params, type, safeNextPath(params.get("next"))));
+    const next = params.get("next");
+    if (next) confirm.searchParams.set("next", safeNextPath(next));
+    return NextResponse.redirect(confirm);
+  }
+  return handle(request, params, 307);
+}
 
-  const code = url.searchParams.get("code");
-  const tokenHash = url.searchParams.get("token_hash");
-  const typeParam = url.searchParams.get("type");
+/** The Confirm button on /confirm-link. A plain form post, so it works without JavaScript. */
+export async function POST(request: NextRequest) {
+  if (!sameSite(request)) return new NextResponse("Forbidden", { status: 403 });
+  const form = await request.formData().catch(() => null);
+  const params = new URLSearchParams();
+  for (const key of ["token_hash", "type", "flow", "next"]) {
+    const value = form?.get(key);
+    if (typeof value === "string" && value) params.set(key, value);
+  }
+  // 303: the browser follows with a GET, so a refresh never posts the token again.
+  return handle(request, params, 303);
+}
+
+/*
+  Login-CSRF guard: the post must come from this site's own pages. Requests arrive either
+  directly or through the main site's proxy (NEXT_PUBLIC_SITE_URL), so both origins count.
+  Browsers always send Origin on a form POST; a request without one is allowed (very old browsers).
+*/
+function sameSite(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  const allowed = [request.nextUrl.origin];
+  if (publicEnv.NEXT_PUBLIC_SITE_URL) allowed.push(new URL(publicEnv.NEXT_PUBLIC_SITE_URL).origin);
+  return allowed.includes(origin);
+}
+
+async function handle(request: NextRequest, params: URLSearchParams, status: 303 | 307) {
+  const url = request.nextUrl;
+  const next = safeNextPath(params.get("next"));
+  const to = (path: string) => NextResponse.redirect(new URL(withBasePath(path), url.origin), status);
+
+  const code = params.get("code");
+  const tokenHash = params.get("token_hash");
+  const typeParam = params.get("type");
   const type = OTP_TYPES.find((t) => t === typeParam) ?? null;
-  const flow = flowOf(url, type, next);
+  const flow = flowOf(params, type, next);
 
   const supabase = await supabaseServer();
   const { error } = code
@@ -62,7 +114,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Secure email change: the first of the two links returns a message and no code.
-  if (flow === "email_change" && !code && !tokenHash && url.searchParams.get("message")) return to("/settings/account?email=one_confirmed");
+  if (flow === "email_change" && !code && !tokenHash && params.get("message")) return to("/settings/account?email=one_confirmed");
 
   const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
   const user = data.user;

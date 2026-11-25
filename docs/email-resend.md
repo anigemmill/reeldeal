@@ -1,8 +1,14 @@
 # Transactional email with Resend (D4)
 
-**Status: prepared, nothing connected.** No account, domain, DNS record, Supabase setting or real
-email has been created, changed or sent. Every step marked **(approval)** needs your go-ahead.
-The branded templates are built and tested locally (see "Tested locally" below).
+**Status (2026-11-22): connected, not yet tested with a real inbox.** `mail.theoutsidein.nz` is
+verified in Outside In's Resend account (the one Findable uses), region `ap-northeast-1` (Tokyo, the
+only Asia-Pacific region Resend offers), domain id `6854cc65-ec50-46d1-b3da-fada67f69dc5`. Supabase
+Auth on `reeldeal` sends through Resend SMTP with the key "Reeldeal production (Supabase Auth SMTP)"
+(sending only, limited to this domain; stored only in Supabase). Sender `Reeldeal
+<no-reply@mail.theoutsidein.nz>`; emails sent limit 100 an hour; the branded templates, subjects, Site
+URL `https://theoutsidein.nz/reeldeal`, the `/reeldeal/auth/callback` redirect and an 8-character
+minimum password are set. Supabase's SMTP settings have no Reply-To, so replies go to the no-reply
+address; add a Reply-To later if it matters. Not done yet: the first real send (section 9).
 
 ## 1. What Resend will send
 
@@ -47,6 +53,26 @@ Send from a **dedicated subdomain**, `mail.[DOMAIN]`. This:
 
 `[DOMAIN]` depends on the final product name and domain (open decision).
 
+**For launch at theoutsidein.nz/reeldeal (2026-11-22):** sending domain `mail.theoutsidein.nz`,
+From `Reeldeal <no-reply@mail.theoutsidein.nz>`, Reply-To `anigemmill@theoutsidein.nz` (the
+confirmed contact address; owner to confirm it for email replies too).
+
+DNS checked 2026-11-22 (read-only): the root domain's mail is Google Workspace (MX
+`aspmx.l.google.com` and alternates). It has **no SPF record and no DMARC record**, and nothing exists
+yet under `mail.`. Nothing to inherit or clash with, so `_dmarc.mail` as below is safe. Separately,
+and outside Reeldeal: the root domain would benefit from `v=spf1 include:_spf.google.com ~all` and its
+own DMARC record, because Workspace mail sent today without SPF is more likely to be marked as spam.
+That changes the root domain, so it is the owner's call.
+
+**Existing Resend account (found 2026-11-22):** Findable already sends through Outside In's Resend
+account from `updates.theoutsidein.nz` (DKIM at `resend._domainkey.updates`, bounce MX and SPF at
+`send.updates`; no DMARC record of its own). Findable's privacy notice lists Resend in the United States, so that
+domain is in the US region. Recommendation: use the **same account** but add Reeldeal as its **own
+domain** (`mail.theoutsidein.nz`) with its own domain-limited API key, so a problem with one
+product's sending (abuse of sign-up, a leaked key, bounces) can't hurt the other's. Check the plan
+first: a domain limit on the current plan would mean upgrading, or sharing `updates.theoutsidein.nz`
+as a stopgap (no DNS work, shared reputation, US region).
+
 ## 4. DNS records needed (approval; you add them, or approve me to)
 
 Resend shows the exact values once the domain is added. Expect:
@@ -66,11 +92,23 @@ Resend shows the exact values once the domain is added. Expect:
 - Verification usually takes minutes, but DNS can take up to 48 hours. Start this early: it is
   the slowest dependency for launch.
 
+### Records Resend issued for `mail.theoutsidein.nz` (2026-11-22)
+
+Hosts are relative to `theoutsidein.nz` (if Freeparking wants full names, add `.theoutsidein.nz`).
+
+| Type | Host | Value |
+|---|---|---|
+| TXT | `resend._domainkey.mail` | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC/amCzrcw0SNUE/e6+Q45NWLtwErfa33M7vuTbbtcNdVTgfylapQLZWi1EB9jErmn5YAdJ5EyG7bZLZ5bAr3NrYb5WMmD5GaZQDPGNEM4bqYmBDOxDL+S1gGhhxlyNQTl1cPrq8JOSJxH6hCag55sy7HyABMwzkSiwMzvheju6rQIDAQAB` |
+| MX | `send.mail` | `feedback-smtp.ap-northeast-1.amazonses.com`, priority 10 |
+| TXT | `send.mail` | `v=spf1 include:amazonses.com ~all` |
+| CNAME | `rsend.mail` | `send.forge.rmta.net` |
+| TXT | `_dmarc.mail` | `v=DMARC1; p=none; rua=mailto:anigemmill@theoutsidein.nz` (ours, not Resend's; monitoring only) |
+
 ## 5. Sending region
 
 Resend sends from a small set of regions (US East is the default; others, including an
 Asia-Pacific region, are offered when adding the domain: check the list in the dashboard).
-Recommendation: **the Asia-Pacific region closest to Sydney**, where the Supabase project and the
+Chosen: `ap-northeast-1` (Tokyo), Resend's only Asia-Pacific region. Original recommendation: **the Asia-Pacific region closest to Sydney**, where the Supabase project and the
 customers are. That keeps processing close to the rest of the stack, and is worth noting in the
 Privacy Policy's list of processors. The region is fixed per domain and changes the hostname in
 the MX record above.
@@ -102,12 +140,15 @@ Project `reeldeal` → **Authentication**:
 - Crossroads Blue literal hex colours, because email clients can't read CSS variables
 - system-safe fonts with Space Grotesk and Inter first
 - a single blue button with a plain-text link under it
-- bracketed owner copy where needed (`[COMPANY LEGAL NAME AND POSTAL ADDRESS]`)
+- footer: "Outside In Limited, Rotorua, New Zealand" (owner, 2026-11-22)
 
 The links use `{{ .TokenHash }}` and go to `/auth/callback`, not Supabase's default
 `{{ .ConfirmationURL }}`. **This matters.** The default links only work in the browser that asked
 for them (PKCE). The browser tests showed that someone who signs up on a laptop and opens the
 email on their phone would get "link expired". Token-hash links work on any device.
+
+Opening a link only shows a Confirm page; the token is used when the person presses its button,
+so work email link scanners can't use it up first (`docs/auth.md`, "Link scanners").
 
 Not used: magic link, invite (Reeldeal sends its own invitations), reauthentication.
 
@@ -145,4 +186,4 @@ pass and inbox placement in Gmail and Outlook.
 2. The final domain, or a development domain you own.
 3. DNS: you add the records Resend shows, or approve me to.
 4. Approval to configure Supabase Auth SMTP and templates on the `reeldeal` project.
-5. `[SUPPORT EMAIL]`, `[DMARC REPORT ADDRESS]`, and `[COMPANY LEGAL NAME AND POSTAL ADDRESS]` for the email footer.
+5. `[SUPPORT EMAIL]`, `[DMARC REPORT ADDRESS]`.

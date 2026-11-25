@@ -17,5 +17,5 @@ someone can sign up on a laptop and confirm on their phone.
 Not used (leave Supabase's defaults or disable): magic link, invite (Reeldeal sends its own
 workspace invitations, Stage 5), reauthentication.
 
-Bracketed text (`[COMPANY LEGAL NAME AND POSTAL ADDRESS]`) is owner copy still needed.
+Footer: "Outside In Limited, Rotorua, New Zealand" (owner, 2026-11-22).
 Colours are the Crossroads Blue tokens as literal hex: email clients cannot read CSS variables.

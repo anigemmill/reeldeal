@@ -75,6 +75,11 @@ async function mailLink(to: string, since: number, subject?: RegExp): Promise<st
   }
   return "";
 }
+/** Open an emailed link the way a person does: the link shows a Confirm page (src/app/auth/callback/route.ts), then press its button. */
+async function openEmailLink(page: Page, link: string) {
+  await page.goto(link);
+  if (new URL(page.url()).pathname.endsWith("/confirm-link")) await page.locator("main:visible form").getByRole("button").click();
+}
 const mailCount = async (to: string) => ((await (await fetch(`${MAIL}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`)).json()) as { messages: unknown[] }).messages?.length ?? 0;
 
 /** Sign up, confirm the email through the emailed link (D10), and stop on onboarding. Returns the page and the link. */
@@ -90,7 +95,7 @@ async function signUpAndVerify(ctx: BrowserContext, name: string, email: string)
   await page.waitForURL("**/verify-email", { timeout: 30000 });
   const link = await mailLink(email, since, /confirm/i);
   if (!link) throw new Error(`no confirmation email for ${email}`);
-  await page.goto(link);
+  await openEmailLink(page, link);
   await page.waitForURL("**/onboarding?verified=1", { timeout: 30000 });
   return { page, link };
 }
@@ -190,15 +195,18 @@ async function main() {
     check("Resend then waits before sending again", await wp.getByRole("button", { name: /Send a new link in/ }).isDisabled());
     await W.close();
     const latest = await mailLink(emailA, Date.now() - 15000, /confirm/i);
-    await vp.goto(latest);
+    // A work-email link scanner opens the link first, without pressing anything.
+    const scanned = await fetch(latest, { redirect: "follow" });
+    check("A link scanner opening the link only reaches the Confirm page", scanned.ok && new URL(scanned.url).pathname.endsWith("/confirm-link"));
+    await openEmailLink(vp, latest);
     await vp.waitForURL("**/onboarding?verified=1", { timeout: 20000 });
     check("A confirmation link requested in another browser still works (token-hash template)", (await vp.locator("main:visible").innerText()).includes("Email confirmed"));
-    await vp.goto(latest);
+    await openEmailLink(vp, latest);
     await vp.waitForURL("**/onboarding?verified=already", { timeout: 20000 });
     check("Opening a used link again says the email is already confirmed", (await vp.locator("main:visible").innerText()).includes("already confirmed"));
     const U = await browser.newContext();
     const up = await U.newPage();
-    await up.goto(latest);
+    await openEmailLink(up, latest);
     await up.waitForURL("**/verify-email?link=invalid", { timeout: 20000 });
     check("A used link in a signed-out browser shows the expired state", true);
     await U.close();
@@ -255,7 +263,7 @@ async function main() {
     await rp.getByText(/we've sent a link/).waitFor({ timeout: 10000 });
     const link = await mailLink(emailA, resetSince, /reset/i);
     check("Password reset email is sent", Boolean(link));
-    await rp.goto(link);
+    await openEmailLink(rp, link);
     await rp.waitForURL("**/reset-password", { timeout: 15000 });
     await settle(rp);
     await rp.getByLabel("New password").fill("new-correct-horse-battery");
@@ -338,10 +346,10 @@ async function main() {
     check("Email change sends a confirmation to both addresses", Boolean(oldLink && newLink));
     await cp.reload();
     check("The pending change is shown", (await cp.locator("main:visible").innerText()).includes(`changing to ${emailC2}`));
-    await cp.goto(oldLink);
+    await openEmailLink(cp, oldLink);
     await cp.waitForURL("**/settings/account?email=*", { timeout: 20000 });
     const firstStatus = new URL(cp.url()).searchParams.get("email");
-    await cp.goto(newLink);
+    await openEmailLink(cp, newLink);
     await cp.waitForURL("**/settings/account?email=*", { timeout: 20000 });
     await cp.goto(`${BASE}/settings/account`);
     const main = await cp.locator("main:visible").innerText();
