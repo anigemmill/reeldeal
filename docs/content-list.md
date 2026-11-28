@@ -8,6 +8,26 @@ All imagery on the site is currently drawn placeholder art from 9 scenes in
 (and `poster` for video) on an entry there; pages reference ids and need no changes. New
 shots need new entries in that file.
 
+## Status (2026-11-28)
+
+Real media from the owner's Drive folder ("Reel deal", one subfolder per slot) is in
+`public/media/` and registered in `src/content/media.ts` (52 files, 25 MB; originals were
+1.4 GB). Processing: stills at most 1600 px WebP; hero clips are the first 12 s, muted,
+cropped to 3:4, 720 × 960 H.264 under 4 MB, each with a WebP poster. The owner confirmed
+permission for all of it; businesses are never named on the site.
+
+| Area | Status |
+|---|---|
+| Home hero (12 tiles) | Real reels. The centre tile plays its clip. Two of the 14 supplied were left out (one names a business on screen; one event crowd shot shows sponsor banners) |
+| Home bento (Autopilot phone, Studio preview, library tile, batch stack) and Tourism panel | Real |
+| Home prompt wall (4 feature cards, small cards) | **Still placeholders**: the Drive copies were all the same food photo. Re-upload needed |
+| Product (editor, phones, brand orbit, library, export) | Real |
+| Tourism: hero and 3 thumbnails | Real |
+| Tourism: Find your fit (5), Seasons (4) | **Still placeholders**: the Drive copies were all the same boardwalk photo. Re-upload needed |
+| Showcase | 3 real (Sunset sailing, New season menu, Meet your guides); the rest and the featured story await the re-upload. Still labelled as samples |
+| About gallery (3) | Real |
+| Site header menu tiles | Placeholders (not in the Drive folder) |
+
 ## How sizes were worked out
 
 - **Slot**: the largest size the picture is shown at on any screen (CSS pixels).

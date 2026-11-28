@@ -7,18 +7,18 @@ import type { MediaId } from "./media";
 */
 
 export const HERO_TILES: { media: MediaId; title: string; meta: string }[] = [
-  { media: "lake-kayak", title: "Lakeside Lodge", meta: "REEL · 0:24 · AUTOPILOT" },
-  { media: "geo-valley", title: "Valley Geothermal", meta: "STORY · 0:15 · AUTOPILOT" },
-  { media: "forest-ride", title: "Redwoods Trail Co.", meta: "TIKTOK · 0:18 · STUDIO" },
-  { media: "coast-sail", title: "Bay Sail Charters", meta: "FEED · 0:30 · AUTOPILOT" },
-  { media: "lodge-night", title: "Alpine Lodge", meta: "REEL · 0:20 · STUDIO" },
-  { media: "alpine-sunrise", title: "Ridge Walks", meta: "WEBSITE · 0:45 · STUDIO" },
-  { media: "beach-turquoise", title: "Cove Kayak Hire", meta: "REEL · 0:12 · AUTOPILOT" },
-  { media: "vineyard-gold", title: "Hillside Estate", meta: "AD · 0:15 · AUTOPILOT" },
-  { media: "harbour-blue", title: "Harbour Café", meta: "STORY · 0:10 · AUTOPILOT" },
-  { media: "geo-valley", title: "Hot Pools Spa", meta: "REEL · 0:30 · STUDIO" },
-  { media: "lodge-night", title: "Rooftop Bar", meta: "TIKTOK · 0:14 · AUTOPILOT" },
-  { media: "alpine-sunrise", title: "Alpine Retreat", meta: "FEED · 0:30 · STUDIO" },
+  { media: "hero-brunch", title: "Weekend brunch", meta: "REEL · 0:20" },
+  { media: "hero-rotomahana", title: "Lake cruise", meta: "REEL · 0:10" },
+  { media: "hero-chef", title: "Degustation night", meta: "REEL · 0:14" },
+  { media: "hero-trail-rider", title: "On the trail", meta: "REEL · 1:26" },
+  { media: "hero-conch", title: "Call to gather", meta: "REEL · 0:21" },
+  { media: "hero-steam-vent", title: "Steam and sulphur", meta: "REEL · 0:19" },
+  { media: "hero-volunteers", title: "Thank you, volunteers", meta: "REEL · 0:30" },
+  { media: "hero-light-show", title: "After dark", meta: "REEL · 0:23" },
+  { media: "hero-waka-haul", title: "All hands", meta: "REEL · 1:15" },
+  { media: "hero-welcome", title: "Welcome", meta: "REEL · 0:54" },
+  { media: "hero-bet-youve-never", title: "Village walk", meta: "REEL · 0:30" },
+  { media: "hero-gallery-guide", title: "Meet the guide", meta: "REEL · 2:09" },
 ];
 
 export const HERO_PROMPTS = [

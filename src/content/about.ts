@@ -6,9 +6,9 @@ import type { MediaId } from "./media";
 */
 export const ABOUT = {
   gallery: [
-    { media: "geo-valley", grow: "sm:flex-[2]" },
-    { media: "forest-ride", grow: "sm:flex-1" },
-    { media: "coast-sail", grow: "sm:flex-[1.3]" },
+    { media: "about-laptop-camera", grow: "sm:flex-[2]" },
+    { media: "about-phone-edit", grow: "sm:flex-1" },
+    { media: "about-timeline", grow: "sm:flex-[1.3]" },
   ] satisfies { media: MediaId; grow: string }[],
   /* Founder story, quote and photo are left off until the owner supplies them (2026-11-21). */
   problem:

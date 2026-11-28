@@ -18,8 +18,9 @@ export function MediaArt({ asset, className, sizes }: { asset: MediaAsset; class
   return <Scene variant={asset.placeholder ?? "lake-morning"} label={`Placeholder image: ${asset.alt}`} className={className} />;
 }
 
-/** Small corner tag so placeholder media is always identifiable. */
-export function PlaceholderTag({ className }: { className?: string }) {
+/** Small corner tag so placeholder media is always identifiable. Hidden when `asset` is real media. */
+export function PlaceholderTag({ className, asset }: { className?: string; asset?: MediaAsset }) {
+  if (asset?.src) return null;
   return (
     <span
       className={cn(

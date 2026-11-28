@@ -26,7 +26,7 @@ export default function ShowcasePage() {
         </Container>
         <Container className="mt-8">
           <p className="rounded-lg border border-line bg-surface-muted px-4 py-3 text-sm text-ink-soft">
-            <span className="font-semibold text-ink">Sample gallery.</span> These businesses and videos are invented examples that show what Reeldeal makes.
+            <span className="font-semibold text-ink">Sample gallery.</span> These are examples of the kind of videos Reeldeal makes, not customer work.
             Customer videos will replace them: [CUSTOMER VIDEOS].
           </p>
         </Container>

@@ -50,9 +50,9 @@ export const TOURISM: IndustrySolution = {
   lead: "Your guides, staff and guests already film the best bits. Turn that footage into a steady stream of on-brand reels, ads and website videos.",
   assurances: ["Works from a phone", "Your footage stays yours", "Built for small teams"],
   hero: {
-    media: "alpine-sunrise",
-    thumbs: ["lake-kayak", "forest-ride", "geo-valley"],
-    sample: { business: "Ridge Walks", summary: "3 options from 46 clips, for “Spring sunrise tours, book now”." },
+    media: "tourism-valley-lookout",
+    thumbs: ["tourism-steam-boardwalk", "tourism-couple-boardwalk", "tourism-crater-lake"],
+    sample: { business: "Guided walks", summary: "3 options from 46 clips, for “Spring sunrise tours, book now”." },
   },
   segments: [
     {
