@@ -87,7 +87,7 @@ export function Bento() {
             </div>
             <div className="-mb-16 hidden h-[410px] w-[210px] shrink-0 self-end rounded-[34px] bg-media-veil p-2 sm:block" aria-hidden>
               <div className="relative size-full overflow-hidden rounded-[27px]">
-                <MediaArt asset={getMedia("coast-sail")} />
+                <MediaArt asset={getMedia("home-cruise-sunset")} />
                 <span className="absolute inset-x-3 top-[44%] rounded-pill bg-on-media px-3 py-2 text-[11px] text-media-veil">Sunset cruise, 20s</span>
                 <span className="absolute inset-x-3 bottom-[70px] rounded-[14px] bg-action p-2.5 text-center text-xs font-semibold text-action-foreground">
                   Approve option 2
@@ -111,7 +111,7 @@ export function Bento() {
             <div className="mt-auto flex flex-col gap-2.5 rounded-[18px] border border-line bg-surface p-3" aria-hidden>
               <div className="flex gap-2.5">
                 <div className="relative aspect-video flex-1 overflow-hidden rounded-[10px]">
-                  <MediaArt asset={getMedia("forest-ride")} />
+                  <MediaArt asset={getMedia("home-workshop-presenter")} />
                 </div>
                 <div className="flex w-[36%] flex-col gap-1.5 rounded-[10px] bg-surface-muted p-2.5 text-[11px]">
                   <span className="font-mono text-ink-muted">ASSISTANT</span>
@@ -149,11 +149,11 @@ export function Bento() {
 
           {/* Library search */}
           <div className="relative min-h-[300px] overflow-hidden rounded-xl text-on-media">
-            <MediaArt asset={getMedia("lake-kayak")} />
+            <MediaArt asset={getMedia("home-kayaks-steam")} />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-media-veil/60 via-transparent to-transparent" />
             <span className="absolute inset-x-4 top-5 flex items-center gap-2 rounded-pill bg-on-media py-2 pr-3 pl-3.5 text-[13px] text-media-veil">
               <Search className="size-3.5" aria-hidden />
-              <span className="flex-1">kayak at sunset</span>
+              <span className="flex-1">kayaks by the steam</span>
               <span className="font-mono text-[10px]">23 clips</span>
             </span>
             <div className="absolute inset-x-5.5 bottom-5.5">
@@ -167,9 +167,9 @@ export function Bento() {
             <div className="relative h-[120px]" aria-hidden>
               {(
                 [
-                  ["alpine-sunrise", "left-0 top-[18px] -rotate-8"],
-                  ["lake-kayak", "left-14 top-1.5 rotate-2"],
-                  ["lodge-night", "left-28 top-3.5 rotate-10"],
+                  ["home-guide-sunlight", "left-0 top-[18px] -rotate-8"],
+                  ["home-steam-lookout", "left-14 top-1.5 rotate-2"],
+                  ["home-geyser-steam", "left-28 top-3.5 rotate-10"],
                 ] as const
               ).map(([id, pos]) => (
                 <div key={id} className={cn("absolute h-[100px] w-[76px] overflow-hidden rounded-[10px] shadow-float", pos)}>
@@ -208,11 +208,11 @@ export function Tourism() {
     <section aria-labelledby="tourism-title" className="pb-20 sm:pb-30">
       <Container className="flex flex-wrap items-center gap-12">
         <div className="relative h-[420px] min-w-0 flex-[1.2_1_520px] overflow-hidden rounded-2xl sm:h-[560px]">
-          <MediaArt asset={getMedia("geo-valley")} />
-          <PlaceholderTag className="top-4 left-4" />
+          <MediaArt asset={getMedia("home-geothermal-aerial")} />
+          <PlaceholderTag className="top-4 left-4" asset={getMedia("home-geothermal-aerial")} />
           <div className="absolute right-5 bottom-5 left-5 rounded-[18px] bg-surface p-4 text-ink shadow-float sm:left-auto sm:w-[260px]">
             <Eyebrow className="mb-1.5 text-[10px]">This week</Eyebrow>
-            <div className="mb-2.5 font-display text-lg font-semibold">Valley Geothermal</div>
+            <div className="mb-2.5 font-display text-lg font-semibold">Geothermal park</div>
             <div className="flex gap-1.5 text-xs">
               {["3 reels", "1 ad", "2 stories"].map((x) => (
                 <span key={x} className="rounded-pill bg-surface-muted px-2.5 py-1">

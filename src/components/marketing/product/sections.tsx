@@ -72,21 +72,21 @@ function StudioIllustration() {
       className="mode-studio flex h-[360px] flex-col gap-3 overflow-hidden rounded-t-2xl border border-b-0 border-line bg-bg p-3 text-left text-ink shadow-float sm:h-[520px] lg:h-[600px]"
     >
       <div aria-hidden className="flex items-center justify-between rounded-lg bg-surface px-3.5 py-2.5 text-xs">
-        <span className="font-mono text-ink-muted">LAKESIDE LODGE · SUMMER REEL · V3</span>
+        <span className="font-mono text-ink-muted">SUMMER REEL · V3</span>
         <span className="rounded-pill bg-action px-3 py-1 font-semibold text-action-foreground">Render</span>
       </div>
       <div aria-hidden className="flex min-h-0 flex-1 gap-3">
         <div className="hidden w-[18%] flex-col gap-2 rounded-lg bg-surface p-2.5 md:flex">
           <span className="font-mono text-[10px] text-ink-muted">CLIPS</span>
-          {(["lake-kayak", "harbour-blue", "lodge-night", "alpine-sunrise"] as const).map((id) => (
+          {(["product-steaming-cliff", "product-water-ripples", "product-steaming-shore", "product-lake-sunset"] as const).map((id) => (
             <div key={id} className="relative aspect-video overflow-hidden rounded-md">
               <MediaArt asset={getMedia(id)} />
             </div>
           ))}
         </div>
         <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg">
-          <MediaArt asset={getMedia("lake-kayak")} />
-          <PlaceholderTag />
+          <MediaArt asset={getMedia("product-swans-dawn")} />
+          <PlaceholderTag asset={getMedia("product-swans-dawn")} />
           <span className="absolute inset-x-[18%] bottom-6 rounded-md bg-media-veil/70 px-3 py-2 text-center text-sm font-semibold text-on-media">
             Wake up to this.
           </span>
@@ -152,7 +152,7 @@ export function AutopilotSection() {
             <span className="font-display text-base leading-tight font-semibold">What is this video for?</span>
             <span className="rounded-lg border border-line bg-surface p-2 text-[11px]">A 20s reel for the summer sunset cruise</span>
             <div className="grid grid-cols-3 gap-1">
-              {(["coast-sail", "harbour-blue", "beach-turquoise", "lake-kayak", "lodge-night", "alpine-sunrise"] as const).map((id) => (
+              {(["product-drone-wake", "product-cruise-guests", "product-cruise-hills", "product-cruise-lunch", "product-drone-boat", "product-boat-wake"] as const).map((id) => (
                 <div key={id} className="relative aspect-square overflow-hidden rounded-md">
                   <MediaArt asset={getMedia(id)} />
                 </div>
@@ -176,7 +176,7 @@ export function AutopilotSection() {
           <Phone className="hidden sm:flex">
             <span className="font-mono text-[9px] text-ink-muted">REVIEW</span>
             <span className="font-display text-base leading-tight font-semibold">Pick your favourite</span>
-            {(["coast-sail", "harbour-blue"] as const).map((id, i) => (
+            {(["product-cruise-guests", "product-boat-wake"] as const).map((id, i) => (
               <div key={id} className={cn("relative h-20 overflow-hidden rounded-lg", i === 0 && "ring-2 ring-ai")}>
                 <MediaArt asset={getMedia(id)} />
                 <span className="absolute bottom-1 left-1 rounded-pill bg-media-veil/60 px-1.5 text-[9px] text-on-media">Option {i + 1}</span>
@@ -349,7 +349,7 @@ export function LibrarySection() {
             <li key={r.file} className="rounded-xl border border-line bg-surface p-2.5">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[14px]">
                 <MediaArt asset={getMedia(r.media)} />
-                <PlaceholderTag />
+                <PlaceholderTag asset={getMedia(r.media)} />
                 <span className="absolute top-2.5 right-2.5 rounded-pill bg-ai px-2 py-1 font-mono text-[11px] text-ai-foreground">
                   <span className="sr-only">Match score </span>
                   {r.score}
@@ -398,7 +398,7 @@ export function ExportSection() {
           {EXPORT_FORMATS.map((f) => (
             <li key={f.ratio} className="flex flex-col items-center gap-3">
               <div className={cn("relative overflow-hidden rounded-[14px] border-2 border-primary-foreground", f.size)} aria-hidden>
-                <MediaArt asset={getMedia("lake-kayak")} />
+                <MediaArt asset={getMedia("product-drone-wake-export")} />
               </div>
               <span className="font-mono text-[13px]">{f.ratio}</span>
               <span className="text-[13px]">{f.use}</span>

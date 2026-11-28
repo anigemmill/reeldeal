@@ -34,16 +34,16 @@ export const STUDIO_FEATURES: readonly { title: string; text: string; icon: Stud
 export const BRAND_CHIPS = ["Golden hour", "Guests smiling", "Steady shot", "Wide landscape", "Logo-safe", "Best moment 00:12"] as const;
 
 /** Thumbnails circling the brand-intelligence orbit (outer ring then inner ring). */
-export const ORBIT_OUTER: readonly MediaId[] = ["lake-kayak", "alpine-sunrise", "forest-ride", "geo-valley", "coast-sail", "lodge-night"];
-export const ORBIT_INNER: readonly MediaId[] = ["coast-sail", "forest-ride", "lake-kayak", "alpine-sunrise"];
+export const ORBIT_OUTER: readonly MediaId[] = ["product-kapa-haka", "product-steam-gazer", "product-cruise-guests", "product-guide-portrait", "product-workshop-hands", "product-rider-steam"];
+export const ORBIT_INNER: readonly MediaId[] = ["product-dessert", "product-drone-wake", "product-hangi-steam", "product-kayaks"];
 
-export const LIBRARY_QUERY = "guests laughing on the jetty at sunset";
+export const LIBRARY_QUERY = "guests on the boardwalk at night";
 
 export const LIBRARY_RESULTS: readonly { media: MediaId; file: string; time: string; score: string; tags: readonly string[] }[] = [
-  { media: "harbour-blue", file: "jetty_dusk_03.mov", time: "00:18", score: "9.4", tags: ["Sunset", "Guests ×4", "Laughing"] },
-  { media: "lake-kayak", file: "kayak_02.mov", time: "00:41", score: "9.1", tags: ["Golden hour", "Water", "Wide"] },
-  { media: "lodge-night", file: "deck_firepit.mov", time: "00:27", score: "8.7", tags: ["Evening", "Guests ×2"] },
-  { media: "alpine-sunrise", file: "ridge_sunrise_04.mov", time: "00:22", score: "8.2", tags: ["Sunrise", "Landscape"] },
+  { media: "product-night-lights", file: "jetty_dusk_03.mov", time: "00:18", score: "9.4", tags: ["Night", "Guests ×4", "Light show"] },
+  { media: "product-kayaks", file: "kayak_02.mov", time: "00:41", score: "9.1", tags: ["Kayak", "Water", "Steam"] },
+  { media: "product-firepit-lounge", file: "deck_firepit.mov", time: "00:27", score: "8.7", tags: ["Interior", "Firepit"] },
+  { media: "product-sunrise-carvings", file: "ridge_sunrise_04.mov", time: "00:22", score: "8.2", tags: ["Sunrise", "Landscape"] },
 ];
 
 /** Export formats; width/height classes keep each frame at its real aspect ratio. */

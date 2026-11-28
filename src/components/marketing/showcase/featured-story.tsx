@@ -20,7 +20,7 @@ export function FeaturedStory() {
         <div className="relative h-[360px] min-w-0 flex-[1.2_1_520px] overflow-hidden rounded-2xl sm:h-[520px]">
           <MediaArt asset={getMedia("coast-sail")} />
           <span className="absolute top-5 left-5 rounded-pill bg-primary px-3 py-1.5 font-mono text-[11px] text-primary-foreground">FEATURED STORY</span>
-          <PlaceholderTag className="top-auto bottom-4 left-5" />
+          <PlaceholderTag className="top-auto bottom-4 left-5" asset={getMedia("coast-sail")} />
         </div>
         <div className="min-w-0 flex-[1_1_400px]">
           <h2 id="story-title" className="mb-4.5 font-display text-[clamp(40px,4.4vw,62px)] leading-[0.98] font-semibold tracking-[-0.04em]">

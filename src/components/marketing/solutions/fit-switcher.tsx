@@ -70,7 +70,7 @@ export function FitSwitcher({ segments }: { segments: SolutionSegment[] }) {
       >
         <div className="relative min-h-[440px] min-w-0 flex-[1.3_1_520px] overflow-hidden rounded-2xl text-on-media">
           <MediaArt asset={getMedia(current.media)} />
-          <PlaceholderTag className="top-4 left-4" />
+          <PlaceholderTag className="top-4 left-4" asset={getMedia(current.media)} />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-media-veil/70 via-media-veil/10 to-transparent" />
           <div className="absolute right-7 bottom-7 left-7">
             <h3 className="mb-2 font-display text-[40px] leading-none font-semibold tracking-[-0.03em]">{current.label}</h3>

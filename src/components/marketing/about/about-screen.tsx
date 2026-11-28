@@ -25,7 +25,7 @@ export function AboutScreen() {
           {ABOUT.gallery.map((g) => (
             <div key={g.media} className={cn("relative h-64 overflow-hidden rounded-2xl sm:h-auto", g.grow)}>
               <MediaArt asset={getMedia(g.media)} />
-              <PlaceholderTag className="top-4 left-4" />
+              <PlaceholderTag className="top-4 left-4" asset={getMedia(g.media)} />
             </div>
           ))}
         </div>

@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { MediaArt } from "@/components/media/media-art";
 import { Eyebrow } from "@/components/ui/misc";
 import { HERO_PROMPTS, HERO_TILES } from "@/content/home";
-import { getMedia } from "@/content/media";
+import { getMedia, type MediaAsset } from "@/content/media";
+import { withBasePath } from "@/lib/base-path";
 import { PRIMARY_CTA, SIGN_UP_OPEN } from "@/content/site";
 
 /*
@@ -88,7 +89,7 @@ export function ArcHero() {
             </button>
           )}
         </div>
-        <p className="mt-3 font-mono text-[10px] tracking-wide text-ink-muted uppercase">Sample work · placeholder imagery</p>
+        <p className="mt-3 font-mono text-[10px] tracking-wide text-ink-muted uppercase">Example videos</p>
       </div>
     </section>
   );
@@ -143,7 +144,7 @@ function Arc({ paused }: { paused: boolean }) {
     <div
       ref={root}
       role="region"
-      aria-label="Videos made on the platform (sample work)"
+      aria-label="Example videos"
       className="relative mt-11 h-[400px] overflow-hidden [perspective:2200px] [perspective-origin:50%_45%] sm:h-[470px]"
     >
       <div className="absolute top-[50px] left-1/2 size-0 [transform-style:preserve-3d]">
@@ -159,6 +160,7 @@ function Arc({ paused }: { paused: boolean }) {
             >
               <div className="relative size-full overflow-hidden rounded-[10px] bg-ink">
                 <MediaArt asset={getMedia(t.media)} />
+                {isLive && !paused && <TileVideo asset={getMedia(t.media)} />}
                 <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-media-veil/55 to-transparent" />
                 {isLive && (
                   <>
@@ -220,5 +222,28 @@ function PromptBar({ paused }: { paused: boolean }) {
         <ArrowUp className="size-[18px]" strokeWidth={2.4} aria-hidden />
       </Link>
     </div>
+  );
+}
+
+/*
+  The centre tile plays its clip: muted, looping, inline, no controls (decorative; the
+  section's pause button stops it, and it never plays with reduced motion). Mounted only
+  for the live tile, so one video downloads at a time; the poster shows underneath.
+*/
+function TileVideo({ asset }: { asset: MediaAsset }) {
+  if (asset.kind !== "video" || !asset.src) return null;
+  return (
+    <video
+      key={asset.id}
+      src={withBasePath(asset.src)}
+      poster={asset.poster ? withBasePath(asset.poster) : undefined}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      aria-hidden
+      className="absolute inset-0 size-full object-cover"
+    />
   );
 }

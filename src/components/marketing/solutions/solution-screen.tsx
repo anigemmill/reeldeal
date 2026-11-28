@@ -70,7 +70,7 @@ function Hero({ solution }: { solution: IndustrySolution }) {
 
         <div className="relative min-h-[460px] min-w-0 flex-[1.2_1_520px] overflow-hidden rounded-2xl lg:min-h-[620px]">
           <MediaArt asset={getMedia(hero.media)} />
-          <PlaceholderTag className="top-4 left-4" />
+          <PlaceholderTag className="top-4 left-4" asset={getMedia(hero.media)} />
           <div className="absolute bottom-6 left-6 flex gap-2" aria-hidden>
             {hero.thumbs.map((id) => (
               <div key={id} className="relative h-28 w-21 overflow-hidden rounded-xl border-2 border-on-media">

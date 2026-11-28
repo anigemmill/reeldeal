@@ -361,3 +361,14 @@ How it is wired: `docs/app.md`. Decisions:
 - **Production storage is R2 bucket `reeldeal-media` (Oceania).** The app refuses to run signed-in
   pages without R2 in production, by design.
 - **Functions run in Sydney (`syd1`)**, next to the database.
+
+## Real website media (2026-11-28)
+
+- **The owner confirmed permission for every file supplied** for the website (the Drive folder
+  "Reel deal"), including footage and photos of named Rotorua businesses and credited photographers.
+- **Businesses are never named on the site.** Captions come from the owner's own card titles;
+  invented sample business names were removed from the Showcase, hero tiles and mock-ups.
+- **Real reels are shown as "Example videos"**, not as videos made with Reeldeal, and the Showcase
+  stays labelled as a sample gallery until customer videos exist.
+- **Media lives in `public/media/`** (25 MB) for now; move to object storage behind a CDN if the
+  library grows.
